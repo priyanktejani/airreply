@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "179471108216",
+    "project_id": "airreply",
+    "storage_bucket": "airreply.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:179471108216:android:35d0892ca2430dabf3c58d",
+        "android_client_info": {
+          "package_name": "com.Kairo.airreply"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2acXCIXK1wocVQqsrbZ4FCKStFJiR3FM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

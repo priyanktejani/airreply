@@ -1,0 +1,3 @@
+tags:
+  emulator:
+    description: Needs the Firebase Auth and Firestore emulators (see test/integration).

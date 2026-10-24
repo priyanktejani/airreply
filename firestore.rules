@@ -1,0 +1,146 @@
+rules_version = '2';
+
+// AirReply security rules. Every device signs in anonymously (FlutterFire or the REST API: the rules apply the same
+// way); a pair is readable and writable only by its two members, and each member may only make the writes its role
+// needs. Every mirror write sets `updatedAt` to server time so desktop clients can poll for changes only. Payloads
+// are AES-GCM ciphertext, so these rules protect integrity and metadata, not content (the backend never holds the key).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function changed() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function pair(pairId) {
+      return get(/databases/$(database)/documents/pairs/$(pairId)).data;
+    }
+
+    function isActiveMember(pairId) {
+      return signedIn() && uid() in pair(pairId).members && pair(pairId).active == true;
+    }
+
+    function isSender(pairId) {
+      return isActiveMember(pairId) && pair(pairId).senderUid == uid();
+    }
+
+    function isReceiver(pairId) {
+      return isActiveMember(pairId) && pair(pairId).receiverUid == uid();
+    }
+
+    // ---------------------------------------------------------------- pairing handshake
+
+    // Keyed by the 6-digit code: fetched by code, never listed. Delete old ones with a TTL policy on expiresAt.
+    match /pairingSessions/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+
+      allow create: if signedIn()
+        && code.matches('^[0-9]{6}$')
+        && request.resource.data.keys().hasOnly(
+          ['status', 'senderUid', 'senderName', 'senderPublicKey', 'createdAt', 'expiresAt'])
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.senderUid == uid()
+        && request.resource.data.senderPublicKey is string
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt < request.time + duration.value(15, 'm');
+
+      // A receiver joins a waiting, unexpired session, once, as itself.
+      allow update: if signedIn()
+        && resource.data.status == 'waiting'
+        && request.time < resource.data.expiresAt
+        && resource.data.senderUid != uid()
+        && request.resource.data.status == 'joined'
+        && request.resource.data.receiverUid == uid()
+        && request.resource.data.receiverPublicKey is string
+        && changed().hasOnly(['status', 'receiverUid', 'receiverName', 'receiverPublicKey']);
+
+      // The sender confirms the joined session and points it at the new pair.
+      allow update: if signedIn()
+        && resource.data.senderUid == uid()
+        && resource.data.status == 'joined'
+        && request.resource.data.status == 'confirmed'
+        && request.resource.data.pairId is string
+        && changed().hasOnly(['status', 'pairId']);
+
+      allow delete: if signedIn()
+        && (resource.data.senderUid == uid() || resource.data.get('receiverUid', null) == uid());
+    }
+
+    // ---------------------------------------------------------------- pairs
+
+    match /pairs/{pairId} {
+      allow get: if signedIn() && uid() in resource.data.members;
+      allow list: if false;
+
+      // Only the sender of a session that this receiver joined can create the pair for it.
+      allow create: if signedIn()
+        && request.resource.data.senderUid == uid()
+        && request.resource.data.members == [uid(), request.resource.data.receiverUid]
+        && request.resource.data.active == true
+        && get(/databases/$(database)/documents/pairingSessions/$(request.resource.data.sessionCode)).data.senderUid == uid()
+        && get(/databases/$(database)/documents/pairingSessions/$(request.resource.data.sessionCode)).data.receiverUid
+          == request.resource.data.receiverUid
+        && get(/databases/$(database)/documents/pairingSessions/$(request.resource.data.sessionCode)).data.status
+          == 'joined';
+
+      // Each member maintains its own push token; either member can end the pair (never re-open it).
+      allow update: if signedIn()
+        && uid() in resource.data.members
+        && changed().hasOnly(['senderToken', 'senderPlatform', 'receiverToken', 'receiverPlatform', 'active', 'deactivatedAt'])
+        && (uid() == resource.data.senderUid
+          ? !changed().hasAny(['receiverToken', 'receiverPlatform'])
+          : !changed().hasAny(['senderToken', 'senderPlatform']))
+        && (request.resource.data.active == resource.data.active || request.resource.data.active == false);
+
+      // Ended pairs are deleted, with their history, by the onPairEnded function.
+      allow delete: if false;
+
+      match /notifications/{notificationId} {
+        allow read: if isActiveMember(pairId);
+
+        allow create: if isSender(pairId)
+          && request.resource.data.keys().hasOnly(
+            ['payload', 'keyHash', 'canReply', 'dismissedOnSender', 'postedAt', 'createdAt', 'updatedAt'])
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() < 16384
+          && request.resource.data.keyHash is string
+          && request.resource.data.canReply is bool
+          && request.resource.data.dismissedOnSender == false
+          && request.resource.data.postedAt is timestamp;
+
+        allow update: if isSender(pairId)
+          && request.resource.data.dismissedOnSender == true
+          && changed().hasOnly(['dismissedOnSender', 'dismissedAt', 'updatedAt']);
+
+        allow delete: if false;
+      }
+
+      match /replies/{replyId} {
+        allow read: if isActiveMember(pairId);
+
+        allow create: if isReceiver(pairId)
+          && request.resource.data.keys().hasOnly(['notificationId', 'payload', 'status', 'createdAt', 'updatedAt'])
+          && request.resource.data.status == 'PENDING'
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() < 16384
+          && request.resource.data.notificationId is string;
+
+        // Only the sender reports the outcome, once.
+        allow update: if isSender(pairId)
+          && resource.data.status == 'PENDING'
+          && request.resource.data.status in ['SENT', 'FAILED_EXPIRED', 'FAILED']
+          && changed().hasOnly(['status', 'updatedAt']);
+
+        allow delete: if false;
+      }
+    }
+  }
+}

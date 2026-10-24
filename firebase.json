@@ -1,0 +1,76 @@
+{
+  "auth": {
+    "providers": {
+      "anonymous": true
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "airreply",
+          "appId": "1:179471108216:android:35d0892ca2430dabf3c58d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "airreply",
+          "appId": "1:179471108216:ios:2a16d887cdaa3f91f3c58d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "airreply",
+          "appId": "1:179471108216:ios:31dac85ffc87313bf3c58d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "airreply",
+          "configurations": {
+            "android": "1:179471108216:android:35d0892ca2430dabf3c58d",
+            "ios": "1:179471108216:ios:2a16d887cdaa3f91f3c58d",
+            "macos": "1:179471108216:ios:31dac85ffc87313bf3c58d",
+            "web": "1:179471108216:web:0fbe35832d6dd4bcf3c58d",
+            "windows": "1:179471108216:web:8fb913bf0a5c7996f3c58d"
+          }
+        }
+      }
+    }
+  }
+}

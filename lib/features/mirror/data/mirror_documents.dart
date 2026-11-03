@@ -32,7 +32,6 @@ final class MirrorDocuments {
     'dismissedOnSender': false,
     'postedAt': content.postedAt,
     'createdAt': ServerTime.value,
-    'updatedAt': ServerTime.value,
     'expireAt': _expiry(),
   };
 
@@ -57,11 +56,10 @@ final class MirrorDocuments {
     'payload': await _cipher.encrypt({'k': notificationKey, 't': text}, CipherPurpose.reply),
     'status': ReplyStatus.pending.wire,
     'createdAt': _clock(),
-    'updatedAt': ServerTime.value,
     'expireAt': _expiry(),
   };
 
-  static Map<String, Object?> resolved(ReplyStatus status) => {'status': status.wire, 'updatedAt': ServerTime.value};
+  static Map<String, Object?> resolved(ReplyStatus status) => {'status': status.wire};
 
   DateTime _expiry() => _clock().add(mailboxRetention);
 

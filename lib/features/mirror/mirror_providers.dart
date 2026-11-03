@@ -23,14 +23,20 @@ final pairCipherProvider = Provider.family<PairCipher, String>((ref, pairId) {
 final mirrorRepositoryProvider = Provider.family<MirrorRepository, String>((ref, pairId) {
   final mailbox = switch (ref.watch(backendTransportProvider)) {
     BackendTransport.firebaseSdk => FirestoreMailbox(ref.watch(firestoreProvider), pairId),
-    BackendTransport.rest => RestMailbox(ref.watch(firestoreRestClientProvider), pairId),
+    BackendTransport.rest => RestMailbox(
+      ref.watch(firestoreRestClientProvider),
+      pairId,
+      pairPolls: ref.watch(documentPollsProvider),
+    ),
   };
-  return MirrorSyncRepository(
+  final repository = MirrorSyncRepository(
     mailbox,
     MirrorDocuments(ref.watch(pairCipherProvider(pairId))),
     ref.watch(messageHistoryProvider(pairId)),
     collects: ref.watch(pairCredentialsProvider(pairId).select((p) => p.role)) == DeviceRole.receiver,
   );
+  ref.onDispose(repository.dispose);
+  return repository;
 });
 
 // The same repository, exposed per role so each consumer depends only on the slice it needs.

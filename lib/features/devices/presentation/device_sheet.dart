@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
@@ -15,7 +17,6 @@ import 'package:air_reply/core/widgets/feedback.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/devices/presentation/device_status_badge.dart';
-import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
@@ -120,12 +121,12 @@ class _DeviceSheet extends ConsumerWidget {
         const SizedBox(height: AppSpacing.xl),
         OutlinedButton.icon(
           onPressed: () {
-            ref.read(inboxFilterProvider.notifier).set(FeedFilter(pairId: device.pairId));
+            final router = GoRouter.of(context); // the sheet's context goes with it
             Navigator.pop(context);
-            context.go(AppRoutes.notifications);
+            unawaited(router.push(AppRoutes.deviceHistory(device.pairId)));
           },
           icon: const Icon(AppIcons.notificationsNone, size: 18),
-          label: Text(isSender ? 'Notifications shared with it' : 'Notifications from it'),
+          label: Text(isSender ? 'Browse what you shared' : 'Browse notification history'),
         ),
         const SizedBox(height: AppSpacing.sm),
         TextButton.icon(
@@ -181,7 +182,3 @@ class _Fact extends StatelessWidget {
     );
   }
 }
-
-/// Removing a device from elsewhere (Settings → data), with the same confirmation.
-Future<bool> confirmRemoveDevice(BuildContext context, WidgetRef ref, PairingCredentials device) =>
-    _DeviceSheet.remove(context, ref, device);

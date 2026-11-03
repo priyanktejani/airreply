@@ -8,6 +8,7 @@ import 'package:air_reply/core/platform/background_sync_channel.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
 import 'package:air_reply/core/storage/secret_store.dart';
+import 'package:air_reply/features/mirror/domain/entities/history_query.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
@@ -188,8 +189,11 @@ class RecordingMirror implements MirrorRepository {
   Future<MirroredNotification?> fetchNotification(String id) async => null;
 
   @override
-  Future<HistoryMatches> searchHistory(String query, {int limit = 200}) async =>
-      (notifications: const <MirroredNotification>[], replies: const <ReplyCommand>[]);
+  Future<HistoryPage> browseHistory(HistoryQuery query, {HistoryCursor? after, int limit = 50}) async =>
+      (notifications: const <MirroredNotification>[], replies: const <ReplyCommand>[], next: null, saved: 0);
+
+  @override
+  Future<int> countHistory(HistoryQuery query) async => 0;
 
   @override
   Future<MirroredNotification?> decodePushed({

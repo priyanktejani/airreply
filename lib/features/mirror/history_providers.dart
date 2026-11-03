@@ -1,5 +1,6 @@
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/features/mirror/data/history_database.dart';
+import 'package:air_reply/features/mirror/data/history_key.dart';
 import 'package:air_reply/features/mirror/data/message_history.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// One connection per isolate (the app, the sender's background engine, a push handler), closed with its container.
 final historyDatabaseProvider = Provider<HistoryDatabase>((ref) {
-  final db = HistoryDatabase.open();
+  final key = HistoryKey(ref.watch(secretStoreProvider));
+  final db = HistoryDatabase.open(key.hex);
   ref.onDispose(db.close);
   return db;
 });

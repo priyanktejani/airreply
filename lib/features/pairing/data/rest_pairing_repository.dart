@@ -6,6 +6,7 @@ import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/firebase/auth_gateway.dart';
 import 'package:air_reply/core/firebase/firestore_schema.dart';
+import 'package:air_reply/core/firebase/rest/document_polls.dart';
 import 'package:air_reply/core/firebase/rest/firestore_rest_client.dart';
 import 'package:air_reply/core/firebase/rest/polling.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
@@ -22,9 +23,10 @@ final class RestPairingRepository implements PairingRepository {
     Random? random,
     DateTime Function()? clock,
     this.sessionPollInterval = const Duration(seconds: 2),
-    this.pairPollInterval = const Duration(seconds: 30),
+    DocumentPolls? pairPolls,
   }) : _random = random ?? Random.secure(),
-       _clock = clock ?? DateTime.now;
+       _clock = clock ?? DateTime.now,
+       _pairPolls = pairPolls ?? DocumentPolls(_client);
 
   static const _maxCodeAttempts = 6;
 
@@ -33,7 +35,9 @@ final class RestPairingRepository implements PairingRepository {
   final Random _random;
   final DateTime Function() _clock;
   final Duration sessionPollInterval;
-  final Duration pairPollInterval;
+
+  /// The pair documents, polled once for this and the connection status alike (see [RestMailbox]).
+  final DocumentPolls _pairPolls;
 
   static String _session(String code) => '${FirestoreSchema.pairingSessions}/$code';
 
@@ -135,16 +139,19 @@ final class RestPairingRepository implements PairingRepository {
   Future<void> cancelSession(String code) => _guard(() => _client.commit([RestWrite.delete(_session(code))]));
 
   @override
-  Stream<bool> watchPairActive(String pairId) => pollingStream<bool>(() async {
-    try {
-      final pair = await _client.get(_pair(pairId));
-      return pair != null && PairingDocuments.isActive(pair.data);
-    } on RestFirestoreException catch (e) {
-      // The pair (and with it our membership) was deleted.
-      if (e.status == 'PERMISSION_DENIED') return false;
-      rethrow;
-    }
-  }, every: pairPollInterval).distinct();
+  Stream<bool> watchPairActive(String pairId) => _pairPolls
+      .watch(_pair(pairId))
+      .expand<bool>(
+        (read) => switch (read) {
+          (document: final pair?, error: null) => [PairingDocuments.isActive(pair.data)],
+          (document: null, error: null) => [false],
+          // The pair (and with it our membership) was deleted.
+          (error: RestFirestoreException(status: 'PERMISSION_DENIED'), document: _) => [false],
+          // offline or a server hiccup: says nothing about the pair
+          _ => const [],
+        },
+      )
+      .distinct();
 
   @override
   Future<void> deactivatePair(String pairId) =>

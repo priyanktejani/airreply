@@ -2,6 +2,7 @@ import 'package:air_reply/core/crypto/crypto_contracts.dart';
 import 'package:air_reply/core/crypto/crypto_service.dart';
 import 'package:air_reply/core/device/device_identity.dart';
 import 'package:air_reply/core/firebase/auth_gateway.dart';
+import 'package:air_reply/core/firebase/rest/document_polls.dart';
 import 'package:air_reply/core/firebase/rest/firebase_rest_config.dart';
 import 'package:air_reply/core/firebase/rest/firestore_rest_client.dart';
 import 'package:air_reply/core/firebase/rest/rest_auth_gateway.dart';
@@ -60,6 +61,9 @@ final firestoreRestClientProvider = Provider<FirestoreRestClient>(
     ref.watch(restAuthGatewayProvider),
   ),
 );
+
+/// Document polls shared across the app: a pair's document is read once per interval for every use of it.
+final documentPollsProvider = Provider<DocumentPolls>((ref) => DocumentPolls(ref.watch(firestoreRestClientProvider)));
 
 // ------------------------------------------------------------------ shared
 

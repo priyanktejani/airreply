@@ -1,9 +1,13 @@
 import 'dart:convert';
 
+import 'package:air_reply/core/firebase/rest/document_polls.dart';
 import 'package:air_reply/core/firebase/rest/firebase_rest_config.dart';
 import 'package:air_reply/core/firebase/rest/firestore_rest_client.dart';
 import 'package:air_reply/core/firebase/rest/rest_auth_gateway.dart';
 import 'package:air_reply/core/firebase/server_time.dart';
+import 'package:air_reply/features/mirror/data/rest_mailbox.dart';
+import 'package:air_reply/features/mirror/domain/entities/sync_state.dart';
+import 'package:air_reply/features/pairing/data/rest_pairing_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -180,9 +184,8 @@ void main() {
           'notifications',
           filters: [
             const RestFilter('keyHash', RestOperator.equal, 'h'),
-            RestFilter('updatedAt', RestOperator.greaterThanOrEqual, DateTime.utc(2026)),
+            const RestFilter('status', RestOperator.equal, 'PENDING'),
           ],
-          orderBy: 'updatedAt',
           limit: 50,
         ),
         parent: 'pairs/p1',
@@ -207,19 +210,13 @@ void main() {
           },
           {
             'fieldFilter': {
-              'field': {'fieldPath': 'updatedAt'},
-              'op': 'GREATER_THAN_OR_EQUAL',
-              'value': {'timestampValue': '2026-01-01T00:00:00.000Z'},
+              'field': {'fieldPath': 'status'},
+              'op': 'EQUAL',
+              'value': {'stringValue': 'PENDING'},
             },
           },
         ],
       });
-      expect(query['orderBy'], [
-        {
-          'field': {'fieldPath': 'updatedAt'},
-          'direction': 'ASCENDING',
-        },
-      ]);
       expect(query['limit'], 50);
     });
 
@@ -240,6 +237,51 @@ void main() {
         client.commit(const [RestWrite.delete('pairs/p1')]),
         throwsA(isA<RestFirestoreException>().having((e) => e.status, 'status', 'PERMISSION_DENIED')),
       );
+    });
+  });
+
+  group('document polls', () {
+    test('a pair polled for its status and for whether it is active is read once per interval', () async {
+      backend.firestore = (_) => http.Response(
+        jsonEncode({
+          'name': '$_root/pairs/p1',
+          'fields': {
+            'active': {'booleanValue': true},
+          },
+          'updateTime': '2026-11-04T00:00:00Z',
+        }),
+        200,
+      );
+      final polls = DocumentPolls(client, every: const Duration(milliseconds: 40));
+      final pairing = RestPairingRepository(client, auth, pairPolls: polls);
+      final mailbox = RestMailbox(client, 'p1', pairPolls: polls);
+
+      final active = <bool>[];
+      final states = <SyncHealth>[];
+      final a = pairing.watchPairActive('p1').listen(active.add);
+      final b = mailbox.watchSyncState().listen((s) => states.add(s.health));
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await a.cancel();
+      await b.cancel();
+
+      expect(active, [true]);
+      expect(states, everyElement(SyncHealth.live));
+      final reads = backend.firestoreRequests.where((r) => r.method == 'GET').length;
+      expect(reads, inInclusiveRange(3, 5), reason: 'one read per interval for both watchers, not two');
+
+      // nobody watching: the poll stops
+      final after = backend.firestoreRequests.length;
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(backend.firestoreRequests.length, after);
+    });
+
+    test('a pair that is gone reads as inactive, and the connection as offline', () async {
+      backend.firestore = (_) => http.Response('{"error":{"status":"PERMISSION_DENIED","message":"no"}}', 403);
+      final polls = DocumentPolls(client, every: const Duration(seconds: 30));
+      final pairing = RestPairingRepository(client, auth, pairPolls: polls);
+      final mailbox = RestMailbox(client, 'p1', pairPolls: polls);
+      expect(await pairing.watchPairActive('p1').first, isFalse);
+      expect((await mailbox.watchSyncState().first).health, isNot(SyncHealth.live));
     });
   });
 }

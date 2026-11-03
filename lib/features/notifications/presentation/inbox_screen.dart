@@ -18,9 +18,11 @@ import 'package:air_reply/core/widgets/search_field.dart';
 import 'package:air_reply/core/widgets/status_badge.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/domain/grouping.dart';
+import 'package:air_reply/features/notifications/history_providers.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/filter_sheet.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/group_widgets.dart';
+import 'package:air_reply/features/notifications/presentation/widgets/history_widgets.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
@@ -66,7 +68,9 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     final filter = ref.watch(inboxFilterProvider);
     final inboxLoaded = ref.watch(inboxStateProvider).hasValue;
     final groups = ref.watch(groupedInboxProvider);
-    final everything = ref.watch(allFeedProvider).value ?? const [];
+    final everything = ref.watch(liveFeedProvider).value ?? const [];
+    final search = ref.watch(historyResultsProvider(inboxSearch));
+    final matchedDevices = ref.watch(deviceMatchesProvider(filter.query)).isNotEmpty;
 
     final source = switch ((isSender, devices)) {
       (true, [final only]) => 'Shared with ${only.peerName}',
@@ -126,8 +130,18 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
           ),
           const SliverToBoxAdapter(child: AttentionNotices(connection: false, bottom: AppSpacing.base)),
           if (filter.activeCount > 0) SliverToBoxAdapter(child: _ActiveFilters(filter: filter)),
+          // searching: matching devices first, then notifications from the whole history, which hold still while new
+          // ones arrive (the pill adds them)
+          if (search.isActive) ...[
+            SliverToBoxAdapter(child: DeviceResults(query: filter.query)),
+            const SliverToBoxAdapter(child: NewResultsPill(scope: inboxSearch)),
+          ],
           ...switch (groups) {
             _ when !inboxLoaded => [const SliverToBoxAdapter(child: SkeletonList())],
+            AsyncData(value: final list) when list.isEmpty && search.isActive && (search.loading || search.hasMore) => [
+              const SliverToBoxAdapter(child: SkeletonList()),
+            ],
+            AsyncData(value: final list) when list.isEmpty && search.isActive && matchedDevices => [],
             AsyncData(value: final list) when list.isEmpty => [
               SliverToBoxAdapter(
                 child: filter.isActive
@@ -160,6 +174,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 onToggle: (id) =>
                     setState(() => _expandedApps.contains(id) ? _expandedApps.remove(id) : _expandedApps.add(id)),
               ),
+              // the next page of results is read as the end of the list scrolls near
+              if (search.isActive) const SliverToBoxAdapter(child: HistoryLoadMore(scope: inboxSearch)),
             ],
             AsyncError(:final error) => [
               SliverToBoxAdapter(

@@ -195,54 +195,137 @@ final class MessageHistory {
     return revision();
   }
 
-  /// Saves what search looks through, by notification id (see [HistorySearch]).
-  Future<void> putSearchText(Map<String, String> contentById) => _db.batch(
-    (b) => b.insertAllOnConflictUpdate(_db.historySearch, [
-      for (final MapEntry(key: id, value: content) in contentById.entries)
-        HistorySearchCompanion.insert(pairId: pairId, id: id, content: content),
-    ]),
-  );
+  /// Makes notifications findable: their search text and app, by id (see `history_fts`). An empty package name marks
+  /// one whose payload could not be opened, so it is not tried again.
+  Future<void> index(Map<String, ({String content, String packageName})> byId) => _db.transaction(() async {
+    const row = '(SELECT rowid FROM history_notifications WHERE pair_id = ? AND id = ?)';
+    for (final MapEntry(key: id, value: (:content, :packageName)) in byId.entries) {
+      final key = [Variable.withString(pairId), Variable.withString(id)];
+      await _db.customUpdate('DELETE FROM history_fts WHERE rowid = $row', variables: key);
+      if (content.isNotEmpty) {
+        await _db.customInsert(
+          'INSERT INTO history_fts (rowid, content) VALUES ($row, ?)',
+          variables: [...key, Variable.withString(content)],
+        );
+      }
+      await (_db.update(_db.historyNotifications)..where((n) => n.pairId.equals(pairId) & n.id.equals(id))).write(
+        HistoryNotificationsCompanion(packageName: Value(packageName)),
+      );
+    }
+  });
 
-  /// Notifications that search cannot find yet (kept before search existed), up to [limit].
-  Future<List<StoredNotification>> unsearchable({int limit = 300}) async {
-    final n = _db.historyNotifications;
+  /// Notifications not indexed for search yet (kept before search existed), newest first, up to [limit].
+  Future<List<StoredNotification>> unindexed({int limit = 300}) async {
     final rows =
-        await (_db.select(n).join([
-                leftOuterJoin(
-                  _db.historySearch,
-                  _db.historySearch.pairId.equalsExp(n.pairId) & _db.historySearch.id.equalsExp(n.id),
-                ),
-              ])
-              ..where(n.pairId.equals(pairId) & _db.historySearch.id.isNull())
+        await (_db.select(_db.historyNotifications)
+              ..where((n) => n.pairId.equals(pairId) & n.packageName.isNull())
+              ..orderBy([(n) => OrderingTerm.desc(n.postedAt)])
               ..limit(limit))
             .get();
-    return [for (final row in rows) StoredNotification._fromRow(row.readTable(n))];
+    return [for (final row in rows) StoredNotification._fromRow(row)];
   }
 
-  /// Notifications whose search text contains [query] (already lower-cased), newest first, only those posted before
-  /// [before] when given.
-  Future<List<StoredNotification>> search(String query, {DateTime? before, int limit = 200}) async {
-    final n = _db.historyNotifications;
-    final found = FunctionCallExpression<int>('instr', [_db.historySearch.content, Variable(query)]);
-    final rows =
-        await (_db.select(n).join([
-                innerJoin(
-                  _db.historySearch,
-                  _db.historySearch.pairId.equalsExp(n.pairId) & _db.historySearch.id.equalsExp(n.id),
-                ),
-              ])
-              ..where(
-                n.pairId.equals(pairId) &
-                    found.isBiggerThanValue(0) &
-                    (before == null
-                        ? const Constant(true)
-                        : n.postedAt.isSmallerThanValue(before.millisecondsSinceEpoch)),
-              )
-              ..orderBy([OrderingTerm.desc(n.postedAt)])
-              ..limit(limit))
-            .get();
-    return [for (final row in rows) StoredNotification._fromRow(row.readTable(n))];
+  /// A page of notifications, newest first: those whose search text contains [text] (lower-cased; empty for all), of
+  /// [packageName], posted after [after], saved up to [savedUpTo] or after [savedAfter] (see [saved]), and after the
+  /// [cursor] of the previous page.
+  Future<List<StoredNotification>> page({
+    String text = '',
+    String? packageName,
+    DateTime? after,
+    int? savedUpTo,
+    int? savedAfter,
+    ({DateTime postedAt, String id})? cursor,
+    int limit = 50,
+  }) async {
+    final (from, where, variables) = _filter(
+      text: text,
+      packageName: packageName,
+      after: after,
+      savedUpTo: savedUpTo,
+      savedAfter: savedAfter,
+    );
+    if (cursor != null) {
+      final at = cursor.postedAt.millisecondsSinceEpoch;
+      where.add('(n.posted_at < ? OR (n.posted_at = ? AND n.id < ?))');
+      variables.addAll([Variable.withInt(at), Variable.withInt(at), Variable.withString(cursor.id)]);
+    }
+    final rows = await _db
+        .customSelect(
+          'SELECT n.* FROM $from WHERE ${where.join(' AND ')} ORDER BY n.posted_at DESC, n.id DESC LIMIT ?',
+          variables: [...variables, Variable.withInt(limit)],
+          readsFrom: {_db.historyNotifications},
+        )
+        .get();
+    return [for (final row in rows) StoredNotification._fromRow(_db.historyNotifications.map(row.data))];
   }
+
+  /// How many notifications [page] would go through, over all its pages.
+  Future<int> count({String text = '', String? packageName, DateTime? after, int? savedUpTo, int? savedAfter}) async {
+    final (from, where, variables) = _filter(
+      text: text,
+      packageName: packageName,
+      after: after,
+      savedUpTo: savedUpTo,
+      savedAfter: savedAfter,
+    );
+    final row = await _db
+        .customSelect('SELECT count(*) AS c FROM $from WHERE ${where.join(' AND ')}', variables: variables)
+        .getSingle();
+    return row.read<int>('c');
+  }
+
+  /// How far the history goes: notifications saved from now on come after this (SQLite's rowid, which grows with each
+  /// insert and which an update keeps).
+  Future<int> saved() async =>
+      (await _db.customSelect('SELECT coalesce(max(rowid), 0) AS r FROM history_notifications').getSingle()).read<int>(
+        'r',
+      );
+
+  (String, List<String>, List<Variable<Object>>) _filter({
+    required String text,
+    String? packageName,
+    DateTime? after,
+    int? savedUpTo,
+    int? savedAfter,
+  }) {
+    var from = 'history_notifications n';
+    final where = ['n.pair_id = ?'];
+    final variables = <Variable<Object>>[Variable.withString(pairId)];
+    if (text.isNotEmpty) {
+      from = 'history_fts JOIN history_notifications n ON n.rowid = history_fts.rowid';
+      if (text.length >= 3) {
+        // one phrase: the query's trigrams in a row, so it matches as a substring
+        where.add('history_fts MATCH ?');
+        variables.add(Variable.withString('"${text.replaceAll('"', '""')}"'));
+      } else {
+        where.add('instr(history_fts.content, ?) > 0');
+        variables.add(Variable.withString(text));
+      }
+    }
+    if (packageName != null) {
+      where.add('n.package_name = ?');
+      variables.add(Variable.withString(packageName));
+    }
+    if (after != null) {
+      where.add('n.posted_at > ?');
+      variables.add(Variable.withInt(after.millisecondsSinceEpoch));
+    }
+    if (savedUpTo != null) {
+      where.add('n.rowid <= ?');
+      variables.add(Variable.withInt(savedUpTo));
+    }
+    if (savedAfter != null) {
+      where.add('n.rowid > ?');
+      variables.add(Variable.withInt(savedAfter));
+    }
+    return (from, where, variables);
+  }
+
+  /// When the sender's notifications were dismissed, by key hash.
+  Future<Map<String, DateTime>> dismissals() async => {
+    for (final row in await (_db.select(_db.historyDismissals)..where((d) => d.pairId.equals(pairId))).get())
+      row.keyHash: DateTime.fromMillisecondsSinceEpoch(row.at),
+  };
 
   /// The replies to [notificationIds].
   Future<List<StoredReply>> repliesTo(Iterable<String> notificationIds) async {
@@ -289,11 +372,14 @@ final class MessageHistory {
 
   /// Deletes this pair's history: its key is gone, so it could never be read again.
   Future<void> erase() => _db.transaction(() async {
+    await _db.customUpdate(
+      'DELETE FROM history_fts WHERE rowid IN (SELECT rowid FROM history_notifications WHERE pair_id = ?)',
+      variables: [Variable.withString(pairId)],
+    );
     await (_db.delete(_db.historyNotifications)..where((n) => n.pairId.equals(pairId))).go();
     await (_db.delete(_db.historyReplies)..where((r) => r.pairId.equals(pairId))).go();
     await (_db.delete(_db.historyDismissals)..where((d) => d.pairId.equals(pairId))).go();
     await (_db.delete(_db.historyPublished)..where((p) => p.pairId.equals(pairId))).go();
-    await (_db.delete(_db.historySearch)..where((s) => s.pairId.equals(pairId))).go();
   });
 
   /// Moves what the first version kept in SharedPreferences (one key per document) into the database, once.

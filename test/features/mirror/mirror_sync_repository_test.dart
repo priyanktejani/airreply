@@ -11,6 +11,7 @@ import 'package:air_reply/features/mirror/data/message_history.dart';
 import 'package:air_reply/features/mirror/data/mirror_documents.dart';
 import 'package:air_reply/features/mirror/data/mirror_sync_repository.dart';
 import 'package:air_reply/features/mirror/data/pair_mailbox.dart';
+import 'package:air_reply/features/mirror/domain/entities/history_query.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
@@ -54,10 +55,14 @@ final class _FakeMailbox implements PairMailbox {
   /// Set to hold deletes until it completes, as Firestore does offline (the write waits for the server).
   Completer<void>? holdDeletes;
 
+  /// Set to make every delete (a delivery's acknowledgement) fail.
+  Object? refuseDeletes;
+
   @override
   Future<void> delete(String collection, Iterable<String> ids) async {
     final remove = ids.toList();
     await holdDeletes?.future;
+    if (refuseDeletes case final error?) throw error;
     remove.forEach(waiting(collection).remove);
     _changed();
   }
@@ -120,10 +125,16 @@ void main() {
   }
 
   /// One device's sync of the pair, on a new connection to that device's database; [window] notifications loaded.
-  MirrorSyncRepository repository(String device, {required bool collects, int window = 2000}) => MirrorSyncRepository(
-    mailbox,
+  MirrorSyncRepository repository(
+    String device, {
+    required bool collects,
+    int window = 2000,
+    _FakeMailbox? via,
+    String pairId = 'pair',
+  }) => MirrorSyncRepository(
+    via ?? mailbox,
     MirrorDocuments(cipher),
-    MessageHistory(database(device), 'pair', maxNotifications: window),
+    MessageHistory(database(device), pairId, maxNotifications: window),
     collects: collects,
     historyCheckInterval: const Duration(milliseconds: 20),
   );
@@ -264,71 +275,228 @@ void main() {
     expect((await repository('desktop', collects: true).fetchNotification(id))?.content.text, 'Large');
   });
 
-  test('search finds notifications further back than the loaded window, with their replies', () async {
+  // ---------------------------------------------------------------- delivery
+
+  test('a message delivered twice (the server retrying) is kept once', () async {
     final phone = repository('phone', collects: false);
-    final earlier = repository('desktop', collects: true);
-    await phone.publish(message('Parcel arrives Tuesday', DateTime(2026, 1, 5), key: 'old'), canReply: true);
-    await phone.publish(message('Lunch?', DateTime(2026, 11, 2), key: 'a'), canReply: false);
-    await phone.publish(message('parcel picked up', DateTime(2026, 11, 3), key: 'b'), canReply: false);
-    final old = (await feedWhere(earlier, (items) => items.length == 3)).last;
-    await earlier.send(notificationId: old.id, notificationKey: 'old', text: 'Thanks');
+    final desktop = repository('desktop', collects: true);
+    await phone.publish(message('Are you coming?', DateTime(2026, 11, 3, 9)), canReply: true);
+    final first = (await feedWhere(desktop, (items) => items.isNotEmpty)).single;
     await settle();
 
-    // The next start loads only the newest two, and the feed stays on screen while searching.
-    final desktop = repository('desktop', collects: true, window: 2);
-    final feed = StreamController<List<MirroredNotification>>.broadcast();
-    final watching = desktop.watchNotifications().listen(feed.add);
+    // the same document again, as a retried delivery would bring it
+    await mailbox.create('notifications', first.id, {
+      'payload': (await MirrorDocuments(cipher).notification(first.content, canReply: true))['payload'],
+      'postedAt': first.postedAt,
+      'canReply': true,
+    });
+    final reopened = repository('desktop', collects: true);
+    List<MirroredNotification>? again;
+    final watching = reopened.watchNotifications().listen((items) => again = items);
     addTearDown(watching.cancel);
-    final loaded = await feed.stream.firstWhere((items) => items.isNotEmpty).timeout(const Duration(seconds: 5));
-    expect(loaded.map((n) => n.content.text), ['parcel picked up', 'Lunch?']);
-
-    final found = await desktop.searchHistory('PARCEL');
-    expect(found.notifications.single.content.text, 'Parcel arrives Tuesday', reason: 'the loaded match is left out');
-    expect(found.replies.single.text, 'Thanks');
-    expect((await desktop.searchHistory('dinner')).notifications, isEmpty);
-    expect((await desktop.searchHistory('whatsapp')).notifications, hasLength(1), reason: 'the app name matches');
+    await settle();
+    expect(again!.map((n) => n.id), [first.id]);
+    expect(mailbox.waiting('notifications'), isEmpty, reason: 'acknowledged again');
   });
 
-  test('history kept before search existed becomes searchable', () async {
+  test(
+    'when the acknowledgement fails, the message is kept, stays on the server, and is collected once more',
+    () async {
+      final phone = repository('phone', collects: false);
+      mailbox.refuseDeletes = StateError('unavailable');
+      final desktop = repository('desktop', collects: true);
+      await phone.publish(message('Keep me', DateTime(2026, 11, 3, 9)), canReply: false);
+      expect((await feedWhere(desktop, (items) => items.isNotEmpty)).single.content.text, 'Keep me');
+      await settle();
+      expect(mailbox.waiting('notifications'), hasLength(1), reason: 'not acknowledged: the server keeps it');
+
+      // the app reopens with the server reachable again: it picks up where it left off
+      mailbox.refuseDeletes = null;
+      final reopened = repository('desktop', collects: true);
+      final items = await feedWhere(reopened, (items) => items.isNotEmpty);
+      await settle();
+      expect(items.map((n) => n.content.text), ['Keep me']);
+      expect(mailbox.waiting('notifications'), isEmpty);
+    },
+  );
+
+  test('reopening the app collects what arrived while it was closed', () async {
+    final phone = repository('phone', collects: false);
+    final desktop = repository('desktop', collects: true);
+    await phone.publish(message('Before', DateTime(2026, 11, 3, 9)), canReply: false);
+    await feedWhere(desktop, (items) => items.length == 1);
+    await settle();
+
+    await phone.publish(message('While closed', DateTime(2026, 11, 3, 10)), canReply: false);
+    final reopened = await feedWhere(repository('desktop', collects: true), (items) => items.length == 2);
+    expect(reopened.map((n) => n.content.text), ['While closed', 'Before']);
+  });
+
+  test('each paired device acknowledges its own copy', () async {
+    final other = _FakeMailbox();
+    final toMac = repository('phone', collects: false);
+    final toPc = repository('phone', collects: false, via: other, pairId: 'pair2');
+    final at = DateTime(2026, 11, 3, 9);
+    await toMac.publish(message('For both', at), canReply: false);
+    await toPc.publish(message('For both', at), canReply: false);
+
+    await feedWhere(repository('mac', collects: true), (items) => items.isNotEmpty);
+    await settle();
+    expect(mailbox.waiting('notifications'), isEmpty, reason: 'the Mac has its copy');
+    expect(other.waiting('notifications'), hasLength(1), reason: 'the PC has not collected its own yet');
+
+    await feedWhere(repository('pc', collects: true, via: other, pairId: 'pair2'), (items) => items.isNotEmpty);
+    await settle();
+    expect(other.waiting('notifications'), isEmpty);
+  });
+
+  // ---------------------------------------------------------------- search and browsing
+
+  /// The desktop's history after the phone mirrored [count] notifications: every even one "Order #i shipped" from the
+  /// shop app, every odd one "Lunch i?" from WhatsApp, one minute apart.
+  Future<void> mirrored(int count) async {
+    final phone = repository('phone', collects: false);
+    final collector = repository('desktop', collects: true);
+    final watching = collector.watchNotifications().listen((_) {});
+    for (var i = 0; i < count; i++) {
+      final content = i.isEven
+          ? NotificationContent(
+              key: 'shop-$i',
+              packageName: 'com.shop',
+              appName: 'Shop',
+              title: 'Shop',
+              text: 'Order #$i shipped',
+              postedAt: DateTime(2026, 1, 1).add(Duration(minutes: i)),
+            )
+          : message('Lunch $i?', DateTime(2026, 1, 1).add(Duration(minutes: i)), key: 'chat-$i');
+      await phone.publish(content, canReply: false);
+    }
+    while (mailbox.waiting('notifications').isNotEmpty) {
+      await settle();
+    }
+    await settle();
+    await watching.cancel();
+  }
+
+  test('search reads the whole history from the database a page at a time, newest first, each once', () async {
+    await mirrored(130);
+    // the screens keep only the newest 10 loaded; search is not limited by that
+    final desktop = repository('desktop', collects: true, window: 10);
+    const query = HistoryQuery(text: 'ORDER');
+    expect(await desktop.countHistory(query), 65);
+
+    final seen = <String>[];
+    HistoryCursor? cursor;
+    var pages = 0;
+    do {
+      final page = await desktop.browseHistory(query, after: cursor, limit: 50);
+      seen.addAll(page.notifications.map((n) => n.content.text));
+      cursor = page.next;
+      pages++;
+    } while (cursor != null);
+    expect(pages, 2);
+    expect(seen, hasLength(65));
+    expect(seen.toSet(), hasLength(65), reason: 'no notification on two pages');
+    expect(seen.first, 'Order #128 shipped');
+    expect(seen.last, 'Order #0 shipped');
+
+    // filters run in the database too
+    expect(await desktop.countHistory(const HistoryQuery(packageName: 'com.whatsapp')), 65);
+    expect(await desktop.countHistory(const HistoryQuery(text: '#12')), 6, reason: '#12, #120 … #128');
+    expect(await desktop.countHistory(const HistoryQuery(text: 'lu')), 65, reason: 'short queries match too');
+    expect(
+      await desktop.countHistory(
+        HistoryQuery(text: 'order', after: DateTime(2026, 1, 1).add(const Duration(minutes: 119))),
+      ),
+      5,
+    );
+  });
+
+  test('a search is a snapshot: what is saved after it stays out of its pages until asked for', () async {
+    await mirrored(4);
+    final desktop = repository('desktop', collects: true);
+    final first = await desktop.browseHistory(const HistoryQuery(text: 'order'));
+    expect(first.notifications, hasLength(2));
+    final snapshot = const HistoryQuery(text: 'order').saved(upTo: first.saved);
+
+    // sent long before the others, delivered now: still new to this search
+    await repository('phone', collects: false).publish(
+      NotificationContent(
+        key: 'late',
+        packageName: 'com.shop',
+        appName: 'Shop',
+        title: 'Shop',
+        text: 'Order #99 shipped',
+        postedAt: DateTime(2025),
+      ),
+      canReply: false,
+    );
+    await feedWhere(desktop, (items) => items.length == 5);
+    expect((await desktop.browseHistory(snapshot)).notifications, hasLength(2));
+    expect(await desktop.countHistory(snapshot), 2);
+    final added = await desktop.browseHistory(const HistoryQuery(text: 'order').saved(after: first.saved));
+    expect(added.notifications.single.content.text, 'Order #99 shipped');
+  });
+
+  test('history kept before search existed becomes searchable, with its app', () async {
     final db = database('desktop');
     final documents = MirrorDocuments(cipher);
-    Future<StoredNotification> kept(String id, String text, DateTime at) async => StoredNotification(
-      id: id,
-      payload: (await documents.notification(message(text, at), canReply: false))['payload']! as String,
-      postedAt: at,
-    );
+    final at = DateTime(2026, 3, 1);
     await MessageHistory(db, 'pair').putNotifications([
-      await kept('old', 'Boarding pass for Goa', DateTime(2026, 3, 1)),
-      await kept('new', 'Hello', DateTime(2026, 11, 3)),
+      StoredNotification(
+        id: 'old',
+        payload:
+            (await documents.notification(message('Boarding pass for Goa', at), canReply: false))['payload']! as String,
+        postedAt: at,
+      ),
     ]);
-    final desktop = MirrorSyncRepository(
-      mailbox,
-      documents,
-      MessageHistory(db, 'pair', maxNotifications: 1),
-      collects: true,
-    );
+    final desktop = MirrorSyncRepository(mailbox, documents, MessageHistory(db, 'pair'), collects: true);
     final watching = desktop.watchNotifications().listen((_) {});
     await settle();
-    expect((await desktop.searchHistory('goa')).notifications.single.id, 'old');
+    expect((await desktop.browseHistory(const HistoryQuery(text: 'goa'))).notifications.single.id, 'old');
+    expect(await desktop.countHistory(const HistoryQuery(packageName: 'com.whatsapp')), 1);
     await watching.cancel();
   });
 
-  test('a database from before search upgrades in place', () async {
-    final file = File('${files.path}/upgrade.sqlite');
-    final v1 = HistoryDatabase(NativeDatabase(file));
-    await MessageHistory(
-      v1,
-      'pair',
-    ).putNotifications([StoredNotification(id: 'n', payload: 'sealed', postedAt: DateTime(2026, 11, 3))]);
-    await v1.customStatement('DROP TABLE history_search');
-    await v1.customStatement('PRAGMA user_version = 1');
-    await v1.close();
+  for (final from in [1, 2, 3]) {
+    test('a version $from database upgrades in place, and its history becomes searchable', () async {
+      final file = File('${files.path}/upgrade.sqlite');
+      final old = HistoryDatabase(NativeDatabase(file));
+      final documents = MirrorDocuments(cipher);
+      final at = DateTime(2026, 3, 1);
+      await MessageHistory(old, 'pair').putNotifications([
+        StoredNotification(
+          id: 'n',
+          payload:
+              (await documents.notification(message('Parcel arrives Tuesday', at), canReply: false))['payload']!
+                  as String,
+          postedAt: at,
+        ),
+      ]);
+      // back to how that version left it
+      await old.customStatement('DROP INDEX replies_by_notification');
+      if (from < 3) {
+        await old.customStatement('DROP TABLE history_fts');
+        await old.customStatement('DROP INDEX notifications_by_app');
+        await old.customStatement('ALTER TABLE history_notifications DROP COLUMN package_name');
+      }
+      if (from == 2) await old.customStatement('CREATE TABLE history_search (pair_id TEXT, id TEXT, content TEXT)');
+      await old.customStatement('PRAGMA user_version = $from');
+      await old.close();
 
-    final v2 = database('upgrade');
-    final history = MessageHistory(v2, 'pair');
-    expect((await history.load()).notifications.keys, ['n']);
-    expect((await history.unsearchable()).single.id, 'n');
-  });
+      final upgraded = database('upgrade');
+      final desktop = MirrorSyncRepository(mailbox, documents, MessageHistory(upgraded, 'pair'), collects: true);
+      final watching = desktop.watchNotifications().listen((_) {});
+      expect((await desktop.watchNotifications().first).single.content.text, 'Parcel arrives Tuesday');
+      await settle();
+      expect((await desktop.browseHistory(const HistoryQuery(text: 'parcel'))).notifications, hasLength(1));
+      final indexes = await upgraded.customSelect("SELECT name FROM sqlite_master WHERE type = 'index'").get();
+      expect([
+        for (final r in indexes) r.read<String>('name'),
+      ], containsAll(['replies_by_notification', 'notifications_by_app']));
+      await watching.cancel();
+    });
+  }
 
   test('history keeps everything, the screens get the newest, and it is erased with the pair', () async {
     final db = database('desktop');

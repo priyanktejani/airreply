@@ -7,6 +7,7 @@ import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
 import 'package:air_reply/core/platform/notification_permission.dart';
+import 'package:air_reply/features/mirror/domain/entities/history_query.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
@@ -419,10 +420,47 @@ final class _DemoMirror implements MirrorRepository {
   Future<MirroredNotification?> decodePushed({required String id, required String payload, required bool canReply}) =>
       fetchNotification(id);
 
-  /// The sample history is loaded whole: there is nothing further back to find.
+  /// The sample history, searched and paged as the database would.
   @override
-  Future<HistoryMatches> searchHistory(String query, {int limit = 200}) async =>
-      (notifications: const <MirroredNotification>[], replies: const <ReplyCommand>[]);
+  Future<HistoryPage> browseHistory(HistoryQuery query, {HistoryCursor? after, int limit = 50}) async {
+    final matching = _matching(query).where(
+      (n) =>
+          after == null ||
+          n.postedAt.isBefore(after.postedAt) ||
+          (n.postedAt == after.postedAt && n.id.compareTo(after.id) < 0),
+    );
+    final page = matching.take(limit).toList();
+    final ids = {for (final n in page) n.id};
+    return (
+      notifications: page,
+      replies: [
+        for (final r in _replies)
+          if (ids.contains(r.notificationId)) r,
+      ],
+      next: page.length < limit ? null : (postedAt: page.last.postedAt, id: page.last.id),
+      // the sample notifications never change: nothing arrives after a search
+      saved: 0,
+    );
+  }
+
+  @override
+  Future<int> countHistory(HistoryQuery query) async => _matching(query).length;
+
+  Iterable<MirroredNotification> _matching(HistoryQuery query) {
+    final text = query.text.trim().toLowerCase();
+    return ([..._notifications]..sort((a, b) {
+          final byTime = b.postedAt.compareTo(a.postedAt);
+          return byTime != 0 ? byTime : b.id.compareTo(a.id);
+        }))
+        .where(
+          (n) =>
+              (text.isEmpty ||
+                  [n.content.title, n.content.text, n.content.appName].any((s) => s.toLowerCase().contains(text))) &&
+              (query.packageName == null || n.content.packageName == query.packageName) &&
+              (query.after == null || n.postedAt.isAfter(query.after!)) &&
+              query.savedAfter == null,
+        );
+  }
 
   @override
   Future<void> publish(NotificationContent content, {required bool canReply}) async {}

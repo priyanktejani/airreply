@@ -45,6 +45,15 @@ class $HistoryNotificationsTable extends HistoryNotifications
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _packageNameMeta = const VerificationMeta('packageName');
+  @override
+  late final GeneratedColumn<String> packageName = GeneratedColumn<String>(
+    'package_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _keyHashMeta = const VerificationMeta('keyHash');
   @override
   late final GeneratedColumn<String> keyHash = GeneratedColumn<String>(
@@ -77,7 +86,7 @@ class $HistoryNotificationsTable extends HistoryNotifications
     defaultValue: const Constant(false),
   );
   @override
-  List<GeneratedColumn> get $columns => [pairId, id, payload, postedAt, keyHash, canReply, dismissed];
+  List<GeneratedColumn> get $columns => [pairId, id, payload, postedAt, packageName, keyHash, canReply, dismissed];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -107,6 +116,9 @@ class $HistoryNotificationsTable extends HistoryNotifications
     } else if (isInserting) {
       context.missing(_postedAtMeta);
     }
+    if (data.containsKey('package_name')) {
+      context.handle(_packageNameMeta, packageName.isAcceptableOrUnknown(data['package_name']!, _packageNameMeta));
+    }
     if (data.containsKey('key_hash')) {
       context.handle(_keyHashMeta, keyHash.isAcceptableOrUnknown(data['key_hash']!, _keyHashMeta));
     }
@@ -129,6 +141,7 @@ class $HistoryNotificationsTable extends HistoryNotifications
       id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       payload: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}payload'])!,
       postedAt: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}posted_at'])!,
+      packageName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}package_name']),
       keyHash: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}key_hash']),
       canReply: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}can_reply'])!,
       dismissed: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}dismissed'])!,
@@ -147,6 +160,10 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
   final String payload;
   final int postedAt;
 
+  /// The source app, for filtering by app without opening payloads. Null until the notification is indexed for
+  /// search (see `history_fts`); empty when its payload could not be opened.
+  final String? packageName;
+
   /// The blind index of the source notification's key: how a later dismissal finds it.
   final String? keyHash;
   final bool canReply;
@@ -158,6 +175,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     required this.id,
     required this.payload,
     required this.postedAt,
+    this.packageName,
     this.keyHash,
     required this.canReply,
     required this.dismissed,
@@ -169,6 +187,9 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     map['id'] = Variable<String>(id);
     map['payload'] = Variable<String>(payload);
     map['posted_at'] = Variable<int>(postedAt);
+    if (!nullToAbsent || packageName != null) {
+      map['package_name'] = Variable<String>(packageName);
+    }
     if (!nullToAbsent || keyHash != null) {
       map['key_hash'] = Variable<String>(keyHash);
     }
@@ -183,6 +204,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       id: Value(id),
       payload: Value(payload),
       postedAt: Value(postedAt),
+      packageName: packageName == null && nullToAbsent ? const Value.absent() : Value(packageName),
       keyHash: keyHash == null && nullToAbsent ? const Value.absent() : Value(keyHash),
       canReply: Value(canReply),
       dismissed: Value(dismissed),
@@ -196,6 +218,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       id: serializer.fromJson<String>(json['id']),
       payload: serializer.fromJson<String>(json['payload']),
       postedAt: serializer.fromJson<int>(json['postedAt']),
+      packageName: serializer.fromJson<String?>(json['packageName']),
       keyHash: serializer.fromJson<String?>(json['keyHash']),
       canReply: serializer.fromJson<bool>(json['canReply']),
       dismissed: serializer.fromJson<bool>(json['dismissed']),
@@ -209,6 +232,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       'id': serializer.toJson<String>(id),
       'payload': serializer.toJson<String>(payload),
       'postedAt': serializer.toJson<int>(postedAt),
+      'packageName': serializer.toJson<String?>(packageName),
       'keyHash': serializer.toJson<String?>(keyHash),
       'canReply': serializer.toJson<bool>(canReply),
       'dismissed': serializer.toJson<bool>(dismissed),
@@ -220,6 +244,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     String? id,
     String? payload,
     int? postedAt,
+    Value<String?> packageName = const Value.absent(),
     Value<String?> keyHash = const Value.absent(),
     bool? canReply,
     bool? dismissed,
@@ -228,6 +253,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
     id: id ?? this.id,
     payload: payload ?? this.payload,
     postedAt: postedAt ?? this.postedAt,
+    packageName: packageName.present ? packageName.value : this.packageName,
     keyHash: keyHash.present ? keyHash.value : this.keyHash,
     canReply: canReply ?? this.canReply,
     dismissed: dismissed ?? this.dismissed,
@@ -238,6 +264,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
       id: data.id.present ? data.id.value : this.id,
       payload: data.payload.present ? data.payload.value : this.payload,
       postedAt: data.postedAt.present ? data.postedAt.value : this.postedAt,
+      packageName: data.packageName.present ? data.packageName.value : this.packageName,
       keyHash: data.keyHash.present ? data.keyHash.value : this.keyHash,
       canReply: data.canReply.present ? data.canReply.value : this.canReply,
       dismissed: data.dismissed.present ? data.dismissed.value : this.dismissed,
@@ -251,6 +278,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
           ..write('id: $id, ')
           ..write('payload: $payload, ')
           ..write('postedAt: $postedAt, ')
+          ..write('packageName: $packageName, ')
           ..write('keyHash: $keyHash, ')
           ..write('canReply: $canReply, ')
           ..write('dismissed: $dismissed')
@@ -259,7 +287,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
   }
 
   @override
-  int get hashCode => Object.hash(pairId, id, payload, postedAt, keyHash, canReply, dismissed);
+  int get hashCode => Object.hash(pairId, id, payload, postedAt, packageName, keyHash, canReply, dismissed);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -268,6 +296,7 @@ class NotificationRow extends DataClass implements Insertable<NotificationRow> {
           other.id == this.id &&
           other.payload == this.payload &&
           other.postedAt == this.postedAt &&
+          other.packageName == this.packageName &&
           other.keyHash == this.keyHash &&
           other.canReply == this.canReply &&
           other.dismissed == this.dismissed);
@@ -278,6 +307,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
   final Value<String> id;
   final Value<String> payload;
   final Value<int> postedAt;
+  final Value<String?> packageName;
   final Value<String?> keyHash;
   final Value<bool> canReply;
   final Value<bool> dismissed;
@@ -287,6 +317,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
     this.id = const Value.absent(),
     this.payload = const Value.absent(),
     this.postedAt = const Value.absent(),
+    this.packageName = const Value.absent(),
     this.keyHash = const Value.absent(),
     this.canReply = const Value.absent(),
     this.dismissed = const Value.absent(),
@@ -297,6 +328,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
     required String id,
     required String payload,
     required int postedAt,
+    this.packageName = const Value.absent(),
     this.keyHash = const Value.absent(),
     this.canReply = const Value.absent(),
     this.dismissed = const Value.absent(),
@@ -310,6 +342,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
     Expression<String>? id,
     Expression<String>? payload,
     Expression<int>? postedAt,
+    Expression<String>? packageName,
     Expression<String>? keyHash,
     Expression<bool>? canReply,
     Expression<bool>? dismissed,
@@ -320,6 +353,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
       if (id != null) 'id': id,
       if (payload != null) 'payload': payload,
       if (postedAt != null) 'posted_at': postedAt,
+      if (packageName != null) 'package_name': packageName,
       if (keyHash != null) 'key_hash': keyHash,
       if (canReply != null) 'can_reply': canReply,
       if (dismissed != null) 'dismissed': dismissed,
@@ -332,6 +366,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
     Value<String>? id,
     Value<String>? payload,
     Value<int>? postedAt,
+    Value<String?>? packageName,
     Value<String?>? keyHash,
     Value<bool>? canReply,
     Value<bool>? dismissed,
@@ -342,6 +377,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
       id: id ?? this.id,
       payload: payload ?? this.payload,
       postedAt: postedAt ?? this.postedAt,
+      packageName: packageName ?? this.packageName,
       keyHash: keyHash ?? this.keyHash,
       canReply: canReply ?? this.canReply,
       dismissed: dismissed ?? this.dismissed,
@@ -363,6 +399,9 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
     }
     if (postedAt.present) {
       map['posted_at'] = Variable<int>(postedAt.value);
+    }
+    if (packageName.present) {
+      map['package_name'] = Variable<String>(packageName.value);
     }
     if (keyHash.present) {
       map['key_hash'] = Variable<String>(keyHash.value);
@@ -386,6 +425,7 @@ class HistoryNotificationsCompanion extends UpdateCompanion<NotificationRow> {
           ..write('id: $id, ')
           ..write('payload: $payload, ')
           ..write('postedAt: $postedAt, ')
+          ..write('packageName: $packageName, ')
           ..write('keyHash: $keyHash, ')
           ..write('canReply: $canReply, ')
           ..write('dismissed: $dismissed, ')
@@ -1195,226 +1235,6 @@ class HistoryPublishedCompanion extends UpdateCompanion<PublishedRow> {
   }
 }
 
-class $HistorySearchTable extends HistorySearch with TableInfo<$HistorySearchTable, SearchRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $HistorySearchTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _pairIdMeta = const VerificationMeta('pairId');
-  @override
-  late final GeneratedColumn<String> pairId = GeneratedColumn<String>(
-    'pair_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _contentMeta = const VerificationMeta('content');
-  @override
-  late final GeneratedColumn<String> content = GeneratedColumn<String>(
-    'content',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [pairId, id, content];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'history_search';
-  @override
-  VerificationContext validateIntegrity(Insertable<SearchRow> instance, {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('pair_id')) {
-      context.handle(_pairIdMeta, pairId.isAcceptableOrUnknown(data['pair_id']!, _pairIdMeta));
-    } else if (isInserting) {
-      context.missing(_pairIdMeta);
-    }
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('content')) {
-      context.handle(_contentMeta, content.isAcceptableOrUnknown(data['content']!, _contentMeta));
-    } else if (isInserting) {
-      context.missing(_contentMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {pairId, id};
-  @override
-  SearchRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SearchRow(
-      pairId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}pair_id'])!,
-      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      content: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}content'])!,
-    );
-  }
-
-  @override
-  $HistorySearchTable createAlias(String alias) {
-    return $HistorySearchTable(attachedDatabase, alias);
-  }
-}
-
-class SearchRow extends DataClass implements Insertable<SearchRow> {
-  final String pairId;
-  final String id;
-  final String content;
-  const SearchRow({required this.pairId, required this.id, required this.content});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['pair_id'] = Variable<String>(pairId);
-    map['id'] = Variable<String>(id);
-    map['content'] = Variable<String>(content);
-    return map;
-  }
-
-  HistorySearchCompanion toCompanion(bool nullToAbsent) {
-    return HistorySearchCompanion(pairId: Value(pairId), id: Value(id), content: Value(content));
-  }
-
-  factory SearchRow.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SearchRow(
-      pairId: serializer.fromJson<String>(json['pairId']),
-      id: serializer.fromJson<String>(json['id']),
-      content: serializer.fromJson<String>(json['content']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'pairId': serializer.toJson<String>(pairId),
-      'id': serializer.toJson<String>(id),
-      'content': serializer.toJson<String>(content),
-    };
-  }
-
-  SearchRow copyWith({String? pairId, String? id, String? content}) =>
-      SearchRow(pairId: pairId ?? this.pairId, id: id ?? this.id, content: content ?? this.content);
-  SearchRow copyWithCompanion(HistorySearchCompanion data) {
-    return SearchRow(
-      pairId: data.pairId.present ? data.pairId.value : this.pairId,
-      id: data.id.present ? data.id.value : this.id,
-      content: data.content.present ? data.content.value : this.content,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SearchRow(')
-          ..write('pairId: $pairId, ')
-          ..write('id: $id, ')
-          ..write('content: $content')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(pairId, id, content);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is SearchRow && other.pairId == this.pairId && other.id == this.id && other.content == this.content);
-}
-
-class HistorySearchCompanion extends UpdateCompanion<SearchRow> {
-  final Value<String> pairId;
-  final Value<String> id;
-  final Value<String> content;
-  final Value<int> rowid;
-  const HistorySearchCompanion({
-    this.pairId = const Value.absent(),
-    this.id = const Value.absent(),
-    this.content = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  HistorySearchCompanion.insert({
-    required String pairId,
-    required String id,
-    required String content,
-    this.rowid = const Value.absent(),
-  }) : pairId = Value(pairId),
-       id = Value(id),
-       content = Value(content);
-  static Insertable<SearchRow> custom({
-    Expression<String>? pairId,
-    Expression<String>? id,
-    Expression<String>? content,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (pairId != null) 'pair_id': pairId,
-      if (id != null) 'id': id,
-      if (content != null) 'content': content,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  HistorySearchCompanion copyWith({
-    Value<String>? pairId,
-    Value<String>? id,
-    Value<String>? content,
-    Value<int>? rowid,
-  }) {
-    return HistorySearchCompanion(
-      pairId: pairId ?? this.pairId,
-      id: id ?? this.id,
-      content: content ?? this.content,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (pairId.present) {
-      map['pair_id'] = Variable<String>(pairId.value);
-    }
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (content.present) {
-      map['content'] = Variable<String>(content.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('HistorySearchCompanion(')
-          ..write('pairId: $pairId, ')
-          ..write('id: $id, ')
-          ..write('content: $content, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$HistoryDatabase extends GeneratedDatabase {
   _$HistoryDatabase(QueryExecutor e) : super(e);
   $HistoryDatabaseManager get managers => $HistoryDatabaseManager(this);
@@ -1422,14 +1242,21 @@ abstract class _$HistoryDatabase extends GeneratedDatabase {
   late final $HistoryRepliesTable historyReplies = $HistoryRepliesTable(this);
   late final $HistoryDismissalsTable historyDismissals = $HistoryDismissalsTable(this);
   late final $HistoryPublishedTable historyPublished = $HistoryPublishedTable(this);
-  late final $HistorySearchTable historySearch = $HistorySearchTable(this);
   late final Index notificationsByTime = Index(
     'notifications_by_time',
     'CREATE INDEX notifications_by_time ON history_notifications (pair_id, posted_at)',
   );
+  late final Index notificationsByApp = Index(
+    'notifications_by_app',
+    'CREATE INDEX notifications_by_app ON history_notifications (pair_id, package_name, posted_at)',
+  );
   late final Index repliesByTime = Index(
     'replies_by_time',
     'CREATE INDEX replies_by_time ON history_replies (pair_id, created_at)',
+  );
+  late final Index repliesByNotification = Index(
+    'replies_by_notification',
+    'CREATE INDEX replies_by_notification ON history_replies (pair_id, notification_id)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1439,9 +1266,10 @@ abstract class _$HistoryDatabase extends GeneratedDatabase {
     historyReplies,
     historyDismissals,
     historyPublished,
-    historySearch,
     notificationsByTime,
+    notificationsByApp,
     repliesByTime,
+    repliesByNotification,
   ];
 }
 
@@ -1451,6 +1279,7 @@ typedef $$HistoryNotificationsTableCreateCompanionBuilder =
       required String id,
       required String payload,
       required int postedAt,
+      Value<String?> packageName,
       Value<String?> keyHash,
       Value<bool> canReply,
       Value<bool> dismissed,
@@ -1462,6 +1291,7 @@ typedef $$HistoryNotificationsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> payload,
       Value<int> postedAt,
+      Value<String?> packageName,
       Value<String?> keyHash,
       Value<bool> canReply,
       Value<bool> dismissed,
@@ -1486,6 +1316,9 @@ class $$HistoryNotificationsTableFilterComposer extends Composer<_$HistoryDataba
 
   ColumnFilters<int> get postedAt =>
       $composableBuilder(column: $table.postedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get packageName =>
+      $composableBuilder(column: $table.packageName, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get keyHash =>
       $composableBuilder(column: $table.keyHash, builder: (column) => ColumnFilters(column));
@@ -1516,6 +1349,9 @@ class $$HistoryNotificationsTableOrderingComposer extends Composer<_$HistoryData
   ColumnOrderings<int> get postedAt =>
       $composableBuilder(column: $table.postedAt, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get packageName =>
+      $composableBuilder(column: $table.packageName, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get keyHash =>
       $composableBuilder(column: $table.keyHash, builder: (column) => ColumnOrderings(column));
 
@@ -1541,6 +1377,9 @@ class $$HistoryNotificationsTableAnnotationComposer extends Composer<_$HistoryDa
   GeneratedColumn<String> get payload => $composableBuilder(column: $table.payload, builder: (column) => column);
 
   GeneratedColumn<int> get postedAt => $composableBuilder(column: $table.postedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get packageName =>
+      $composableBuilder(column: $table.packageName, builder: (column) => column);
 
   GeneratedColumn<String> get keyHash => $composableBuilder(column: $table.keyHash, builder: (column) => column);
 
@@ -1578,6 +1417,7 @@ class $$HistoryNotificationsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> payload = const Value.absent(),
                 Value<int> postedAt = const Value.absent(),
+                Value<String?> packageName = const Value.absent(),
                 Value<String?> keyHash = const Value.absent(),
                 Value<bool> canReply = const Value.absent(),
                 Value<bool> dismissed = const Value.absent(),
@@ -1587,6 +1427,7 @@ class $$HistoryNotificationsTableTableManager
                 id: id,
                 payload: payload,
                 postedAt: postedAt,
+                packageName: packageName,
                 keyHash: keyHash,
                 canReply: canReply,
                 dismissed: dismissed,
@@ -1598,6 +1439,7 @@ class $$HistoryNotificationsTableTableManager
                 required String id,
                 required String payload,
                 required int postedAt,
+                Value<String?> packageName = const Value.absent(),
                 Value<String?> keyHash = const Value.absent(),
                 Value<bool> canReply = const Value.absent(),
                 Value<bool> dismissed = const Value.absent(),
@@ -1607,6 +1449,7 @@ class $$HistoryNotificationsTableTableManager
                 id: id,
                 payload: payload,
                 postedAt: postedAt,
+                packageName: packageName,
                 keyHash: keyHash,
                 canReply: canReply,
                 dismissed: dismissed,
@@ -2066,129 +1909,6 @@ typedef $$HistoryPublishedTableProcessedTableManager =
       PublishedRow,
       PrefetchHooks Function()
     >;
-typedef $$HistorySearchTableCreateCompanionBuilder =
-    HistorySearchCompanion Function({
-      required String pairId,
-      required String id,
-      required String content,
-      Value<int> rowid,
-    });
-typedef $$HistorySearchTableUpdateCompanionBuilder =
-    HistorySearchCompanion Function({Value<String> pairId, Value<String> id, Value<String> content, Value<int> rowid});
-
-class $$HistorySearchTableFilterComposer extends Composer<_$HistoryDatabase, $HistorySearchTable> {
-  $$HistorySearchTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get pairId =>
-      $composableBuilder(column: $table.pairId, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => ColumnFilters(column));
-}
-
-class $$HistorySearchTableOrderingComposer extends Composer<_$HistoryDatabase, $HistorySearchTable> {
-  $$HistorySearchTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get pairId =>
-      $composableBuilder(column: $table.pairId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get content =>
-      $composableBuilder(column: $table.content, builder: (column) => ColumnOrderings(column));
-}
-
-class $$HistorySearchTableAnnotationComposer extends Composer<_$HistoryDatabase, $HistorySearchTable> {
-  $$HistorySearchTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get pairId => $composableBuilder(column: $table.pairId, builder: (column) => column);
-
-  GeneratedColumn<String> get id => $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get content => $composableBuilder(column: $table.content, builder: (column) => column);
-}
-
-class $$HistorySearchTableTableManager
-    extends
-        RootTableManager<
-          _$HistoryDatabase,
-          $HistorySearchTable,
-          SearchRow,
-          $$HistorySearchTableFilterComposer,
-          $$HistorySearchTableOrderingComposer,
-          $$HistorySearchTableAnnotationComposer,
-          $$HistorySearchTableCreateCompanionBuilder,
-          $$HistorySearchTableUpdateCompanionBuilder,
-          (SearchRow, BaseReferences<_$HistoryDatabase, $HistorySearchTable, SearchRow>),
-          SearchRow,
-          PrefetchHooks Function()
-        > {
-  $$HistorySearchTableTableManager(_$HistoryDatabase db, $HistorySearchTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () => $$HistorySearchTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$HistorySearchTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () => $$HistorySearchTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> pairId = const Value.absent(),
-                Value<String> id = const Value.absent(),
-                Value<String> content = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => HistorySearchCompanion(pairId: pairId, id: id, content: content, rowid: rowid),
-          createCompanionCallback:
-              ({
-                required String pairId,
-                required String id,
-                required String content,
-                Value<int> rowid = const Value.absent(),
-              }) => HistorySearchCompanion.insert(pairId: pairId, id: id, content: content, rowid: rowid),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$HistorySearchTable, SearchRow>(table),
-                  BaseReferences<_$HistoryDatabase, $HistorySearchTable, SearchRow>(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$HistorySearchTableProcessedTableManager =
-    ProcessedTableManager<
-      _$HistoryDatabase,
-      $HistorySearchTable,
-      SearchRow,
-      $$HistorySearchTableFilterComposer,
-      $$HistorySearchTableOrderingComposer,
-      $$HistorySearchTableAnnotationComposer,
-      $$HistorySearchTableCreateCompanionBuilder,
-      $$HistorySearchTableUpdateCompanionBuilder,
-      (SearchRow, BaseReferences<_$HistoryDatabase, $HistorySearchTable, SearchRow>),
-      SearchRow,
-      PrefetchHooks Function()
-    >;
 
 class $HistoryDatabaseManager {
   final _$HistoryDatabase _db;
@@ -2200,5 +1920,4 @@ class $HistoryDatabaseManager {
       $$HistoryDismissalsTableTableManager(_db, _db.historyDismissals);
   $$HistoryPublishedTableTableManager get historyPublished =>
       $$HistoryPublishedTableTableManager(_db, _db.historyPublished);
-  $$HistorySearchTableTableManager get historySearch => $$HistorySearchTableTableManager(_db, _db.historySearch);
 }

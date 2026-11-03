@@ -29,15 +29,17 @@ Future<void> bootstrap() async {
   _installErrorLogging();
   _registerFontLicenses();
 
+  // Independent, so started together: the backend, and the theme (read before the first frame so the app opens
+  // straight into it).
+  final backend = AppPlatform.isDemo ? Future<void>.value() : _startBackend();
+  final theme = ThemeModeStore(SharedPreferencesAsync()).read().catchError((Object _) => ThemeMode.system);
   try {
-    if (!AppPlatform.isDemo) await _startBackend();
+    await backend;
   } on Object catch (e) {
     runApp(FirebaseSetupRequiredApp(error: e));
     return;
   }
-
-  // Read before the first frame so the app opens straight into the chosen theme.
-  final themeMode = await ThemeModeStore(SharedPreferencesAsync()).read().catchError((Object _) => ThemeMode.system);
+  final themeMode = await theme;
   final container = ProviderContainer(
     overrides: [
       initialThemeModeProvider.overrideWithValue(themeMode),
@@ -86,9 +88,10 @@ Future<void> _startBackend() async {
   }
 }
 
-/// The bundled typefaces are under the SIL Open Font License; it ships with them and shows in Settings → licences.
+/// The bundled fonts' licences ship with them and show in Settings → licences: the SIL Open Font License of the Geist
+/// typefaces and the MIT licence of the Phosphor icons.
 void _registerFontLicenses() => LicenseRegistry.addLicense(() async* {
-  for (final (family, file) in const [('Geist', 'OFL-Geist.txt')]) {
+  for (final (family, file) in const [('Geist', 'OFL-Geist.txt'), ('Phosphor Icons', 'MIT-Phosphor.txt')]) {
     yield LicenseEntryWithLineBreaks([family], await rootBundle.loadString('assets/fonts/$file'));
   }
 });

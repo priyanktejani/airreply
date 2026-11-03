@@ -91,8 +91,6 @@ final class AppFilter {
   final AppFilterMode mode;
   final Set<String> packages;
 
-  bool allows(String packageName) => mode == AppFilterMode.all || packages.contains(packageName);
-
   AppFilter copyWith({AppFilterMode? mode, Set<String>? packages}) =>
       AppFilter(mode: mode ?? this.mode, packages: packages ?? this.packages);
 

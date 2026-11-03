@@ -10,7 +10,10 @@
     <!-- Resume sharing after a reboot when the person left it on. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- No Auto Backup: history and pairing keys live only on this device (the keys are bound to its keystore, so a
+         restored copy could not be read anyway). -->
     <application
+        android:allowBackup="false"
         android:label="AirReply"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"

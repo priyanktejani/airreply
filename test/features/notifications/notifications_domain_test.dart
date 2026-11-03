@@ -114,14 +114,14 @@ void main() {
       expect(merged.single.replies.map((r) => r.id), ['ri', 'rm']);
     });
 
-    test('search matches title, text, app and phone name, ignoring case', () {
+    test('search matches title, text and app, ignoring case; a phone name finds the phone, not its notifications', () {
       final feed = buildFeed([notification('a', t0)], const [], pairId: 'pixel', deviceName: 'Pixel 9');
       bool hit(String q) => FeedFilter(query: q).matches(feed.single, isRead: unread, now: t0);
 
       expect(hit('sam'), isTrue); // title
       expect(hit('LUNCH'), isTrue); // text
       expect(hit('telegram'), isTrue); // app
-      expect(hit('pixel'), isTrue); // phone
+      expect(hit('pixel'), isFalse); // the phone is a device result (deviceMatchesProvider)
       expect(hit('dinner'), isFalse);
       expect(hit('   '), isTrue);
     });

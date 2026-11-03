@@ -38,16 +38,34 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
   (`FirestoreMailbox` or `RestMailbox`). The receiver keeps each notification and dismissal in `MessageHistory` and
   then deletes it from Firestore; a reply is deleted once the sender has reported its status. The sender keeps its own
   copy of what it published and the replies it executed.
+- The history database is encrypted at rest on every platform but web: SQLite3MultipleCiphers (`hooks: user_defines:
+  sqlite3: source: sqlite3mc` in pubspec.yaml), keyed with 256 random bits that `HistoryKey` keeps in the system
+  keystore. `history_connection_io.dart` unlocks each connection (`PRAGMA hexkey`), encrypts a plain file in place, and
+  starts afresh when the key is gone. On the web the browser's site storage holds it unencrypted (a key could only live
+  beside it). Android Auto Backup is off (`allowBackup="false"`): history and keys stay on the device.
 - `MessageHistory` keeps the still-encrypted payloads in a drift (SQLite) database, `HistoryDatabase`
   (`lib/features/mirror/history_providers.dart`): everything is kept, and the screens load the newest 2,000
   notifications and 1,000 replies per pair. The app and the sender's background engine (separate Flutter engines) each
   open their own WAL connection; `PRAGMA data_version` tells one when the other wrote. Erased on unpair. History from
   the first, SharedPreferences version is moved in on first load.
-- Search covers the whole history: `history_search` keeps each notification's title, text and app name in plain,
-  lower-cased text (payloads stay sealed), filled on save and, for older rows, when a feed opens. While a search is on
-  screen (inbox or Home, 2+ characters), `historySearchProvider` finds matches older than the loaded window and
-  `allFeedProvider` merges them in, so they group and open like the rest. A schema change needs a `schemaVersion` bump
-  and a step in `HistoryDatabase.migration`.
+- Search and browsing read the database, never only the loaded feed. `history_fts` (FTS5, trigram tokenizer, keyed by
+  the notification's rowid) holds each notification's title, text and app name, lower-cased, in plain text beside the
+  sealed payload; `package_name` is a column. Both are filled on save and, for older rows (`package_name IS NULL`), as
+  a feed opens. `MessageHistory.page` / `count` run the queries, keyset-paged on `(posted_at, id)`.
+- `historyResultsProvider` (`lib/features/notifications/history_providers.dart`) holds one view each: `inboxSearch`,
+  `homeSearch`, `deviceHistory(pairId)`. A view is a snapshot by save order (rowid, `HistoryQuery.savedUpTo`), so it
+  holds still while notifications arrive; `newResultsProvider` counts the new ones and `includeNew` merges them in by
+  time. A newer query drops the pages of the one before.
+- `liveFeedProvider` (newest loaded) drives the inbox, counts and alerts; `allFeedProvider` adds the views on screen
+  so found notifications group and open like any other. Searching a phone's name finds the device
+  (`deviceMatchesProvider`, `DeviceResults`), which opens `DeviceHistoryScreen`; notification search never matches the
+  device name.
+- A schema change needs a `schemaVersion` bump and a step in `HistoryDatabase.migration`, tested from each older
+  version (see `mirror_sync_repository_test.dart`).
+- Desktop (REST) reads each pair document through one shared poll (`DocumentPolls`): the connection status and the
+  pair-active check use the same read.
+- Delivery is at-least-once and idempotent: a document is saved (upsert by id) before its mailbox copy is deleted, so a
+  failed delete or a server retry only redelivers it. Each receiver has its own pair, so its own mailbox.
 - Web needs `web/sqlite3.wasm` and `web/drift_worker.js`, matching the sqlite3 and drift versions in `pubspec.lock`;
   download new ones from their GitHub releases when upgrading either package.
 - Every mailbox document has `expireAt` (30 days) for a Firestore TTL policy. Dismissals are their own documents,

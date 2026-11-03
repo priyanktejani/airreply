@@ -34,6 +34,9 @@ abstract final class AppRoutes {
 
   static String notification(String pairId, String id) =>
       '$notifications/${Uri.encodeComponent(pairId)}/${Uri.encodeComponent(id)}';
+
+  /// Every notification of one paired device, from the history on this device.
+  static String deviceHistory(String pairId) => '$devices/history/${Uri.encodeComponent(pairId)}';
 }
 
 /// Pure navigation policy: given the device session, which locations are reachable and where to land otherwise.

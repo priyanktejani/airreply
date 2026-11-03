@@ -5,6 +5,7 @@ import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/features/mirror/data/message_history.dart';
 import 'package:air_reply/features/mirror/data/mirror_documents.dart';
 import 'package:air_reply/features/mirror/data/pair_mailbox.dart';
+import 'package:air_reply/features/mirror/domain/entities/history_query.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
@@ -39,8 +40,8 @@ final class MirrorSyncRepository implements MirrorRepository {
   /// This device receives the pair's notifications, so it empties the mailbox.
   final bool collects;
 
-  /// How often history is checked for writes made elsewhere (the sender's background engine publishes from another
-  /// isolate).
+  /// How often a sender's screens check history for writes made elsewhere: its background engine publishes from
+  /// another isolate. A receiver writes its history only here, so it never needs to.
   final Duration historyCheckInterval;
   final DateTime Function() _clock;
 
@@ -161,28 +162,35 @@ final class MirrorSyncRepository implements MirrorRepository {
   }
 
   @override
-  Future<HistoryMatches> searchHistory(String query, {int limit = 200}) async {
-    const none = (notifications: <MirroredNotification>[], replies: <ReplyCommand>[]);
-    final q = query.trim().toLowerCase();
-    if (q.isEmpty) return none;
-    // What is loaded is searched on screen: look further back only, and not at all when everything is loaded.
-    final records = _records;
-    DateTime? before;
-    if (records != null) {
-      if (records.notifications.length < _history.maxNotifications) return none;
-      before = records.notifications.values
-          .map((n) => n.postedAt)
-          .fold<DateTime?>(null, (oldest, t) => oldest == null || t.isBefore(oldest) ? t : oldest);
-    }
-    final stored = await _history.search(q, before: before, limit: limit);
+  Future<HistoryPage> browseHistory(HistoryQuery query, {HistoryCursor? after, int limit = 50}) async {
+    final saved = await _history.saved();
+    final stored = await _history.page(
+      text: query.text.trim().toLowerCase(),
+      packageName: query.packageName,
+      after: query.after,
+      savedUpTo: query.savedUpTo ?? saved,
+      savedAfter: query.savedAfter,
+      cursor: after,
+      limit: limit,
+    );
+    final dismissed = HistoryRecords(dismissals: _records?.dismissals ?? await _history.dismissals());
     final replies = await _history.repliesTo(stored.map((n) => n.id));
     return (
-      notifications: [
-        for (final n in stored) ?await _readNotification(n, dismissed: records?.isDismissed(n) ?? n.dismissed),
-      ],
+      notifications: [for (final n in stored) ?await _readNotification(n, dismissed: dismissed.isDismissed(n))],
       replies: [for (final r in replies) ?await _readReply(r)],
+      next: stored.length < limit ? null : (postedAt: stored.last.postedAt, id: stored.last.id),
+      saved: query.savedUpTo ?? saved,
     );
   }
+
+  @override
+  Future<int> countHistory(HistoryQuery query) => _history.count(
+    text: query.text.trim().toLowerCase(),
+    packageName: query.packageName,
+    after: query.after,
+    savedUpTo: query.savedUpTo,
+    savedAfter: query.savedAfter,
+  );
 
   @override
   Future<MirroredNotification?> decodePushed({required String id, required String payload, required bool canReply}) =>
@@ -293,7 +301,7 @@ final class MirrorSyncRepository implements MirrorRepository {
           _mailbox.watch(FirestoreSchema.replies).listen(_collectReplies, onError: log),
         ]);
       }
-      _historyCheck = Timer.periodic(historyCheckInterval, (_) => _serially(_reloadIfChanged));
+      if (!collects) _historyCheck = Timer.periodic(historyCheckInterval, (_) => _serially(_reloadIfChanged));
       _serially(_indexUnsearchable);
     });
   }
@@ -308,6 +316,12 @@ final class MirrorSyncRepository implements MirrorRepository {
     }
     _subscriptions.clear();
     _records = null;
+  }
+
+  /// Stops everything this sync runs; it is not used again.
+  void dispose() {
+    _close();
+    unawaited(_updates.close());
   }
 
   Future<void> _reload() async {
@@ -333,18 +347,21 @@ final class MirrorSyncRepository implements MirrorRepository {
     await _makeSearchable(items);
   }
 
-  /// Saves what search looks through for [items]: an unreadable one gets none, so it is not tried again.
-  Future<void> _makeSearchable(List<StoredNotification> items) async => _history.putSearchText({
+  /// Indexes [items] for search: their text and app. An unreadable one gets an empty app, so it is not tried again.
+  Future<void> _makeSearchable(List<StoredNotification> items) async => _history.index({
     for (final n in items)
       n.id: switch (await _readNotification(n, dismissed: false)) {
-        final notification? => searchText(notification.content),
-        null => '',
+        final notification? => (
+          content: searchText(notification.content),
+          packageName: notification.content.packageName,
+        ),
+        null => (content: '', packageName: ''),
       },
   });
 
-  /// History kept before search existed becomes searchable, a batch at a time.
+  /// History kept before search existed becomes searchable, newest first, a batch at a time.
   Future<void> _indexUnsearchable() async {
-    for (var batch = await _history.unsearchable(); batch.isNotEmpty; batch = await _history.unsearchable()) {
+    for (var batch = await _history.unindexed(); batch.isNotEmpty; batch = await _history.unindexed()) {
       if (!_watching) return;
       await _makeSearchable(batch);
     }

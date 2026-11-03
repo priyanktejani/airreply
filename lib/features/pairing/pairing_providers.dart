@@ -20,6 +20,7 @@ final pairingRepositoryProvider = Provider<PairingRepository>(
     BackendTransport.rest => RestPairingRepository(
       ref.watch(firestoreRestClientProvider),
       ref.watch(authGatewayProvider),
+      pairPolls: ref.watch(documentPollsProvider),
     ),
   },
 );

@@ -3,6 +3,7 @@ import 'package:air_reply/app/shell/app_shell.dart';
 import 'package:air_reply/app/splash_screen.dart';
 import 'package:air_reply/core/animations/page_transitions.dart';
 import 'package:air_reply/features/app_management/presentation/app_management_screen.dart';
+import 'package:air_reply/features/devices/presentation/device_history_screen.dart';
 import 'package:air_reply/features/devices/presentation/devices_screen.dart';
 import 'package:air_reply/features/home/presentation/home_screen.dart';
 import 'package:air_reply/features/notifications/presentation/app_conversations_screen.dart';
@@ -86,7 +87,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           StatefulShellBranch(
-            routes: [GoRoute(path: AppRoutes.devices, builder: (_, _) => const DevicesScreen())],
+            routes: [
+              GoRoute(
+                path: AppRoutes.devices,
+                builder: (_, _) => const DevicesScreen(),
+                routes: [
+                  overTabs('history/:pairId', (state) => DeviceHistoryScreen(pairId: state.pathParameters['pairId']!)),
+                ],
+              ),
+            ],
           ),
           StatefulShellBranch(
             routes: [

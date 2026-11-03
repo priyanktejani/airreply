@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/firebase/firestore_schema.dart';
+import 'package:air_reply/core/firebase/rest/document_polls.dart';
 import 'package:air_reply/core/firebase/rest/firestore_rest_client.dart';
 import 'package:air_reply/core/firebase/rest/polling.dart';
 import 'package:air_reply/features/mirror/data/pair_mailbox.dart';
@@ -15,8 +16,8 @@ final class RestMailbox implements PairMailbox {
     this._pairId, {
     this.pollInterval = const Duration(seconds: 3),
     this.relaxedPollInterval = const Duration(seconds: 30),
-    this.syncCheckInterval = const Duration(seconds: 30),
-  });
+    DocumentPolls? pairPolls,
+  }) : _pairPolls = pairPolls ?? DocumentPolls(_client);
 
   /// Documents taken per poll; once they are delivered and deleted, the next poll brings the next ones.
   static const batchSize = 300;
@@ -27,7 +28,9 @@ final class RestMailbox implements PairMailbox {
 
   /// For collections that are not urgent: every poll is a billed read, even of an empty mailbox.
   final Duration relaxedPollInterval;
-  final Duration syncCheckInterval;
+
+  /// The pair document, polled once for this status and for whether the pair is active (see RestPairingRepository).
+  final DocumentPolls _pairPolls;
 
   String get _parent => '${FirestoreSchema.pairs}/$_pairId';
 
@@ -87,27 +90,13 @@ final class RestMailbox implements PairMailbox {
     ),
   );
 
+  /// Whether the pair document can be read: the same poll that tells whether the pair is still active.
   @override
   Stream<SyncState> watchSyncState() {
     var state = SyncState.connecting;
-    final controller = StreamController<SyncState>();
-    Timer? timer;
-    Future<void> check() async {
-      try {
-        await _client.get(_parent);
-        state = state.next(fromServer: true, now: DateTime.now());
-      } on Object {
-        state = state.next(fromServer: false, now: DateTime.now());
-      }
-      if (controller.isClosed) return;
-      controller.add(state);
-      timer = Timer(syncCheckInterval, check);
-    }
-
-    controller
-      ..onListen = check
-      ..onCancel = () => timer?.cancel();
-    return controller.stream;
+    return _pairPolls
+        .watch(_parent)
+        .map((read) => state = state.next(fromServer: read.error == null, now: DateTime.now()));
   }
 
   Future<T> _guard<T>(Future<T> Function() body) async {

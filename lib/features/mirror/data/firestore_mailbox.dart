@@ -69,9 +69,12 @@ final class FirestoreMailbox implements PairMailbox {
   @override
   Stream<SyncState> watchSyncState() {
     var state = SyncState.connecting;
-    // Cheapest possible listener (one document at most) whose metadata says whether the server is reachable.
-    return _collection(FirestoreSchema.notifications)
-        .limit(1)
+    // The pair's own document, whose metadata says whether the server is reachable: the app listens to it anyway
+    // (whether the pair is still active), so this adds no reads, and it rarely changes. A listener on the mailbox
+    // would be read again for every message.
+    return _db
+        .collection(FirestoreSchema.pairs)
+        .doc(_pairId)
         .snapshots(includeMetadataChanges: true)
         .transform(
           StreamTransformer.fromHandlers(

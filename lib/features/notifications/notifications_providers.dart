@@ -6,7 +6,6 @@ import 'package:air_reply/core/utils/clock_provider.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
 import 'package:air_reply/features/mirror/domain/entities/sync_state.dart';
-import 'package:air_reply/features/mirror/domain/repositories/mirror_repositories.dart';
 import 'package:air_reply/features/mirror/mirror_providers.dart';
 import 'package:air_reply/features/notifications/data/local_stores.dart';
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
@@ -14,6 +13,7 @@ import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/domain/inbox_state.dart';
 import 'package:air_reply/features/notifications/domain/send_reply.dart';
+import 'package:air_reply/features/notifications/history_providers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -48,15 +48,22 @@ void refreshPair(WidgetRef ref, String pairId) => ref
 
 // ------------------------------------------------------------------ the merged feed
 
-/// Every paired device's notifications joined with their replies, newest first. A sender sees what it shared (the
-/// same notification went to each device, so copies are merged); a receiver sees what its phones sent. One
-/// unreachable device does not hide the others.
-///
-/// The newest of each history is loaded; while a search is shown, what it found further back joins them, so a match
-/// from long ago is found, grouped with its chat and opened like any other.
+/// Every paired device's newest notifications joined with their replies, newest first, as they arrive. A sender sees
+/// what it shared (the same notification went to each device, so copies are merged); a receiver sees what its phones
+/// sent. One unreachable device does not hide the others. The inbox, its counts and its alerts come from here.
+final liveFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) => _feed(ref, const []));
+
+/// The live feed plus the history on screen (a search's results, a phone's history), so a notification from long ago
+/// that is shown groups with its chat and opens like any other. For finding what to open, not for counting.
 final allFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) {
+  final history = shownHistory(ref);
+  // nothing on screen beyond the live feed (the usual case): the same list, not built twice
+  if (history.every((h) => h.pages.values.every((p) => p.notifications.isEmpty))) return ref.watch(liveFeedProvider);
+  return _feed(ref, history);
+});
+
+AsyncValue<List<FeedEntry>> _feed(Ref ref, List<HistoryResults> history) {
   final pairs = ref.watch(pairedDevicesProvider);
-  final searches = [for (final q in ref.watch(_shownSearchesProvider)) ?ref.watch(historySearchProvider(q)).value];
   final feeds = <List<FeedEntry>>[];
   var loading = false;
   AsyncError<List<FeedEntry>>? firstError;
@@ -65,8 +72,8 @@ final allFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) 
     final notifications = ref.watch(mirroredNotificationsProvider(pair.pairId));
     final replies = ref.watch(sentRepliesProvider(pair.pairId));
     if (notifications.value case final items?) {
-      final (all, allReplies) = _withOlder(items, replies.value ?? const [], [
-        for (final found in searches) ?found[pair.pairId],
+      final (all, allReplies) = _withHistory(items, replies.value ?? const [], [
+        for (final h in history) ?h.pages[pair.pairId],
       ]);
       feeds.add(buildFeed(all, allReplies, pairId: pair.pairId, deviceName: pair.peerName));
     } else if (notifications case AsyncError(:final error, :final stackTrace)) {
@@ -79,57 +86,32 @@ final allFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) 
   if (feeds.isEmpty && firstError != null) return firstError;
   if (feeds.isEmpty && loading) return const AsyncLoading();
   return AsyncData(mergeFeeds(feeds, dedupe: ref.watch(deviceRoleProvider) == DeviceRole.sender));
-});
+}
 
-/// [items] and [replies] with what searches found further back, each once.
-(List<MirroredNotification>, List<ReplyCommand>) _withOlder(
+/// [items] and [replies] with the pages of history read for the same pair, each once.
+(List<MirroredNotification>, List<ReplyCommand>) _withHistory(
   List<MirroredNotification> items,
   List<ReplyCommand> replies,
-  List<HistoryMatches> older,
+  List<PairPages> pages,
 ) {
-  if (older.every((m) => m.notifications.isEmpty)) return (items, replies);
+  if (pages.every((p) => p.notifications.isEmpty)) return (items, replies);
   final ids = {for (final n in items) n.id};
   final replyIds = {for (final r in replies) r.id};
   return (
     [
       ...items,
-      for (final m in older)
-        for (final n in m.notifications)
+      for (final p in pages)
+        for (final n in p.notifications)
           if (ids.add(n.id)) n,
     ],
     [
       ...replies,
-      for (final m in older)
-        for (final r in m.replies)
+      for (final p in pages)
+        for (final r in p.replies)
           if (replyIds.add(r.id)) r,
     ],
   );
 }
-
-/// Searches look through the whole history from this many characters; shorter, they would match nearly everything.
-const _minHistorySearch = 2;
-
-/// The searches on screen: the inbox's and Home's, lower-cased.
-final _shownSearchesProvider = Provider.autoDispose<Set<String>>(
-  (ref) => {
-    for (final q in [ref.watch(inboxFilterProvider.select((f) => f.query)), ref.watch(homeSearchQueryProvider)])
-      if (q.trim().length >= _minHistorySearch) q.trim().toLowerCase(),
-  },
-);
-
-/// What [query] finds in each pair's history further back than its loaded feed (see
-/// [NotificationFeed.searchHistory]), by pair id.
-final historySearchProvider = FutureProvider.autoDispose.family<Map<String, HistoryMatches>, String>((
-  ref,
-  query,
-) async {
-  final feeds = {
-    for (final pair in ref.watch(pairedDevicesProvider))
-      // every notification of that phone matches its name, and its newest are loaded already
-      if (!pair.peerName.toLowerCase().contains(query)) pair.pairId: ref.watch(notificationFeedProvider(pair.pairId)),
-  };
-  return {for (final MapEntry(key: pairId, value: feed) in feeds.entries) pairId: await feed.searchHistory(query)};
-});
 
 /// What is typed into Home's search box; the inbox keeps its own in [inboxFilterProvider].
 final homeSearchQueryProvider = NotifierProvider<HomeSearchQuery, String>(HomeSearchQuery.new);
@@ -276,9 +258,13 @@ final class InboxFilterController extends Notifier<FeedFilter> {
   void clear() => state = FeedFilter.none;
 }
 
-/// The inbox as shown: hidden entries removed, filters applied.
+/// The inbox as shown: hidden entries removed, filters applied. While searching, the search's results from the whole
+/// history (see [historyResultsProvider]), which stay put as new notifications arrive; otherwise the live feed.
 final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) {
-  final feed = ref.watch(allFeedProvider);
+  final searching = ref.watch(historyResultsProvider(inboxSearch).select((r) => r.isActive));
+  final feed = searching
+      ? AsyncData<List<FeedEntry>>(ref.watch(historyEntriesProvider(inboxSearch)))
+      : ref.watch(liveFeedProvider);
   final inbox = ref.watch(inboxStateProvider).value;
   final filter = ref.watch(inboxFilterProvider);
   final isRead = _isRead(inbox);
@@ -293,11 +279,29 @@ final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((r
   );
 });
 
-/// Not hidden: what the inbox holds before search and filters.
+/// Not hidden: what the inbox holds before search and filters. Counts and Home come from here.
 final _inboxEntriesProvider = Provider.autoDispose<List<FeedEntry>>((ref) {
   final inbox = ref.watch(inboxStateProvider).value;
   return [
+    for (final e in ref.watch(liveFeedProvider).value ?? const <FeedEntry>[])
+      if (!(inbox?.isHidden(e) ?? false)) e,
+  ];
+});
+
+/// Not hidden, with the history on screen: what the group and chat screens find a notification in.
+final _openableEntriesProvider = Provider.autoDispose<List<FeedEntry>>((ref) {
+  final inbox = ref.watch(inboxStateProvider).value;
+  return [
     for (final e in ref.watch(allFeedProvider).value ?? const <FeedEntry>[])
+      if (!(inbox?.isHidden(e) ?? false)) e,
+  ];
+});
+
+/// What [scope]'s results show: hidden notifications left out.
+final shownResultsProvider = Provider.autoDispose.family<List<FeedEntry>, HistoryScope>((ref, scope) {
+  final inbox = ref.watch(inboxStateProvider).value;
+  return [
+    for (final e in ref.watch(historyEntriesProvider(scope)))
       if (!(inbox?.isHidden(e) ?? false)) e,
   ];
 });
@@ -329,7 +333,7 @@ final groupedInboxProvider = Provider.autoDispose<AsyncValue<List<AppGroup>>>((r
 
 /// Every group, ignoring search and filters (hidden notifications excluded), for the group screens.
 final _allGroupsProvider = Provider.autoDispose<List<AppGroup>>(
-  (ref) => groupByApp(ref.watch(_inboxEntriesProvider), perDevice: ref.watch(_groupPerDeviceProvider)),
+  (ref) => groupByApp(ref.watch(_openableEntriesProvider), perDevice: ref.watch(_groupPerDeviceProvider)),
 );
 
 /// One app's group, kept current as notifications arrive; null once it is gone.
@@ -349,21 +353,10 @@ final threadProvider = Provider.autoDispose
       return named.length == 1 ? named.single : null;
     });
 
-/// Notifications matching [query] (title, text or app), newest first, hidden ones left out: Home's search, which
-/// leaves the inbox's own search and filters alone.
-final searchFeedProvider = Provider.autoDispose.family<List<FeedEntry>, String>((ref, query) {
-  final filter = FeedFilter(query: query);
-  final isRead = _isRead(ref.watch(inboxStateProvider).value);
-  return [
-    for (final e in ref.watch(_inboxEntriesProvider))
-      if (filter.matches(e, isRead: isRead)) e,
-  ];
-});
-
 /// The newest few notifications, for Home.
 final recentEntriesProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) {
   final recent = ref.watch(_inboxEntriesProvider).take(5).toList();
-  return ref.watch(allFeedProvider).whenData((_) => recent);
+  return ref.watch(liveFeedProvider).whenData((_) => recent);
 });
 
 /// Tells whether an entry has been read, for rows and the detail screen.

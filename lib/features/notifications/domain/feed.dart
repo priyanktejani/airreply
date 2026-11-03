@@ -61,7 +61,8 @@ final class FeedFilter {
   final String? pairId;
   final String? packageName;
 
-  /// Free text, matched against title, text, app and phone name.
+  /// Free text, matched against title, text and app name. A phone's name finds the phone (see deviceMatchesProvider),
+  /// not every notification it sent.
   final String query;
   final bool unreadOnly;
   final FeedPeriod period;
@@ -96,7 +97,7 @@ final class FeedFilter {
     if (!period.includes(entry.postedAt, now ?? DateTime.now())) return false;
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return true;
-    return [content.title, content.text, content.appName, entry.deviceName].any((s) => s.toLowerCase().contains(q));
+    return [content.title, content.text, content.appName].any((s) => s.toLowerCase().contains(q));
   }
 }
 

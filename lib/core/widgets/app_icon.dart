@@ -25,6 +25,8 @@ class AppIconView extends StatelessWidget {
           icon,
           width: size,
           height: size,
+          // decoded at the size shown, not the size sent
+          cacheWidth: (size * MediaQuery.devicePixelRatioOf(context)).ceil(),
           gaplessPlayback: true,
           filterQuality: FilterQuality.medium,
           errorBuilder: (_, _, _) => _monogram(c, radius),

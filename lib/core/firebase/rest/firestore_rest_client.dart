@@ -52,7 +52,7 @@ final class _DeleteWrite extends RestWrite {
   const _DeleteWrite(super.path);
 }
 
-enum RestOperator { equal, greaterThanOrEqual }
+enum RestOperator { equal }
 
 final class RestFilter {
   const RestFilter(this.field, this.op, this.value);
@@ -62,14 +62,12 @@ final class RestFilter {
   final Object? value;
 }
 
-/// The subset of Firestore structured queries the app needs: equality / lower-bound filters, one order, a limit.
+/// The subset of Firestore structured queries the app needs: equality filters and a limit.
 final class RestQuery {
-  const RestQuery(this.collection, {this.filters = const [], this.orderBy, this.descending = false, this.limit});
+  const RestQuery(this.collection, {this.filters = const [], this.limit});
 
   final String collection;
   final List<RestFilter> filters;
-  final String? orderBy;
-  final bool descending;
   final int? limit;
 }
 
@@ -203,7 +201,6 @@ final class FirestoreRestClient {
         'field': {'fieldPath': f.field},
         'op': switch (f.op) {
           RestOperator.equal => 'EQUAL',
-          RestOperator.greaterThanOrEqual => 'GREATER_THAN_OR_EQUAL',
         },
         'value': _encodeValue(f.value),
       },
@@ -218,13 +215,6 @@ final class FirestoreRestClient {
         'where': {
           'compositeFilter': {'op': 'AND', 'filters': query.filters.map(fieldFilter).toList()},
         },
-      if (query.orderBy != null)
-        'orderBy': [
-          {
-            'field': {'fieldPath': query.orderBy},
-            'direction': query.descending ? 'DESCENDING' : 'ASCENDING',
-          },
-        ],
       if (query.limit != null) 'limit': query.limit,
     };
   }

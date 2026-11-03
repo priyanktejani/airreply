@@ -98,9 +98,15 @@ final class CryptoService implements KeyAgreement, PayloadCipher {
     }
   }
 
+  /// Index keys derived so far, by pair key: the derivation is the costly part, and a key's never changes.
+  final _indexKeys = <String, Future<SecretKey>>{};
+
   @override
   Future<String> blindIndex(String value, {required Uint8List key}) async {
-    final indexKey = await _keyHkdf.deriveKey(secretKey: SecretKey(key), info: utf8.encode('$_protocol/index'));
+    final indexKey = await _indexKeys.putIfAbsent(
+      base64.encode(key),
+      () => _keyHkdf.deriveKey(secretKey: SecretKey(key), info: utf8.encode('$_protocol/index')),
+    );
     final mac = await _hmac.calculateMac(utf8.encode(value), secretKey: indexKey);
     return _hex(mac.bytes.take(16));
   }

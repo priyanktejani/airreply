@@ -39,6 +39,16 @@ final class InboxState {
   InboxState markUnread(Iterable<String> keys) => _copy(read: _remove(read, keys), unread: _add(unread, keys));
 
   /// Everything up to [now] becomes read.
+  /// Without the marks of [pairId]'s notifications: that pair has ended.
+  InboxState forgetPair(String pairId) {
+    bool other(String key) => !key.startsWith('$pairId/');
+    return _copy(
+      read: read.where(other).toSet(),
+      unread: unread.where(other).toSet(),
+      hidden: hidden.where(other).toSet(),
+    );
+  }
+
   InboxState markAllRead(DateTime now) => InboxState(readBefore: now, read: const {}, unread: const {}, hidden: hidden);
 
   InboxState hide(Iterable<String> keys) => _copy(hidden: _add(hidden, keys));

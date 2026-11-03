@@ -26,5 +26,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:179471108216:ios:2a16d887cdaa3f91f3c58d</string>
+	<key>DATABASE_URL</key>
+	<string>https://airreply-default-rtdb.asia-southeast1.firebasedatabase.app</string>
 </dict>
 </plist>

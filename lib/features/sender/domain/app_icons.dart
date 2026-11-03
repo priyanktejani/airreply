@@ -11,4 +11,7 @@ abstract interface class IconDeliveryLog {
   Future<bool> isDue(String pairId, String packageName);
 
   Future<void> recordSent(String pairId, String packageName);
+
+  /// Forgets every pair but [pairIds]: the others have ended.
+  Future<void> keepOnly(Set<String> pairIds);
 }

@@ -251,4 +251,15 @@ void main() {
     expect(ReplyStatus.parse('FAILED_EXPIRED'), ReplyStatus.expired);
     expect(ReplyStatus.parse('something else'), ReplyStatus.failed);
   });
+
+  test('a pair that ends takes its read, unread and hidden marks with it', () {
+    final state = const InboxState().markRead(['pixel/a', 'galaxy/b']).markUnread(['pixel/c']).hide([
+      'pixel/d',
+      'galaxy/e',
+    ]);
+    final forgotten = state.forgetPair('pixel');
+    expect(forgotten.read, {'galaxy/b'});
+    expect(forgotten.unread, isEmpty);
+    expect(forgotten.hidden, {'galaxy/e'});
+  });
 }

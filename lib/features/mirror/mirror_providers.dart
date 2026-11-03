@@ -29,7 +29,7 @@ final doorbellProvider = Provider.family<Doorbell?, String>((ref, pairId) {
     config: config,
     client: ref.watch(httpClientProvider),
     idToken: ref.watch(authGatewayProvider).idToken,
-    name: () => cipher.blindIndex('air_reply.doorbell'),
+    name: () => Doorbell.nameFor(cipher),
   );
   ref.onDispose(bell.dispose);
   return bell;

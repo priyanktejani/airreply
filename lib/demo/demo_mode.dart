@@ -7,6 +7,7 @@ import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
 import 'package:air_reply/core/platform/notification_permission.dart';
+import 'package:air_reply/features/mirror/cleanup_providers.dart';
 import 'package:air_reply/features/mirror/domain/entities/history_query.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
@@ -42,6 +43,7 @@ List<Override> demoOverrides(String role) {
     mirrorRepositoryProvider.overrideWith((ref, pairId) => _DemoMirror.of(pairId)),
     // sample history lives in memory: removing a demo device leaves the real database alone
     eraseHistoryProvider.overrideWithValue((_) async {}),
+    removeDoorbellProvider.overrideWithValue((_) async {}),
     notificationBridgeProvider.overrideWithValue(_DemoBridge()),
     notificationPermissionProvider.overrideWithValue(_DemoPermission()),
     inboxStateStoreProvider.overrideWithValue(_DemoInbox()),
@@ -121,7 +123,7 @@ final class _DemoPairing implements PairingRepository {
   Stream<bool> watchPairActive(String pairId) => Stream.value(true);
 
   @override
-  Future<void> deactivatePair(String pairId) async {}
+  Future<void> endPair(String pairId) async {}
 
   @override
   Future<void> registerPushToken({required String pairId, required DeviceRole role, required String token}) async {}

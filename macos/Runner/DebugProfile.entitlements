@@ -6,6 +6,12 @@
 	<true/>
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
+	<!-- Firebase Authentication keeps the signed-in device in the keychain: without this, signing in (and so pairing)
+	     fails with "A required entitlement is not present" (-34018). Needs the app signed with the team. -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.airreply.airReply</string>
+	</array>
 	<key>com.apple.security.device.camera</key>
 	<true/>
 	<key>com.apple.security.network.client</key>

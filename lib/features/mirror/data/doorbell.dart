@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:air_reply/core/crypto/pair_cipher.dart';
 import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/firebase/rest/firebase_rest_config.dart';
 import 'package:air_reply/core/logging/app_log.dart';
@@ -61,6 +62,15 @@ final class Doorbell {
     if (response.statusCode == 401) response = await put(forceRefresh: true);
     if (response.statusCode != 200) throw SyncException('Doorbell refused (${response.statusCode}).');
   }
+
+  /// Takes the doorbell away: the pair has ended.
+  Future<void> remove() async {
+    final response = await _client.delete(_config.database(await _path(), auth: await _idToken()));
+    if (response.statusCode != 200) throw SyncException('Doorbell not removed (${response.statusCode}).');
+  }
+
+  /// The doorbell's name for a pair: a blind index of its key, so only its two devices can find it.
+  static Future<String> nameFor(PairCipher cipher) => cipher.blindIndex('air_reply.doorbell');
 
   void dispose() {
     _stop();

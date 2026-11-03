@@ -134,8 +134,30 @@ final class FirestorePairingRepository implements PairingRepository {
       .distinct();
 
   @override
-  Future<void> deactivatePair(String pairId) =>
-      _guard(() => _pairs.doc(pairId).update(SdkValues.toSdk(PairingDocuments.deactivated())));
+  Future<void> endPair(String pairId) async {
+    final pair = _pairs.doc(pairId);
+    // while still a member: the rules let only the pair's devices delete its messages
+    try {
+      for (final name in FirestoreSchema.mailboxes) {
+        final mailbox = pair.collection(name);
+        for (var docs = await _serverBatch(mailbox); docs.isNotEmpty; docs = await _serverBatch(mailbox)) {
+          final batch = _db.batch();
+          for (final doc in docs) {
+            batch.delete(doc.reference);
+          }
+          await batch.commit();
+        }
+      }
+    } on FirebaseException {
+      // offline: the messages stay, sealed with a key no device holds any more, until they expire
+    }
+    await _guard(() => pair.update(SdkValues.toSdk(PairingDocuments.deactivated())));
+    await _guard(pair.delete);
+  }
+
+  Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>> _serverBatch(
+    CollectionReference<Map<String, dynamic>> mailbox,
+  ) async => (await mailbox.limit(300).get(const GetOptions(source: Source.server))).docs;
 
   @override
   Future<void> registerPushToken({required String pairId, required DeviceRole role, required String token}) =>

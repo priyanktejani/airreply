@@ -88,4 +88,13 @@ void main() {
     await cache.save({'com.whatsapp': icon});
     expect((await cache.load())['com.whatsapp'], icon);
   });
+
+  test('records of icons sent to devices since removed are dropped', () async {
+    final log = PreferencesIconDeliveryLog(SharedPreferencesAsync(), clock: () => DateTime(2026, 10));
+    await log.recordSent('mac', 'com.whatsapp');
+    await log.recordSent('pc', 'com.whatsapp');
+    await log.keepOnly({'pc'});
+    expect(await log.isDue('mac', 'com.whatsapp'), isTrue);
+    expect(await log.isDue('pc', 'com.whatsapp'), isFalse);
+  });
 }

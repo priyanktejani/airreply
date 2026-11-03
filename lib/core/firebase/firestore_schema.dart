@@ -16,4 +16,7 @@ abstract final class FirestoreSchema {
   static const notifications = 'notifications';
   static const replies = 'replies';
   static const dismissals = 'dismissals';
+
+  /// Everything under a pair: emptied when it ends.
+  static const mailboxes = [notifications, dismissals, replies];
 }

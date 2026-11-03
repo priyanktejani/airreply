@@ -154,8 +154,23 @@ final class RestPairingRepository implements PairingRepository {
       .distinct();
 
   @override
-  Future<void> deactivatePair(String pairId) =>
-      _guard(() => _client.commit([RestWrite.update(_pair(pairId), PairingDocuments.deactivated())]));
+  Future<void> endPair(String pairId) async {
+    // while still a member: the rules let only the pair's devices delete its messages
+    try {
+      for (final name in FirestoreSchema.mailboxes) {
+        for (var docs = await _batch(pairId, name); docs.isNotEmpty; docs = await _batch(pairId, name)) {
+          await _client.commit([for (final doc in docs) RestWrite.delete(doc.path)]);
+        }
+      }
+    } on Object {
+      // offline: the messages stay, sealed with a key no device holds any more, until they expire
+    }
+    await _guard(() => _client.commit([RestWrite.update(_pair(pairId), PairingDocuments.deactivated())]));
+    await _guard(() => _client.commit([RestWrite.delete(_pair(pairId))]));
+  }
+
+  Future<List<RestDocument>> _batch(String pairId, String mailbox) =>
+      _client.runQuery(RestQuery(mailbox, limit: 300), parent: _pair(pairId));
 
   @override
   Future<void> registerPushToken({required String pairId, required DeviceRole role, required String token}) => _guard(

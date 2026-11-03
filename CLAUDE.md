@@ -68,7 +68,15 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
   in the Realtime Database after each notification, dismissal and reply status; Windows/Linux listen over one
   server-sent-events stream per pair and read the mailbox on each ring (backstop every 2 minutes; every 3 seconds while
   the stream is down). Off when the project has no Realtime Database (`FirebaseRestConfig.hasDatabase`). Rules in
-  `database.rules.json`; emulator tests need `--only auth,firestore,database`.
+  `database.rules.json`; emulator tests need `--only auth,firestore,database`. The project's database is
+  `airreply-default-rtdb` in asia-southeast1 (`databaseURL` in `firebase_options.dart`).
+- Removing the last device clears the role (`DeviceSessionController.unpair`), so the app opens on the welcome
+  screen's choice again; the privacy disclosure stays accepted. While nothing is paired, setup and pairing have a back
+  button (and system back, via `OnboardingBack`) that returns to that choice.
+- Unpairing (`Unpair`) ends the pair on the server (`PairingRepository.endPair`: empties its mailboxes, marks it ended,
+  deletes it), removes its doorbell, then wipes its key and history here; the server part is capped at 10 seconds so
+  an offline unpair never hangs. The other device sees the pair gone and does the same locally. Read/hidden marks of
+  an ended pair are dropped by `InboxController`; the phone prunes its icon records when its sync engine starts.
 - Delivery is at-least-once and idempotent: a document is saved (upsert by id) before its mailbox copy is deleted, so a
   failed delete or a server retry only redelivers it. Each receiver has its own pair, so its own mailbox.
 - Web needs `web/sqlite3.wasm` and `web/drift_worker.js`, matching the sqlite3 and drift versions in `pubspec.lock`;
@@ -122,6 +130,14 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
 
 - Rows inside a card are square (the card clips the corners); a swipe behind a card rounds only its outer corners.
 - Tests use `FakeAccessibilityFeatures(disableAnimations: true)` through the helpers in `test/app/app_flow_test.dart`.
+
+## macOS signing
+
+The Mac app must be signed with a team (personal team `F9FQQ7JL29`, "Apple Development") and keep the
+`keychain-access-groups` entitlement in both `macos/Runner/*.entitlements`: Firebase Authentication stores the
+signed-in device in the keychain, and an ad-hoc signed build fails sign-in (so pairing) with keychain error -34018.
+The development profile is "Mac Team Provisioning Profile: com.airreply.airReply"; a new Mac needs one build with
+`-allowProvisioningUpdates` (or opening the project in Xcode). Secure storage itself uses the legacy keychain.
 
 ## What not to do
 

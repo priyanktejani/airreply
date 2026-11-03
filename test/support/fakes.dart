@@ -21,7 +21,7 @@ import 'package:air_reply/features/pairing/domain/repositories/pairing_repositor
 import 'package:air_reply/features/sender/domain/app_icons.dart';
 
 /// In-memory backend for the pairing handshake, shared by a "sender" and a "receiver" in the same test.
-final class InMemoryPairingRepository implements PairingRepository {
+class InMemoryPairingRepository implements PairingRepository {
   InMemoryPairingRepository({this.now});
 
   final DateTime Function()? now;
@@ -112,7 +112,7 @@ final class InMemoryPairingRepository implements PairingRepository {
   Stream<bool> watchPairActive(String pairId) => Stream.value(pairs[pairId] ?? false);
 
   @override
-  Future<void> deactivatePair(String pairId) async => pairs[pairId] = false;
+  Future<void> endPair(String pairId) async => pairs[pairId] = false;
 
   @override
   Future<void> registerPushToken({required String pairId, required DeviceRole role, required String token}) async =>
@@ -311,6 +311,9 @@ final class MemoryIconLog implements IconDeliveryLog {
 
   @override
   Future<void> recordSent(String pairId, String packageName) async => sent.add('$pairId|$packageName');
+
+  @override
+  Future<void> keepOnly(Set<String> pairIds) async {}
 }
 
 final class MemorySecretStore implements SecretStore {

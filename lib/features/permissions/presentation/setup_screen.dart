@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
@@ -12,6 +14,7 @@ import 'package:air_reply/core/widgets/glass_scroll_page.dart';
 import 'package:air_reply/core/widgets/page_intro.dart';
 import 'package:air_reply/core/widgets/responsive_center.dart';
 import 'package:air_reply/core/widgets/sticky_action_bar.dart';
+import 'package:air_reply/features/onboarding/presentation/onboarding_back.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter/material.dart';
@@ -51,39 +54,45 @@ class _WithActions extends ConsumerWidget {
     final paired = ref.watch(deviceSessionProvider.select((s) => s.value?.isPaired ?? false));
     // one row of buttons per action, with the gaps between them
     final reserve = actions.length * (AppDimensions.buttonHeight + AppSpacing.sm) + AppSpacing.xl;
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: GlassScrollPage(
-            title: const Text('Set up'),
-            leading: paired ? BackButton(onPressed: () => context.go(AppRoutes.home)) : null,
-            slivers: [
-              SliverToBoxAdapter(child: header),
-              SliverList.list(
-                children: [
-                  for (final (i, w) in content.indexed) FadeSlideIn.staggered(index: i, child: w),
-                  SizedBox(height: reserve),
-                ],
-              ),
-            ],
+    // unpaired, this is the step after choosing to share: back returns to that choice
+    void back() =>
+        paired ? context.go(AppRoutes.home) : unawaited(ref.read(deviceSessionProvider.notifier).clearRole());
+    return OnboardingBack(
+      onBack: paired ? null : back,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GlassScrollPage(
+              title: const Text('Set up'),
+              leading: BackButton(onPressed: back),
+              slivers: [
+                SliverToBoxAdapter(child: header),
+                SliverList.list(
+                  children: [
+                    for (final (i, w) in content.indexed) FadeSlideIn.staggered(index: i, child: w),
+                    SizedBox(height: reserve),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: ResponsiveCenter(
-            child: StickyActionBar(
-              pill: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: actions,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: ResponsiveCenter(
+              child: StickyActionBar(
+                pill: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: actions,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

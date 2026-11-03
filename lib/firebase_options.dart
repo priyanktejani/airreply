@@ -43,6 +43,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '179471108216',
     projectId: 'airreply',
     authDomain: 'airreply.firebaseapp.com',
+    databaseURL: 'https://airreply-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'airreply.firebasestorage.app',
   );
 
@@ -51,23 +52,24 @@ class DefaultFirebaseOptions {
     appId: '1:179471108216:android:35d0892ca2430dabf3c58d',
     messagingSenderId: '179471108216',
     projectId: 'airreply',
+    databaseURL: 'https://airreply-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'airreply.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAxpG1-k4ax4I9j6paSaeoDJ7lymkA4NxI',
     appId: '1:179471108216:ios:2a16d887cdaa3f91f3c58d',
     messagingSenderId: '179471108216',
     projectId: 'airreply',
+    databaseURL: 'https://airreply-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'airreply.firebasestorage.app',
     iosBundleId: 'com.Kairo.airreply',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAxpG1-k4ax4I9j6paSaeoDJ7lymkA4NxI',
     appId: '1:179471108216:ios:31dac85ffc87313bf3c58d',
     messagingSenderId: '179471108216',
     projectId: 'airreply',
+    databaseURL: 'https://airreply-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'airreply.firebasestorage.app',
     iosBundleId: 'com.airreply.airReply',
   );
@@ -78,6 +80,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '179471108216',
     projectId: 'airreply',
     authDomain: 'airreply.firebaseapp.com',
+    databaseURL: 'https://airreply-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'airreply.firebasestorage.app',
   );
 }

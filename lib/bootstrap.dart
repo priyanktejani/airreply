@@ -5,6 +5,7 @@ import 'package:air_reply/app/firebase_setup_required_app.dart';
 import 'package:air_reply/app/router/app_router.dart';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/background/push_entrypoints.dart';
+import 'package:air_reply/core/firebase/firebase_start.dart';
 import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/platform/sync_wake_port.dart';
@@ -14,7 +15,6 @@ import 'package:air_reply/features/notifications/background/alert_handlers.dart'
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show ThemeMode;
@@ -81,7 +81,7 @@ Future<void> bootstrap() async {
 Future<void> _startBackend() async {
   switch (AppPlatform.backend) {
     case BackendTransport.firebaseSdk:
-      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+      await startFirebase();
     case BackendTransport.rest:
       // Throws until `flutterfire configure` (with web) has been run.
       if (DefaultFirebaseOptions.web.projectId.isEmpty) throw StateError('The Firebase web config has no project id.');

@@ -16,6 +16,7 @@ import 'package:air_reply/core/widgets/glass_scroll_page.dart';
 import 'package:air_reply/core/widgets/notice.dart';
 import 'package:air_reply/core/widgets/page_intro.dart';
 import 'package:air_reply/core/widgets/status_badge.dart';
+import 'package:air_reply/features/onboarding/presentation/onboarding_back.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_session.dart';
 import 'package:air_reply/features/pairing/presentation/controllers/receiver_pairing_controller.dart';
 import 'package:air_reply/features/pairing/presentation/controllers/sender_pairing_controller.dart';
@@ -39,66 +40,54 @@ class PairingScreen extends ConsumerWidget {
       ref.watch(deviceRoleProvider) == DeviceRole.sender ? const _SenderPairing() : const _ReceiverPairing();
 }
 
-/// App bar, title and steps shared by both sides. Unpaired devices may switch role from the menu.
+/// App bar, title and steps shared by both sides. Back leads to the devices list once something is paired; otherwise
+/// to the choice of what this device does (sharing or receiving), where pairing began.
 class _PairingPage extends ConsumerWidget {
-  const _PairingPage({
-    required this.title,
-    required this.step,
-    required this.steps,
-    required this.child,
-    this.switchRole,
-  });
+  const _PairingPage({required this.title, required this.step, required this.steps, required this.child});
 
   final String title;
   final int step;
   final List<String> steps;
   final Widget child;
-  final String? switchRole;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final paired = ref.watch(pairedDevicesProvider).isNotEmpty;
-    return Scaffold(
-      body: GlassScrollPage(
-        maxWidth: 520,
-        title: Text(paired ? 'Pair a device' : 'Pair'),
-        leading: paired
-            ? BackButton(onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.devices))
-            : null,
-        actions: [
-          if (!paired && switchRole != null)
-            PopupMenuButton<void>(
-              tooltip: 'More',
-              icon: const Icon(AppIcons.moreVert),
-              itemBuilder: (_) => [
-                PopupMenuItem(onTap: ref.read(deviceSessionProvider.notifier).clearRole, child: Text(switchRole!)),
-              ],
+    void back() => paired
+        ? (context.canPop() ? context.pop() : context.go(AppRoutes.devices))
+        : unawaited(ref.read(deviceSessionProvider.notifier).clearRole());
+    return OnboardingBack(
+      onBack: paired ? null : back,
+      child: Scaffold(
+        body: GlassScrollPage(
+          maxWidth: 520,
+          title: Text(paired ? 'Pair a device' : 'Pair'),
+          leading: BackButton(onPressed: back),
+          slivers: [
+            SliverToBoxAdapter(
+              child: PageIntro(eyebrow: 'Step ${step + 1} of ${steps.length}', title: title),
             ),
-        ],
-        slivers: [
-          SliverToBoxAdapter(
-            child: PageIntro(eyebrow: 'Step ${step + 1} of ${steps.length}', title: title),
-          ),
-          SliverToBoxAdapter(
-            child: PairingSteps(steps: steps, current: step),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
-          SliverToBoxAdapter(
-            child: AnimatedSwitcher(
-              duration: context.motion(AppMotion.slow),
-              switchInCurve: Curves.easeOut,
-              switchOutCurve: Curves.easeIn,
-              transitionBuilder: (child, a) => FadeTransition(
-                opacity: a,
-                child: SlideTransition(
-                  position: Tween(begin: const Offset(0, .04), end: Offset.zero).animate(a),
-                  child: child,
+            SliverToBoxAdapter(
+              child: PairingSteps(steps: steps, current: step),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
+            SliverToBoxAdapter(
+              child: AnimatedSwitcher(
+                duration: context.motion(AppMotion.slow),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, a) => FadeTransition(
+                  opacity: a,
+                  child: SlideTransition(
+                    position: Tween(begin: const Offset(0, .04), end: Offset.zero).animate(a),
+                    child: child,
+                  ),
                 ),
+                child: child,
               ),
-              child: child,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -134,7 +123,6 @@ class _SenderPairing extends ConsumerWidget {
         SenderPairingDone() => 2,
         _ => 0,
       },
-      switchRole: 'Use this device as a receiver',
       child: switch (state) {
         SenderPairingStarting() || SenderPairingDone() => const _Loading(),
         SenderPairingWaiting(:final pending) => _ShowCode(
@@ -335,7 +323,6 @@ class _ReceiverPairingState extends ConsumerState<_ReceiverPairing> {
         ReceiverPairingDone() => 2,
         _ => 0,
       },
-      switchRole: AppPlatform.canShareNotifications ? 'Use this device as the sender' : null,
       child: switch (state) {
         ReceiverPairingAwaitingConfirmation(:final joined) => _AwaitingConfirmation(
           senderName: joined.session.senderName,

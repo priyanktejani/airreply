@@ -77,9 +77,13 @@ final class DeviceSessionController extends AsyncNotifier<DeviceSession> {
   }
 
   /// Ends one pair. [notifyPeer] is false when the other device already ended it.
+  /// Once the last device is gone, this device is unassigned again and opens on the choice of what it does (sharing
+  /// or receiving); the privacy disclosure stays accepted.
   Future<void> unpair(String pairId, {bool notifyPeer = true}) async {
     await ref.read(unpairProvider).call(pairId, notifyPeer: notifyPeer);
-    state = AsyncData(_current.withoutPair(pairId));
+    final next = _current.withoutPair(pairId);
+    if (!next.isPaired) await _settings.writeRole(null);
+    state = AsyncData(next.isPaired ? next : next.withRole(null));
   }
 
   DeviceSession get _current => state.value ?? DeviceSession.fresh;

@@ -14,6 +14,7 @@ import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/domain/inbox_state.dart';
 import 'package:air_reply/features/notifications/domain/send_reply.dart';
 import 'package:air_reply/features/notifications/history_providers.dart';
+import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -190,6 +191,13 @@ final inboxStateProvider = AsyncNotifierProvider<InboxController, InboxState>(In
 final class InboxController extends AsyncNotifier<InboxState> {
   @override
   Future<InboxState> build() async {
+    // a pair that ends takes its read and hidden marks with it
+    ref.listen(pairedDevicesProvider, (before, now) {
+      final kept = {for (final p in now) p.pairId};
+      for (final ended in before ?? const <PairingCredentials>[]) {
+        if (!kept.contains(ended.pairId)) unawaited(_update((s) => s.forgetPair(ended.pairId)));
+      }
+    });
     final store = ref.watch(inboxStateStoreProvider);
     final saved = await store.load();
     if (saved != null) return saved;

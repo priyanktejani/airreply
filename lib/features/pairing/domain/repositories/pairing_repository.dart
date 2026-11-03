@@ -29,7 +29,9 @@ abstract interface class PairingRepository {
   /// Emits false once either device unpaired.
   Stream<bool> watchPairActive(String pairId);
 
-  Future<void> deactivatePair(String pairId);
+  /// Ends the pair on the server and removes what it left there: the messages still waiting in its mailbox, then the
+  /// pair itself, marked ended first so the other device notices however this goes.
+  Future<void> endPair(String pairId);
 
   /// Lets the backend push to this device (wake the sender for a reply, alert the receiver).
   Future<void> registerPushToken({required String pairId, required DeviceRole role, required String token});

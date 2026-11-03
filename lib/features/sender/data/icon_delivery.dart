@@ -59,4 +59,16 @@ final class PreferencesIconDeliveryLog implements IconDeliveryLog {
     }
     await _prefs.setString(_key, jsonEncode(entries));
   }
+
+  @override
+  Future<void> keepOnly(Set<String> pairIds) async {
+    final entries = await _entries();
+    final kept = {
+      for (final e in entries.entries)
+        if (pairIds.contains(e.key.split('|').first)) e.key: e.value,
+    };
+    if (kept.length == entries.length) return;
+    _cache = kept;
+    await _prefs.setString(_key, jsonEncode(kept));
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
+import 'package:air_reply/features/mirror/cleanup_providers.dart';
 import 'package:air_reply/features/mirror/history_providers.dart';
 import 'package:air_reply/features/pairing/data/firestore_pairing_repository.dart';
 import 'package:air_reply/features/pairing/data/rest_pairing_repository.dart';
@@ -61,5 +62,6 @@ final unpairProvider = Provider(
     ref.watch(pairingCredentialsStoreProvider),
     ref.watch(notificationBridgeProvider),
     eraseHistory: ref.watch(eraseHistoryProvider),
+    removeDoorbell: ref.watch(removeDoorbellProvider),
   ),
 );

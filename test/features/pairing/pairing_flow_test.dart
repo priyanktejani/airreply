@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:typed_data';
 
 import 'package:air_reply/core/crypto/crypto_service.dart';
@@ -137,6 +139,36 @@ void main() {
     expect(backend.pairs.containsKey(only), isFalse);
   });
 
+  test('unpairing ends the pair on the server, takes its doorbell, then erases it here, in that order', () async {
+    final mac = await pairSenderWith('MacBook');
+    final steps = <String>[];
+    await Unpair(
+      backend,
+      senderStore,
+      FakeNotificationBridge(),
+      eraseHistory: (pairId) async => steps.add('history $pairId'),
+      removeDoorbell: (pair) async => steps.add('doorbell ${pair.pairId}'),
+    ).call(mac);
+    expect(backend.pairs[mac], isFalse);
+    expect(steps, ['doorbell $mac', 'history $mac']);
+    expect(senderStore.pairs, isEmpty);
+  });
+
+  test('offline, unpairing does not wait on the server: the key and history go anyway', () async {
+    final mac = await pairSenderWith('MacBook');
+    final erased = <String>[];
+    await Unpair(
+      _HangingBackend(),
+      senderStore,
+      FakeNotificationBridge(),
+      eraseHistory: (pairId) async => erased.add(pairId),
+      removeDoorbell: (_) => Completer<void>().future,
+      serverTimeout: const Duration(milliseconds: 20),
+    ).call(mac);
+    expect(erased, [mac]);
+    expect(senderStore.pairs, isEmpty);
+  });
+
   group('PairingInvite', () {
     test('round-trips through its URI', () {
       final invite = PairingInvite(code: '004213', senderPublicKey: Uint8List.fromList(List.generate(32, (i) => i)));
@@ -151,4 +183,10 @@ void main() {
       expect(PairingInvite.tryParse('airreply://pair?c=123456&k=AAAA'), isNull);
     });
   });
+}
+
+/// A server that never answers: Firestore offline, waiting for the connection.
+final class _HangingBackend extends InMemoryPairingRepository {
+  @override
+  Future<void> endPair(String pairId) => Completer<void>().future;
 }

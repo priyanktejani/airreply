@@ -7,6 +7,7 @@
 @Tags(['emulator'])
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:air_reply/core/crypto/crypto_service.dart';
@@ -192,7 +193,7 @@ void main() {
     );
 
     // The desktop unpairs; the phone notices.
-    await desktop.pairing.deactivatePair(desktopPair.pairId);
+    await desktop.pairing.endPair(desktopPair.pairId);
     expect(await phone.pairing.watchPairActive(phonePair.pairId).first.timeout(const Duration(seconds: 10)), isFalse);
   }, skip: skip);
 
@@ -272,7 +273,35 @@ void main() {
     expect(await put('doorbells/not-a-bell', '{".sv":"timestamp"}', auth: token), 401);
     expect(await get('doorbells', auth: token), 401, reason: 'nobody lists the doorbells');
     expect(await put('elsewhere', '{".sv":"timestamp"}', auth: token), 401);
+
+    // and it is taken away when the pair ends
+    expect((await httpClient.delete(device.config.database('doorbells/$bell', auth: token))).statusCode, 200);
+    expect((await httpClient.get(device.config.database('doorbells/$bell', auth: token))).body, 'null');
   }, skip: _databaseHost == null ? 'The Realtime Database emulator is not running' : skip);
+
+  test('ending a pair removes what it left on the server, and the other device notices', () async {
+    final phone = _Device('Pixel 9', httpClient);
+    final desktop = _Device('Linux PC', httpClient);
+    final stranger = _Device('Stranger', httpClient);
+    final (phonePair, desktopPair) = await pair(phone, desktop);
+    final path = 'pairs/${phonePair.pairId}';
+
+    // never collected: waiting on the server when the pair ends
+    await phone.mirror(phonePair).publish(message('k1', 'one'), canReply: true);
+    await phone.mirror(phonePair).publish(message('k2', 'two'), canReply: true);
+    await desktop.mirror(desktopPair).send(notificationId: 'n', notificationKey: 'k1', text: 'pending reply');
+    expect(await _adminCount('$path/notifications'), 2);
+
+    // a stranger cannot end it, nor can a member delete it while it is active
+    await expectLater(stranger.pairing.endPair(phonePair.pairId), throwsA(anything));
+    await expectLater(desktop.client.commit([RestWrite.delete(path)]), throwsA(anything));
+
+    await desktop.pairing.endPair(desktopPair.pairId);
+    expect(await _adminCount('$path/notifications'), 0);
+    expect(await _adminCount('$path/replies'), 0);
+    expect(await _adminExists(path), isFalse);
+    expect(await phone.pairing.watchPairActive(phonePair.pairId).first.timeout(const Duration(seconds: 10)), isFalse);
+  }, skip: skip);
 
   test('security rules: strangers and wrong roles are refused', () async {
     final phone = _Device('Pixel 9', httpClient);
@@ -318,4 +347,26 @@ Future<void> _eventually(Future<bool> Function() check) async {
     if (DateTime.now().isAfter(deadline)) fail('Timed out waiting for the server');
     await Future<void>.delayed(const Duration(milliseconds: 200));
   }
+}
+
+/// Documents in a collection, read past the rules (the emulator's owner token).
+Future<int> _adminCount(String collection) async {
+  final response = await http.get(
+    Uri.parse(
+      'http://$_firestoreHost/v1/projects/${Platform.environment['GCLOUD_PROJECT'] ?? 'demo-airreply'}/databases/(default)/documents/$collection',
+    ),
+    headers: {'authorization': 'Bearer owner'},
+  );
+  return ((jsonDecode(response.body) as Map)['documents'] as List?)?.length ?? 0;
+}
+
+/// Whether a document exists, read past the rules.
+Future<bool> _adminExists(String document) async {
+  final response = await http.get(
+    Uri.parse(
+      'http://$_firestoreHost/v1/projects/${Platform.environment['GCLOUD_PROJECT'] ?? 'demo-airreply'}/databases/(default)/documents/$document',
+    ),
+    headers: {'authorization': 'Bearer owner'},
+  );
+  return response.statusCode == 200;
 }

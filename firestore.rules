@@ -110,8 +110,9 @@ service cloud.firestore {
           : !changed().hasAny(['senderToken', 'senderPlatform']))
         && (request.resource.data.active == resource.data.active || request.resource.data.active == false);
 
-      // Ended pairs are deleted, with their history, by the onPairEnded function.
-      allow delete: if false;
+      // A device that ends the pair removes it, once it is marked ended (so the other device always notices first).
+      // The onPairEnded function, where deployed, does the same.
+      allow delete: if signedIn() && uid() in resource.data.members && resource.data.active == false;
 
       match /notifications/{notificationId} {
         allow read: if isActiveMember(pairId);
@@ -132,8 +133,9 @@ service cloud.firestore {
           && request.resource.data.dismissedOnSender == true
           && changed().hasOnly(['dismissedOnSender', 'dismissedAt', 'updatedAt']);
 
-        // Delivered: the receiver keeps it on the device and clears it from the server.
-        allow delete: if isReceiver(pairId);
+        // Delivered: the receiver keeps it on the device and clears it from the server. Either device empties the
+        // mailbox when it ends the pair.
+        allow delete: if isActiveMember(pairId);
       }
 
       // The sender's notification left its status bar: the receiver can no longer reply to what came before.
@@ -147,7 +149,7 @@ service cloud.firestore {
           && validExpiry();
 
         allow update: if false;
-        allow delete: if isReceiver(pairId);
+        allow delete: if isActiveMember(pairId);
       }
 
       match /replies/{replyId} {
@@ -167,8 +169,9 @@ service cloud.firestore {
           && request.resource.data.status in ['SENT', 'FAILED_EXPIRED', 'FAILED']
           && changed().hasOnly(['status', 'updatedAt']);
 
-        // Once the sender has reported the outcome, only the receiver needs it, on the device.
-        allow delete: if isReceiver(pairId) && resource.data.status != 'PENDING';
+        // Once the sender has reported the outcome, only the receiver needs it, on the device; and either device
+        // empties the mailbox when it ends the pair.
+        allow delete: if isActiveMember(pairId);
       }
     }
   }

@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:air_reply/background/background_bootstrap.dart';
+import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
+import 'package:air_reply/features/sender/data/icon_delivery.dart';
 import 'package:air_reply/features/sender/sender_providers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 
@@ -21,6 +23,11 @@ Future<void> runSenderSync() async {
       await bridge.stopSync();
       return;
     }
+
+    // Records of icons sent to devices that have since been removed: this engine restarts whenever a pair ends.
+    await PreferencesIconDeliveryLog(
+      container.read(sharedPreferencesProvider),
+    ).keepOnly({for (final pair in session.pairs) pair.pairId});
 
     // A receiver ended its pair: forget that key here too (this also restarts or stops this engine).
     for (final pair in session.pairs) {

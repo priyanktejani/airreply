@@ -9,6 +9,7 @@ Mirrors Android notifications to paired devices, end-to-end encrypted, and sends
 - flutter analyze
 - flutter test
 - flutter build web --dart-define=AIRREPLY_DEMO=receiver  (demo data, no Firebase; also `sender`, `welcome`)
+- dart run build_runner build  (after changing `history_database.dart`; drift is the only code generator)
 
 Do not build an APK unless asked.
 
@@ -23,10 +24,35 @@ Feature-first. Feature code lives in `lib/features/<feature>/` (`data/`, `domain
 `background/` where a feature runs outside the UI). App-wide infrastructure lives in `lib/core/`; app wiring (router,
 shell, nav bar) in `lib/app/`; demo data in `lib/demo/`.
 
-- State: Riverpod 3 (`Provider`, `Notifier`, families keyed by records). No code generation.
+- State: Riverpod 3 (`Provider`, `Notifier`, families keyed by records). No code generation, except drift's
+  `history_database.g.dart` (approved; `build.yaml` limits the generator to that file).
 - Navigation: go_router with a `StatefulShellRoute`; routes in `lib/app/router/`, paths built by `AppRoutes`.
 - Backend: Firebase (Auth, Firestore, Messaging); a REST client in `lib/core/firebase/rest/` for Windows and Linux.
 - Crypto: `cryptography` package, in `lib/core/crypto/`.
+
+## Sync and storage
+
+Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
+
+- `MirrorSyncRepository` (`lib/features/mirror/data/`) is the one sync implementation, over a `PairMailbox`
+  (`FirestoreMailbox` or `RestMailbox`). The receiver keeps each notification and dismissal in `MessageHistory` and
+  then deletes it from Firestore; a reply is deleted once the sender has reported its status. The sender keeps its own
+  copy of what it published and the replies it executed.
+- `MessageHistory` keeps the still-encrypted payloads in a drift (SQLite) database, `HistoryDatabase`
+  (`lib/features/mirror/history_providers.dart`): everything is kept, and the screens load the newest 2,000
+  notifications and 1,000 replies per pair. The app and the sender's background engine (separate Flutter engines) each
+  open their own WAL connection; `PRAGMA data_version` tells one when the other wrote. Erased on unpair. History from
+  the first, SharedPreferences version is moved in on first load.
+- Search covers the whole history: `history_search` keeps each notification's title, text and app name in plain,
+  lower-cased text (payloads stay sealed), filled on save and, for older rows, when a feed opens. While a search is on
+  screen (inbox or Home, 2+ characters), `historySearchProvider` finds matches older than the loaded window and
+  `allFeedProvider` merges them in, so they group and open like the rest. A schema change needs a `schemaVersion` bump
+  and a step in `HistoryDatabase.migration`.
+- Web needs `web/sqlite3.wasm` and `web/drift_worker.js`, matching the sqlite3 and drift versions in `pubspec.lock`;
+  download new ones from their GitHub releases when upgrading either package.
+- Every mailbox document has `expireAt` (30 days) for a Firestore TTL policy. Dismissals are their own documents,
+  written only for notifications that were mirrored.
+- `firestore.rules` must be deployed before an app with this change runs, or publishing is refused.
 
 ## Design system
 

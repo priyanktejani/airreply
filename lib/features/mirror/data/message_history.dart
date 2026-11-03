@@ -1,0 +1,340 @@
+import 'dart:convert';
+
+import 'package:air_reply/core/logging/app_log.dart';
+import 'package:air_reply/features/mirror/data/history_database.dart';
+import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
+import 'package:drift/drift.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// A mirrored notification as this device keeps it. [payload] is still sealed with the pair's key, so history on the
+/// device is as private as it was in transit, and unreadable once the pair (and its key) is gone.
+final class StoredNotification {
+  const StoredNotification({
+    required this.id,
+    required this.payload,
+    required this.postedAt,
+    this.keyHash,
+    this.canReply = false,
+    this.dismissed = false,
+  });
+
+  factory StoredNotification._fromRow(NotificationRow row) => StoredNotification(
+    id: row.id,
+    payload: row.payload,
+    postedAt: DateTime.fromMillisecondsSinceEpoch(row.postedAt),
+    keyHash: row.keyHash,
+    canReply: row.canReply,
+    dismissed: row.dismissed,
+  );
+
+  /// As the first version of the history kept it, in SharedPreferences.
+  factory StoredNotification._fromLegacy(String id, Map<String, Object?> json) => StoredNotification(
+    id: id,
+    payload: json['p']! as String,
+    postedAt: DateTime.fromMillisecondsSinceEpoch((json['at']! as num).toInt()),
+    keyHash: json['k'] as String?,
+    canReply: json['r'] == true,
+    dismissed: json['d'] == true,
+  );
+
+  final String id;
+  final String payload;
+  final DateTime postedAt;
+
+  /// The blind index of the source notification's key: how a later dismissal finds it.
+  final String? keyHash;
+  final bool canReply;
+
+  /// Flagged dismissed in the document itself (senders before dismissals had their own documents).
+  final bool dismissed;
+
+  HistoryNotificationsCompanion _row(String pairId) => HistoryNotificationsCompanion.insert(
+    pairId: pairId,
+    id: id,
+    payload: payload,
+    postedAt: postedAt.millisecondsSinceEpoch,
+    keyHash: Value(keyHash),
+    canReply: Value(canReply),
+    dismissed: Value(dismissed),
+  );
+}
+
+/// A reply as this device keeps it, its text still sealed with the pair's key.
+final class StoredReply {
+  const StoredReply({
+    required this.id,
+    required this.notificationId,
+    required this.payload,
+    required this.status,
+    required this.createdAt,
+  });
+
+  factory StoredReply._fromRow(ReplyRow row) => StoredReply(
+    id: row.id,
+    notificationId: row.notificationId,
+    payload: row.payload,
+    status: ReplyStatus.parse(row.status),
+    createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
+  );
+
+  factory StoredReply._fromLegacy(String id, Map<String, Object?> json) => StoredReply(
+    id: id,
+    notificationId: json['n']! as String,
+    payload: json['p']! as String,
+    status: ReplyStatus.parse(json['s']),
+    createdAt: DateTime.fromMillisecondsSinceEpoch((json['at']! as num).toInt()),
+  );
+
+  final String id;
+  final String notificationId;
+  final String payload;
+  final ReplyStatus status;
+  final DateTime createdAt;
+
+  StoredReply withStatus(ReplyStatus status) =>
+      StoredReply(id: id, notificationId: notificationId, payload: payload, status: status, createdAt: createdAt);
+
+  HistoryRepliesCompanion _row(String pairId) => HistoryRepliesCompanion.insert(
+    pairId: pairId,
+    id: id,
+    notificationId: notificationId,
+    payload: payload,
+    status: status.wire,
+    createdAt: createdAt.millisecondsSinceEpoch,
+  );
+}
+
+/// The newest of one pair's history, by document id; dismissals by key hash, with when they happened.
+final class HistoryRecords {
+  HistoryRecords({
+    Map<String, StoredNotification>? notifications,
+    Map<String, StoredReply>? replies,
+    Map<String, DateTime>? dismissals,
+  }) : notifications = notifications ?? {},
+       replies = replies ?? {},
+       dismissals = dismissals ?? {};
+
+  final Map<String, StoredNotification> notifications;
+  final Map<String, StoredReply> replies;
+  final Map<String, DateTime> dismissals;
+
+  /// Whether the sender's notification was gone when [n] was posted or later: a dismissal covers what came before it,
+  /// not a new message that re-uses the same notification.
+  bool isDismissed(StoredNotification n) {
+    if (n.dismissed) return true;
+    final at = n.keyHash == null ? null : dismissals[n.keyHash];
+    return at != null && !n.postedAt.isAfter(at);
+  }
+}
+
+/// This device's copy of one pair's history, in the [HistoryDatabase]. As in WhatsApp, messages live on the devices:
+/// the server holds each one only until the other device has it (see [MirrorSyncRepository]).
+///
+/// Everything is kept; [load] reads the newest [maxNotifications] and [maxReplies], which is what the screens show.
+/// [revision] changes when another isolate or engine writes (the sender's background engine publishes), so the app
+/// can tell when to read again.
+final class MessageHistory {
+  MessageHistory(this._db, this.pairId, {this.maxNotifications = 2000, this.maxReplies = 1000, this._legacy});
+
+  final HistoryDatabase _db;
+  final String pairId;
+  final int maxNotifications;
+  final int maxReplies;
+
+  /// Where the first version kept history; moved into the database on the first [load].
+  final SharedPreferencesAsync? _legacy;
+  var _legacyChecked = false;
+
+  /// Longer than the server keeps undelivered messages, so a dismissal outlives the message it covers.
+  static const dismissalRetention = Duration(days: 45);
+
+  /// Reads the newest of the history, after dropping dismissals and publish marks too old to matter.
+  Future<HistoryRecords> load() async {
+    await _importLegacy();
+    final expired = DateTime.now().subtract(dismissalRetention).millisecondsSinceEpoch;
+    await (_db.delete(
+      _db.historyDismissals,
+    )..where((d) => d.pairId.equals(pairId) & d.at.isSmallerThanValue(expired))).go();
+    await (_db.delete(
+      _db.historyPublished,
+    )..where((p) => p.pairId.equals(pairId) & p.at.isSmallerThanValue(expired))).go();
+
+    final notifications =
+        await (_db.select(_db.historyNotifications)
+              ..where((n) => n.pairId.equals(pairId))
+              ..orderBy([(n) => OrderingTerm.desc(n.postedAt)])
+              ..limit(maxNotifications))
+            .get();
+    final replies =
+        await (_db.select(_db.historyReplies)
+              ..where((r) => r.pairId.equals(pairId))
+              ..orderBy([(r) => OrderingTerm.desc(r.createdAt)])
+              ..limit(maxReplies))
+            .get();
+    final dismissals = await (_db.select(_db.historyDismissals)..where((d) => d.pairId.equals(pairId))).get();
+    return HistoryRecords(
+      notifications: {for (final row in notifications) row.id: StoredNotification._fromRow(row)},
+      replies: {for (final row in replies) row.id: StoredReply._fromRow(row)},
+      dismissals: {for (final row in dismissals) row.keyHash: DateTime.fromMillisecondsSinceEpoch(row.at)},
+    );
+  }
+
+  /// One notification, without loading the history (for a push handled in the background).
+  Future<StoredNotification?> notification(String id) async {
+    final row = await (_db.select(
+      _db.historyNotifications,
+    )..where((n) => n.pairId.equals(pairId) & n.id.equals(id))).getSingleOrNull();
+    return row == null ? null : StoredNotification._fromRow(row);
+  }
+
+  /// Saves [notifications] (replacing any with the same id); returns the [revision] after it.
+  Future<String> putNotifications(Iterable<StoredNotification> notifications) async {
+    await _db.batch(
+      (b) => b.insertAllOnConflictUpdate(_db.historyNotifications, [for (final n in notifications) n._row(pairId)]),
+    );
+    return revision();
+  }
+
+  /// Saves what search looks through, by notification id (see [HistorySearch]).
+  Future<void> putSearchText(Map<String, String> contentById) => _db.batch(
+    (b) => b.insertAllOnConflictUpdate(_db.historySearch, [
+      for (final MapEntry(key: id, value: content) in contentById.entries)
+        HistorySearchCompanion.insert(pairId: pairId, id: id, content: content),
+    ]),
+  );
+
+  /// Notifications that search cannot find yet (kept before search existed), up to [limit].
+  Future<List<StoredNotification>> unsearchable({int limit = 300}) async {
+    final n = _db.historyNotifications;
+    final rows =
+        await (_db.select(n).join([
+                leftOuterJoin(
+                  _db.historySearch,
+                  _db.historySearch.pairId.equalsExp(n.pairId) & _db.historySearch.id.equalsExp(n.id),
+                ),
+              ])
+              ..where(n.pairId.equals(pairId) & _db.historySearch.id.isNull())
+              ..limit(limit))
+            .get();
+    return [for (final row in rows) StoredNotification._fromRow(row.readTable(n))];
+  }
+
+  /// Notifications whose search text contains [query] (already lower-cased), newest first, only those posted before
+  /// [before] when given.
+  Future<List<StoredNotification>> search(String query, {DateTime? before, int limit = 200}) async {
+    final n = _db.historyNotifications;
+    final found = FunctionCallExpression<int>('instr', [_db.historySearch.content, Variable(query)]);
+    final rows =
+        await (_db.select(n).join([
+                innerJoin(
+                  _db.historySearch,
+                  _db.historySearch.pairId.equalsExp(n.pairId) & _db.historySearch.id.equalsExp(n.id),
+                ),
+              ])
+              ..where(
+                n.pairId.equals(pairId) &
+                    found.isBiggerThanValue(0) &
+                    (before == null
+                        ? const Constant(true)
+                        : n.postedAt.isSmallerThanValue(before.millisecondsSinceEpoch)),
+              )
+              ..orderBy([OrderingTerm.desc(n.postedAt)])
+              ..limit(limit))
+            .get();
+    return [for (final row in rows) StoredNotification._fromRow(row.readTable(n))];
+  }
+
+  /// The replies to [notificationIds].
+  Future<List<StoredReply>> repliesTo(Iterable<String> notificationIds) async {
+    final ids = notificationIds.toList();
+    if (ids.isEmpty) return const [];
+    final rows = await (_db.select(
+      _db.historyReplies,
+    )..where((r) => r.pairId.equals(pairId) & r.notificationId.isIn(ids))).get();
+    return [for (final row in rows) StoredReply._fromRow(row)];
+  }
+
+  /// Saves [replies] (replacing any with the same id); returns the [revision] after it.
+  Future<String> putReplies(Iterable<StoredReply> replies) async {
+    await _db.batch((b) => b.insertAllOnConflictUpdate(_db.historyReplies, [for (final r in replies) r._row(pairId)]));
+    return revision();
+  }
+
+  /// Saves when the sender's notifications (by key hash) were dismissed; returns the [revision] after it.
+  Future<String> putDismissals(Map<String, DateTime> dismissals) async {
+    await _db.batch(
+      (b) => b.insertAllOnConflictUpdate(_db.historyDismissals, [
+        for (final MapEntry(:key, value: at) in dismissals.entries)
+          HistoryDismissalsCompanion.insert(pairId: pairId, keyHash: key, at: at.millisecondsSinceEpoch),
+      ]),
+    );
+    return revision();
+  }
+
+  /// The sender mirrored a notification of the source notification [keyHash] (see [takePublished]).
+  Future<void> notePublished(String keyHash) => _db
+      .into(_db.historyPublished)
+      .insertOnConflictUpdate(
+        HistoryPublishedCompanion.insert(pairId: pairId, keyHash: keyHash, at: DateTime.now().millisecondsSinceEpoch),
+      );
+
+  /// Whether a notification of [keyHash] was mirrored since it was last dismissed; forgets it, so the next dismissal
+  /// of the same notification is not sent again.
+  Future<bool> takePublished(String keyHash) async =>
+      await (_db.delete(_db.historyPublished)..where((p) => p.pairId.equals(pairId) & p.keyHash.equals(keyHash))).go() >
+      0;
+
+  /// Changes when another isolate or engine writes to the database; this one's own writes leave it as it is.
+  Future<String> revision() async => '${await _db.dataVersion()}';
+
+  /// Deletes this pair's history: its key is gone, so it could never be read again.
+  Future<void> erase() => _db.transaction(() async {
+    await (_db.delete(_db.historyNotifications)..where((n) => n.pairId.equals(pairId))).go();
+    await (_db.delete(_db.historyReplies)..where((r) => r.pairId.equals(pairId))).go();
+    await (_db.delete(_db.historyDismissals)..where((d) => d.pairId.equals(pairId))).go();
+    await (_db.delete(_db.historyPublished)..where((p) => p.pairId.equals(pairId))).go();
+    await (_db.delete(_db.historySearch)..where((s) => s.pairId.equals(pairId))).go();
+  });
+
+  /// Moves what the first version kept in SharedPreferences (one key per document) into the database, once.
+  Future<void> _importLegacy() async {
+    final prefs = _legacy;
+    if (prefs == null || _legacyChecked) return;
+    _legacyChecked = true;
+    final prefix = 'air_reply.history.v1.$pairId.';
+    final keys = (await prefs.getKeys()).where((k) => k.startsWith(prefix)).toSet();
+    if (keys.isEmpty) return;
+
+    final notifications = <StoredNotification>[];
+    final replies = <StoredReply>[];
+    final dismissals = <String, DateTime>{};
+    for (final MapEntry(:key, :value) in (await prefs.getAll(allowList: keys)).entries) {
+      if (value is! String) continue;
+      final name = key.substring(prefix.length);
+      try {
+        switch (name.length > 2 ? name.substring(0, 2) : name) {
+          case 'n.':
+            notifications.add(StoredNotification._fromLegacy(name.substring(2), _decode(value)));
+          case 'r.':
+            replies.add(StoredReply._fromLegacy(name.substring(2), _decode(value)));
+          case 'x.':
+            dismissals[name.substring(2)] = DateTime.fromMillisecondsSinceEpoch(int.parse(value));
+          case 'k.':
+            await notePublished(name.substring(2));
+        }
+      } on Object catch (e) {
+        appLog('Skipping unreadable history entry $key: $e', name: 'air_reply.history');
+      }
+    }
+    if (notifications.isNotEmpty) await putNotifications(notifications);
+    if (replies.isNotEmpty) await putReplies(replies);
+    if (dismissals.isNotEmpty) await putDismissals(dismissals);
+    await prefs.clear(allowList: keys);
+    appLog(
+      'Moved ${notifications.length} notifications and ${replies.length} replies into the database',
+      name: 'air_reply.history',
+    );
+  }
+
+  static Map<String, Object?> _decode(String raw) => (jsonDecode(raw) as Map).cast<String, Object?>();
+}

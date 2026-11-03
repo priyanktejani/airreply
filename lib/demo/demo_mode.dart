@@ -12,6 +12,7 @@ import 'package:air_reply/features/mirror/domain/entities/notification_content.d
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
 import 'package:air_reply/features/mirror/domain/entities/sync_state.dart';
 import 'package:air_reply/features/mirror/domain/repositories/mirror_repositories.dart';
+import 'package:air_reply/features/mirror/history_providers.dart';
 import 'package:air_reply/features/mirror/mirror_providers.dart';
 import 'package:air_reply/features/notifications/domain/inbox_state.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
@@ -38,6 +39,8 @@ List<Override> demoOverrides(String role) {
     pairingCredentialsStoreProvider.overrideWithValue(_DemoPairs(deviceRole)),
     pairingRepositoryProvider.overrideWithValue(_DemoPairing()),
     mirrorRepositoryProvider.overrideWith((ref, pairId) => _DemoMirror.of(pairId)),
+    // sample history lives in memory: removing a demo device leaves the real database alone
+    eraseHistoryProvider.overrideWithValue((_) async {}),
     notificationBridgeProvider.overrideWithValue(_DemoBridge()),
     notificationPermissionProvider.overrideWithValue(_DemoPermission()),
     inboxStateStoreProvider.overrideWithValue(_DemoInbox()),
@@ -415,6 +418,11 @@ final class _DemoMirror implements MirrorRepository {
   @override
   Future<MirroredNotification?> decodePushed({required String id, required String payload, required bool canReply}) =>
       fetchNotification(id);
+
+  /// The sample history is loaded whole: there is nothing further back to find.
+  @override
+  Future<HistoryMatches> searchHistory(String query, {int limit = 200}) async =>
+      (notifications: const <MirroredNotification>[], replies: const <ReplyCommand>[]);
 
   @override
   Future<void> publish(NotificationContent content, {required bool canReply}) async {}

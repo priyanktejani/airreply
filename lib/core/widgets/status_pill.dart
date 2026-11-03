@@ -17,11 +17,17 @@ class StatusPill extends StatelessWidget {
       PillTone.bad => (c.dangerSoft, c.danger),
       PillTone.neutral => (c.soft, c.muted),
     };
-    return DecoratedBox(
-      decoration: BoxDecoration(color: bg, borderRadius: AppRadius.fullBorder),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xxs, vertical: AppSpacing.xs),
-        child: Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: fg, letterSpacing: 0)),
+    // a pill keeps its own size at the start, even in a column that stretches its children
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      widthFactor: 1,
+      heightFactor: 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: bg, borderRadius: AppRadius.fullBorder),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xxs, vertical: AppSpacing.xs),
+          child: Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: fg, letterSpacing: 0)),
+        ),
       ),
     );
   }

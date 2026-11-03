@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      # drift's generator only needs the database: `dart run build_runner build`
+      drift_dev:
+        generate_for:
+          - lib/features/mirror/data/history_database.dart

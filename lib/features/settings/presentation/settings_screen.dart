@@ -42,7 +42,7 @@ class SettingsScreen extends ConsumerWidget {
         title: 'Permissions',
         child: isSender ? const _SenderPermissions() : const _ReceiverPermissions(),
       ),
-      const _Section(eyebrow: 'Apps', title: 'Apps', child: _AppsRow()),
+      const _Section(eyebrow: 'Filter', title: 'Apps', child: _AppsRow()),
       _Section(
         eyebrow: 'Privacy',
         title: 'Mirroring and privacy',
@@ -235,7 +235,8 @@ const _encryption = InfoRow(
   title: 'End-to-end encrypted',
   subtitle:
       'Each pair has its own key, agreed between the two devices (X25519). Notifications and replies are sealed '
-      'with AES-256-GCM; the server only relays ciphertext.',
+      'with AES-256-GCM. History stays on your devices: the server only relays ciphertext and deletes each '
+      'message once it is delivered.',
 );
 
 class _SharingSettings extends ConsumerWidget {

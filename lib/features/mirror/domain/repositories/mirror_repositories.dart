@@ -26,6 +26,9 @@ abstract interface class ReplyInbox {
   Future<void> resolve(String replyId, ReplyStatus status);
 }
 
+/// What a search found in this device's history beyond the notifications already loaded, with their replies.
+typedef HistoryMatches = ({List<MirroredNotification> notifications, List<ReplyCommand> replies});
+
 /// Receiver: the mirrored history.
 abstract interface class NotificationFeed {
   Stream<List<MirroredNotification>> watchNotifications({int limit});
@@ -37,6 +40,10 @@ abstract interface class NotificationFeed {
 
   /// One mirrored notification, decrypted; null if it is gone or unreadable.
   Future<MirroredNotification?> fetchNotification(String id);
+
+  /// Notifications in this device's history, older than what [watchNotifications] loaded, whose title, text or app
+  /// name contains [query]; newest first, at most [limit].
+  Future<HistoryMatches> searchHistory(String query, {int limit});
 
   /// Decrypts the copy of a notification that arrived inside a push, without a Firestore read.
   Future<MirroredNotification?> decodePushed({required String id, required String payload, required bool canReply});

@@ -11,11 +11,15 @@ import 'dart:io';
 
 import 'package:air_reply/core/crypto/crypto_service.dart';
 import 'package:air_reply/core/crypto/pair_cipher.dart';
+import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/firebase/rest/firebase_rest_config.dart';
 import 'package:air_reply/core/firebase/rest/firestore_rest_client.dart';
 import 'package:air_reply/core/firebase/rest/rest_auth_gateway.dart';
+import 'package:air_reply/features/mirror/data/history_database.dart';
+import 'package:air_reply/features/mirror/data/message_history.dart';
 import 'package:air_reply/features/mirror/data/mirror_documents.dart';
-import 'package:air_reply/features/mirror/data/rest_sync_repository.dart';
+import 'package:air_reply/features/mirror/data/mirror_sync_repository.dart';
+import 'package:air_reply/features/mirror/data/rest_mailbox.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
@@ -23,6 +27,8 @@ import 'package:air_reply/features/pairing/data/rest_pairing_repository.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/pairing/domain/usecases/receiver_pairing_usecases.dart';
 import 'package:air_reply/features/pairing/domain/usecases/sender_pairing_usecases.dart';
+import 'package:drift/drift.dart' show driftRuntimeOptions;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
@@ -50,13 +56,15 @@ final class _Device {
   late final FirestoreRestClient client;
   late final RestPairingRepository pairing;
   final store = InMemoryCredentialsStore();
+  final history = HistoryDatabase(NativeDatabase.memory());
 
-  RestSyncRepository mirror(PairingCredentials pair) => RestSyncRepository(
-    client,
-    pair.pairId,
+  /// The pair's sync as the app builds it, with this install's history.
+  MirrorSyncRepository mirror(PairingCredentials pair) => MirrorSyncRepository(
+    RestMailbox(client, pair.pairId, pollInterval: const Duration(milliseconds: 200)),
     MirrorDocuments(PairCipher(cipher: CryptoService(), pairId: pair.pairId, key: pair.sharedKey)),
-    feedPollInterval: const Duration(milliseconds: 200),
-    pendingPollInterval: const Duration(milliseconds: 200),
+    MessageHistory(history, pair.pairId),
+    collects: pair.role == DeviceRole.receiver,
+    historyCheckInterval: const Duration(milliseconds: 200),
   );
 }
 
@@ -65,6 +73,8 @@ void main() {
   final crypto = CryptoService();
   final http.Client httpClient = http.Client();
   tearDownAll(httpClient.close);
+  // one database per simulated install
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
 
   /// Runs the whole handshake: [sender] shows a code, [receiver] types it, both confirm the verification code.
   Future<(PairingCredentials, PairingCredentials)> pair(_Device sender, _Device receiver) async {
@@ -124,6 +134,14 @@ void main() {
     expect(notification.acceptsReplies, isTrue);
     expect(notification.content.key, key);
 
+    // Delivered: the desktop keeps it, and the server no longer holds it.
+    await _eventually(
+      () async => (await desktop.client.runQuery(
+        const RestQuery('notifications'),
+        parent: 'pairs/${desktopPair.pairId}',
+      )).isEmpty,
+    );
+
     // The desktop replies; the phone sees it pending (decrypted, with the notification key) and reports it sent.
     await desktopMirror.send(notificationId: notification.id, notificationKey: key, text: 'On my way');
     final pending = await phoneMirror.fetchPending();
@@ -135,14 +153,22 @@ void main() {
         .firstWhere((r) => r.any((reply) => reply.status == ReplyStatus.sent))
         .timeout(const Duration(seconds: 10));
     expect(replies.single.text, 'On my way');
+    await _eventually(
+      () async =>
+          (await desktop.client.runQuery(const RestQuery('replies'), parent: 'pairs/${desktopPair.pairId}')).isEmpty,
+    );
 
-    // The notification is dismissed on the phone; the desktop keeps it, flagged, through the incremental poll.
+    // The notification is dismissed on the phone; the desktop keeps it, flagged by the dismissal it picks up.
     await phoneMirror.markDismissed(key);
     final afterDismiss = await desktopMirror
         .watchNotifications()
         .firstWhere((items) => items.any((n) => n.id == notification.id && n.dismissedOnSender))
         .timeout(const Duration(seconds: 10));
     expect(afterDismiss.single.acceptsReplies, isFalse);
+    await _eventually(
+      () async =>
+          (await desktop.client.runQuery(const RestQuery('dismissals'), parent: 'pairs/${desktopPair.pairId}')).isEmpty,
+    );
 
     // The desktop unpairs; the phone notices.
     await desktop.pairing.deactivatePair(desktopPair.pairId);
@@ -213,4 +239,13 @@ void main() {
       throwsA(anything),
     );
   }, skip: skip);
+}
+
+/// Polls [check] until it holds, for server-side effects of background work.
+Future<void> _eventually(Future<bool> Function() check) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  while (!await check()) {
+    if (DateTime.now().isAfter(deadline)) fail('Timed out waiting for the server');
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
 }

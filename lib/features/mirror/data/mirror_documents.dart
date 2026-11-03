@@ -5,13 +5,16 @@ import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
 
-/// Builds and reads the documents of one pair's `notifications` and `replies`, sealing and opening the encrypted
-/// payloads. Shared by every transport, so they all write exactly what `firestore.rules` expects.
+/// Builds and reads the documents of one pair's `notifications`, `replies` and `dismissals`, sealing and opening the
+/// encrypted payloads. Shared by every transport, so they all write exactly what `firestore.rules` expects.
 ///
-/// Maps use DateTime for timestamps and [ServerTime] for server-set ones; each transport converts. `updatedAt` is
-/// server time on every write, so pollers can fetch only what changed.
+/// Maps use DateTime for timestamps and [ServerTime] for server-set ones; each transport converts. Every document
+/// carries `expireAt`, when the server's TTL policy deletes it if it was never delivered.
 final class MirrorDocuments {
   MirrorDocuments(this._cipher, {DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
+
+  /// How long the server keeps a message the other device never picked up (WhatsApp keeps them 30 days too).
+  static const mailboxRetention = Duration(days: 30);
 
   final PairCipher _cipher;
   final DateTime Function() _clock;
@@ -30,12 +33,16 @@ final class MirrorDocuments {
     'postedAt': content.postedAt,
     'createdAt': ServerTime.value,
     'updatedAt': ServerTime.value,
+    'expireAt': _expiry(),
   };
 
-  static Map<String, Object?> dismissed() => {
-    'dismissedOnSender': true,
-    'dismissedAt': ServerTime.value,
-    'updatedAt': ServerTime.value,
+  /// The sender's notification [keyHash] left its status bar [at]: every message of it up to then can no longer be
+  /// answered.
+  Map<String, Object?> dismissal(String keyHash, DateTime at) => {
+    'keyHash': keyHash,
+    'at': at,
+    'createdAt': ServerTime.value,
+    'expireAt': _expiry(),
   };
 
   /// Finds every mirrored post of one source notification without revealing its key.
@@ -51,9 +58,12 @@ final class MirrorDocuments {
     'status': ReplyStatus.pending.wire,
     'createdAt': _clock(),
     'updatedAt': ServerTime.value,
+    'expireAt': _expiry(),
   };
 
   static Map<String, Object?> resolved(ReplyStatus status) => {'status': status.wire, 'updatedAt': ServerTime.value};
+
+  DateTime _expiry() => _clock().add(mailboxRetention);
 
   // ------------------------------------------------------------------ reading
 

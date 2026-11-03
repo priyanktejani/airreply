@@ -124,7 +124,8 @@ class _Disclosure extends ConsumerWidget {
               title: 'How it is protected',
               body:
                   'Each notification is encrypted on this phone with AES-256-GCM, using a key that only this phone '
-                  'and the paired device hold. Our servers relay ciphertext they cannot read.',
+                  'and the paired device hold. Our servers relay ciphertext they cannot read, and delete it once '
+                  'delivered: history is kept only on your devices.',
             ),
             _Point(
               icon: AppIcons.tune,

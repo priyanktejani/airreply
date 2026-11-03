@@ -2,8 +2,11 @@ rules_version = '2';
 
 // AirReply security rules. Every device signs in anonymously (FlutterFire or the REST API: the rules apply the same
 // way); a pair is readable and writable only by its two members, and each member may only make the writes its role
-// needs. Every mirror write sets `updatedAt` to server time so desktop clients can poll for changes only. Payloads
-// are AES-GCM ciphertext, so these rules protect integrity and metadata, not content (the backend never holds the key).
+// needs. Payloads are AES-GCM ciphertext, so these rules protect integrity and metadata, not content (the backend
+// never holds the key).
+//
+// A pair's collections are mailboxes, as in WhatsApp: history lives on the devices, and the receiver deletes each
+// document once it keeps it. `expireAt` is for a TTL policy that removes what is never picked up.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -17,6 +20,13 @@ service cloud.firestore {
 
     function changed() {
       return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Optional (older apps do not set it); when set, within the 30 days a message may wait, plus a day of clock skew.
+    function validExpiry() {
+      return !('expireAt' in request.resource.data)
+        || (request.resource.data.expireAt is timestamp
+          && request.resource.data.expireAt < request.time + duration.value(31, 'd'));
     }
 
     function pair(pairId) {
@@ -108,30 +118,48 @@ service cloud.firestore {
 
         allow create: if isSender(pairId)
           && request.resource.data.keys().hasOnly(
-            ['payload', 'keyHash', 'canReply', 'dismissedOnSender', 'postedAt', 'createdAt', 'updatedAt'])
+            ['payload', 'keyHash', 'canReply', 'dismissedOnSender', 'postedAt', 'createdAt', 'updatedAt', 'expireAt'])
           && request.resource.data.payload is string
           && request.resource.data.payload.size() < 16384
           && request.resource.data.keyHash is string
           && request.resource.data.canReply is bool
           && request.resource.data.dismissedOnSender == false
-          && request.resource.data.postedAt is timestamp;
+          && request.resource.data.postedAt is timestamp
+          && validExpiry();
 
+        // Older senders flag a dismissal on the notification itself; current ones write a dismissal (below).
         allow update: if isSender(pairId)
           && request.resource.data.dismissedOnSender == true
           && changed().hasOnly(['dismissedOnSender', 'dismissedAt', 'updatedAt']);
 
-        allow delete: if false;
+        // Delivered: the receiver keeps it on the device and clears it from the server.
+        allow delete: if isReceiver(pairId);
+      }
+
+      // The sender's notification left its status bar: the receiver can no longer reply to what came before.
+      match /dismissals/{dismissalId} {
+        allow read: if isActiveMember(pairId);
+
+        allow create: if isSender(pairId)
+          && request.resource.data.keys().hasOnly(['keyHash', 'at', 'createdAt', 'expireAt'])
+          && request.resource.data.keyHash is string
+          && request.resource.data.at is timestamp
+          && validExpiry();
+
+        allow update: if false;
+        allow delete: if isReceiver(pairId);
       }
 
       match /replies/{replyId} {
         allow read: if isActiveMember(pairId);
 
         allow create: if isReceiver(pairId)
-          && request.resource.data.keys().hasOnly(['notificationId', 'payload', 'status', 'createdAt', 'updatedAt'])
+          && request.resource.data.keys().hasOnly(['notificationId', 'payload', 'status', 'createdAt', 'updatedAt', 'expireAt'])
           && request.resource.data.status == 'PENDING'
           && request.resource.data.payload is string
           && request.resource.data.payload.size() < 16384
-          && request.resource.data.notificationId is string;
+          && request.resource.data.notificationId is string
+          && validExpiry();
 
         // Only the sender reports the outcome, once.
         allow update: if isSender(pairId)
@@ -139,7 +167,8 @@ service cloud.firestore {
           && request.resource.data.status in ['SENT', 'FAILED_EXPIRED', 'FAILED']
           && changed().hasOnly(['status', 'updatedAt']);
 
-        allow delete: if false;
+        // Once the sender has reported the outcome, only the receiver needs it, on the device.
+        allow delete: if isReceiver(pairId) && resource.data.status != 'PENDING';
       }
     }
   }

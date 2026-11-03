@@ -140,6 +140,8 @@ class _InAppAlerts extends ConsumerStatefulWidget {
 }
 
 class _InAppAlertsState extends ConsumerState<_InAppAlerts> {
+  static const _alertWindow = Duration(minutes: 10);
+
   /// Per pair, the notification ids already known. Null until that pair's first load, which never alerts.
   final _seen = <String, Set<String>>{};
 
@@ -168,7 +170,9 @@ class _InAppAlertsState extends ConsumerState<_InAppAlerts> {
 
     final alerts = ref.read(mirroredAlertsProvider);
     final preferences = ref.read(appPreferencesProvider).value;
-    for (final n in items.where((n) => !known.contains(n.id) && !n.dismissedOnSender)) {
+    // Messages that waited in the mailbox while this device was away arrive together: only recent ones alert.
+    final recent = DateTime.now().subtract(_alertWindow);
+    for (final n in items.where((n) => !known.contains(n.id) && !n.dismissedOnSender && n.postedAt.isAfter(recent))) {
       if (!(preferences?.alertsFor(n.content.packageName) ?? true)) continue;
       unawaited(
         alerts

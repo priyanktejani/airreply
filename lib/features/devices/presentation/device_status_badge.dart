@@ -21,27 +21,33 @@ class DeviceStatusBadge extends StatelessWidget {
       DeviceState.disconnected => (c.warnSoft, c.warnInk),
       DeviceState.permissionRequired => (c.dangerSoft, c.danger),
     };
-    return DecoratedBox(
-      decoration: BoxDecoration(color: ground, borderRadius: AppRadius.fullBorder),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xxs, vertical: AppSpacing.xs),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (status.state == DeviceState.connecting)
-              SizedBox.square(dimension: 8, child: CircularProgressIndicator(strokeWidth: 1.5, color: ink))
-            else
-              LiveDot(color: ink, live: status.state == DeviceState.connected),
-            const SizedBox(width: AppSpacing.xs + 2),
-            Flexible(
-              child: Text(
-                status.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppType.label.copyWith(color: ink, letterSpacing: 0),
+    // a pill keeps its own size at the start, even in a column that stretches its children (the device sheet)
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      widthFactor: 1,
+      heightFactor: 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: ground, borderRadius: AppRadius.fullBorder),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xxs, vertical: AppSpacing.xs),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (status.state == DeviceState.connecting)
+                SizedBox.square(dimension: 8, child: CircularProgressIndicator(strokeWidth: 1.5, color: ink))
+              else
+                LiveDot(color: ink, live: status.state == DeviceState.connected),
+              const SizedBox(width: AppSpacing.xs + 2),
+              Flexible(
+                child: Text(
+                  status.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppType.label.copyWith(color: ink, letterSpacing: 0),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

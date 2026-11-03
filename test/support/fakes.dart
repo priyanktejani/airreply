@@ -188,6 +188,10 @@ class RecordingMirror implements MirrorRepository {
   Future<MirroredNotification?> fetchNotification(String id) async => null;
 
   @override
+  Future<HistoryMatches> searchHistory(String query, {int limit = 200}) async =>
+      (notifications: const <MirroredNotification>[], replies: const <ReplyCommand>[]);
+
+  @override
   Future<MirroredNotification?> decodePushed({
     required String id,
     required String payload,

@@ -46,8 +46,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  var _query = '';
-
   Future<void> _refresh() async {
     for (final pair in ref.read(pairedDevicesProvider)) {
       refreshPair(ref, pair.pairId);
@@ -80,7 +78,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _page(BuildContext context, {required bool isSender, required double maxWidth, required int columns}) {
     final c = context.palette;
-    final searching = _query.trim().isNotEmpty;
+    final query = ref.watch(homeSearchQueryProvider);
+    final searching = query.trim().isNotEmpty;
     const margin = EdgeInsets.symmetric(horizontal: AppSpacing.page);
     return RefreshIndicator(
       onRefresh: _refresh,
@@ -123,8 +122,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             maxWidth: maxWidth,
             field: SearchField(
               hint: 'Search notifications',
-              value: _query,
-              onChanged: (q) => setState(() => _query = q),
+              value: query,
+              onChanged: ref.read(homeSearchQueryProvider.notifier).set,
             ),
           ),
           SliverPadding(
@@ -140,7 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   layoutBuilder: (current, previous) =>
                       Stack(alignment: Alignment.topCenter, children: [...previous, ?current]),
                   child: searching
-                      ? HomeSearchResults(key: const ValueKey('results'), query: _query)
+                      ? HomeSearchResults(key: const ValueKey('results'), query: query)
                       : _HomeSections(
                           key: const ValueKey('sections'),
                           columns: columns,

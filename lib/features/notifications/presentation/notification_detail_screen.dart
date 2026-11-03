@@ -175,9 +175,7 @@ class _Body extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final conversation = [
-      ...ref.watch(conversationProvider((pairId: entry.pairId, key: entry.notification.content.key))),
-    ];
+    final conversation = [...ref.watch(conversationProvider((pairId: entry.pairId, id: entry.notification.id)))];
     // the opened notification, should it not be in its conversation (yet)
     if (!conversation.any((e) => e.notification.id == entry.notification.id)) conversation.add(entry);
     final sent = [

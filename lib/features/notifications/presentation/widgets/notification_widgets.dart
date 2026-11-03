@@ -85,11 +85,14 @@ extension EntryActions on WidgetRef {
     return inbox.hide(keys);
   }
 
-  /// Marks every notification of a group read, or (when all are read) its newest one unread again.
+  /// Marks every notification of a group read, or (when all are read) its newest one from someone else unread again:
+  /// your own last message is not what makes a conversation worth coming back to.
   Future<void> toggleReadAll(BuildContext context, List<FeedEntry> entries, {required bool allRead}) async {
     tick();
     final inbox = read(inboxStateProvider.notifier);
-    await (allRead ? inbox.markUnread([entries.first.key]) : inbox.markRead([for (final e in entries) e.key]));
+    if (!allRead) return inbox.markRead([for (final e in entries) e.key]);
+    final theirs = entries.where((e) => !isMarkedAsUser(e.notification.content)).firstOrNull ?? entries.first;
+    await inbox.markUnread([theirs.key]);
   }
 
   /// Opens an app group: its only notification, or the list of its conversations.

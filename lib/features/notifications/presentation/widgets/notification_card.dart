@@ -4,11 +4,13 @@ import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
+import 'package:air_reply/core/utils/clock_provider.dart';
 import 'package:air_reply/core/utils/time_format.dart';
 import 'package:air_reply/core/widgets/app_card.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/swipe_actions.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/unread_count.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// What a swipe does to a card: right marks read or unread, left hides. See [SwipeActions].
 class CardSwipe {
@@ -153,6 +155,19 @@ class NotificationCard extends StatelessWidget {
   }
 }
 
+/// How long ago [time] was, kept current as the minutes pass.
+class _Age extends ConsumerWidget {
+  const _Age(this.time);
+
+  final DateTime time;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Text(
+    formatRelativeTime(time, now: ref.watch(clockProvider).value),
+    style: AppType.supporting.copyWith(color: context.palette.muted),
+  );
+}
+
 class _Content extends StatelessWidget {
   const _Content({required this.card});
 
@@ -183,7 +198,7 @@ class _Content extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  Text(formatRelativeTime(card.time), style: AppType.supporting.copyWith(color: c.muted)),
+                  _Age(card.time),
                   const SizedBox(width: AppSpacing.sm),
                   UnreadCount(card.unread),
                 ],

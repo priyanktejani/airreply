@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/utils/clock_provider.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
 import 'package:air_reply/features/mirror/domain/entities/sync_state.dart';
@@ -80,50 +81,50 @@ final feedEntryProvider = Provider.autoDispose.family<FeedEntry?, ({String pairI
       entries.where((e) => e.notification.id == target.id).firstOrNull;
 });
 
-/// Every notification of the same conversation as [entry] from the same device, oldest first.
-final conversationProvider = Provider.autoDispose.family<List<FeedEntry>, ({String pairId, String key})>((ref, c) {
-  final entries = ref.watch(allFeedProvider).value ?? const <FeedEntry>[];
-  return [
-    for (final e in entries.reversed)
-      if (e.pairId == c.pairId && e.notification.content.key == c.key) e,
-  ];
+/// Every notification's thread, by its entry key: built once per change of the inbox, so each row finds its chat
+/// without searching every conversation.
+final _threadOfProvider = Provider.autoDispose<Map<String, ConversationThread>>(
+  (ref) => {
+    for (final group in ref.watch(_allGroupsProvider))
+      for (final thread in group.threads)
+        for (final e in thread.entries) e.key: thread,
+  },
+);
+
+/// The notifications grouped with one (its thread: a chat, or a notice and its updates), oldest first; empty while it
+/// is not in any (loading, or hidden). Grouping decides this, never Android's notification key alone, which some apps
+/// share between chats.
+final conversationProvider = Provider.autoDispose.family<List<FeedEntry>, ({String pairId, String id})>((ref, target) {
+  final thread = ref.watch(_threadOfProvider.select((index) => index['${target.pairId}/${target.id}']));
+  return thread == null ? const [] : thread.entries.reversed.toList();
 });
 
 /// The chat a notification is shown in (a person or a group chat), or null when it is in none: an app's own notice,
 /// or hidden. Opening such a notification opens its chat.
 final chatOfProvider = Provider.autoDispose.family<ConversationThread?, ({String pairId, String id})>((ref, target) {
-  for (final group in ref.watch(_allGroupsProvider)) {
-    for (final thread in group.threads) {
-      if (thread.kind == ThreadKind.single) continue;
-      if (thread.entries.any((e) => e.notification.id == target.id && e.pairId == target.pairId)) return thread;
-    }
-  }
-  return null;
+  final thread = ref.watch(_threadOfProvider.select((index) => index['${target.pairId}/${target.id}']));
+  return thread == null || thread.kind == ThreadKind.single ? null : thread;
 });
 
 /// Whether a notification is a message the phone's user wrote, and how (see [ownMessage]): rows and the detail screen
 /// show it as yours, under the other person's name, so your own words do not look like a message from someone else.
+/// Judged within the chat it was grouped into, never by Android's notification key, which some apps share between
+/// chats.
 final ownMessageProvider = Provider.autoDispose.family<OwnMessage?, ({String pairId, String id})>((ref, target) {
   final entry = ref.watch(feedEntryProvider(target));
   if (entry == null) return null;
-  final conversation = ref.watch(conversationProvider((pairId: entry.pairId, key: entry.notification.content.key)));
-  return ownMessage(entry, [for (final e in conversation) ...e.replies]);
+  final chat = ref.watch(chatOfProvider(target));
+  return ownMessage(entry, chat?.replies ?? entry.replies);
 });
 
-/// Who a notification's conversation is with: the name on the newest of its notifications that is not the user's
-/// own. Null when none names anyone.
+/// Who a notification's conversation is with: its chat's name, from the newest of its notifications that is not the
+/// user's own. Null when none names anyone.
 final conversationNameProvider = Provider.autoDispose.family<String?, ({String pairId, String id})>((ref, target) {
-  final entry = ref.watch(feedEntryProvider(target));
-  if (entry == null) return null;
-  final conversation = ref.watch(conversationProvider((pairId: entry.pairId, key: entry.notification.content.key)));
-  final replies = [for (final e in conversation) ...e.replies];
-  for (final e in conversation.reversed) {
-    if (ownMessage(e, replies) != null) continue;
-    final content = e.notification.content;
-    final name = content.isGroupConversation ? content.conversationTitle?.trim() : personName(content);
-    if (name != null && name.isNotEmpty) return name;
-  }
-  return null;
+  final chat = ref.watch(chatOfProvider(target));
+  if (chat == null) return null;
+  // a chat of only your own messages has no name of its own (its title falls back to the app's)
+  final named = chat.entries.any((e) => ownMessage(e, chat.replies) == null);
+  return named ? chat.title : null;
 });
 
 // ------------------------------------------------------------------ read, unread, hidden
@@ -169,8 +170,11 @@ final class InboxController extends AsyncNotifier<InboxState> {
   }
 }
 
-/// Read state for the UI; everything counts as read until the stored state has loaded.
-bool Function(FeedEntry) _isRead(InboxState? inbox) => inbox == null ? (_) => true : inbox.isRead;
+/// Read state for the UI; everything counts as read until the stored state has loaded. Your own messages (written on
+/// the phone, or the app's copy of a reply) arrive read, unless marked unread on purpose.
+bool Function(FeedEntry) _isRead(InboxState? inbox) => inbox == null
+    ? (_) => true
+    : (e) => !inbox.unread.contains(e.key) && (inbox.isRead(e) || isMarkedAsUser(e.notification.content));
 
 // ------------------------------------------------------------------ search and filters
 
@@ -210,6 +214,8 @@ final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((r
   final inbox = ref.watch(inboxStateProvider).value;
   final filter = ref.watch(inboxFilterProvider);
   final isRead = _isRead(inbox);
+  // filtered again as the day turns, so "Today" and "Last 7 days" move on with the clock
+  ref.watch(clockProvider.select((t) => t.value?.day));
   final now = DateTime.now();
   return feed.whenData(
     (entries) => [
@@ -234,7 +240,8 @@ final unreadCountProvider = Provider.autoDispose<int>((ref) {
 });
 
 final todayCountProvider = Provider.autoDispose<int>((ref) {
-  final now = DateTime.now();
+  // rolls over at midnight while Home stays open
+  final now = ref.watch(clockProvider).value ?? DateTime.now();
   return ref.watch(_inboxEntriesProvider).where((e) => FeedPeriod.today.includes(e.postedAt, now)).length;
 });
 
@@ -263,15 +270,16 @@ final appGroupProvider = Provider.autoDispose.family<AppGroup?, ({String source,
       ref.watch(_allGroupsProvider).where((a) => a.source == g.source && a.packageName == g.packageName).firstOrNull,
 );
 
-/// One conversation, kept current as notifications arrive; null once it is gone.
+/// One conversation, kept current as notifications arrive; null once it is gone. A chat opened from your own message
+/// before the other person's arrived is followed when it takes their name (its key gains the person: `id:x|name`).
 final threadProvider = Provider.autoDispose
-    .family<ConversationThread?, ({String source, String packageName, String key})>(
-      (ref, t) => ref
-          .watch(appGroupProvider((source: t.source, packageName: t.packageName)))
-          ?.threads
-          .where((thread) => thread.key == t.key)
-          .firstOrNull,
-    );
+    .family<ConversationThread?, ({String source, String packageName, String key})>((ref, t) {
+      final threads = ref.watch(appGroupProvider((source: t.source, packageName: t.packageName)))?.threads ?? const [];
+      final exact = threads.where((thread) => thread.key == t.key).firstOrNull;
+      if (exact != null) return exact;
+      final named = threads.where((thread) => thread.key.startsWith('${t.key}|')).toList();
+      return named.length == 1 ? named.single : null;
+    });
 
 /// Notifications matching [query] (title, text or app), newest first, hidden ones left out: Home's search, which
 /// leaves the inbox's own search and filters alone.

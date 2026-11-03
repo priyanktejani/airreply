@@ -25,6 +25,14 @@ class NotificationMirrorService : NotificationListenerService() {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Int>?) = size > MAX_TRACKED
     }
 
+    /**
+     * Messages already mirrored, by key and fingerprint, kept after their notification is removed: messaging apps
+     * cancel a chat's notification and post it again with the same message, which must not arrive twice.
+     */
+    private val mirroredMessages = object : LinkedHashMap<String, Unit>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Unit>?) = size > MAX_TRACKED * 4
+    }
+
     override fun onCreate() {
         super.onCreate()
         parser = NotificationParser(this)
@@ -40,6 +48,7 @@ class NotificationMirrorService : NotificationListenerService() {
                 val captured = parser.parse(sbn) ?: continue
                 cacheReplyAction(sbn)
                 lastFingerprints[sbn.key] = captured.fingerprint
+                if (captured.messageAt != null) mirroredMessages["${sbn.key}|${captured.fingerprint}"] = Unit
             }
         } catch (e: SecurityException) {
             Log.w(TAG, "Could not read active notifications", e)
@@ -66,6 +75,8 @@ class NotificationMirrorService : NotificationListenerService() {
         val previous = lastFingerprints.put(sbn.key, captured.fingerprint)
         // Our own reply echoed back into the conversation, or nothing new: keep the action, skip the mirror.
         if (captured.isSelfMessage || previous == captured.fingerprint) return
+        // A message mirrored before, posted again after its notification was removed.
+        if (captured.messageAt != null && mirroredMessages.put("${sbn.key}|${captured.fingerprint}", Unit) != null) return
 
         Log.d(TAG, "Captured ${captured.packageName} (reply=${captured.canReply})")
         NotificationEventHub.publish(NotificationEvent.Posted(captured))

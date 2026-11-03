@@ -5,6 +5,7 @@ import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
+import 'package:air_reply/core/utils/clock_provider.dart';
 import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/utils/time_format.dart';
 import 'package:air_reply/core/widgets/app_card.dart';
@@ -30,6 +31,7 @@ class ReceivingStatusCard extends ConsumerWidget {
     final devices = ref.watch(pairedDevicesProvider);
     final status = ref.watch(overallStatusProvider);
     final lastSynced = ref.watch(lastSyncedProvider);
+    ref.watch(clockProvider); // keeps "Last synced 5m ago" current
     final names = devices.length == 1 ? devices.single.peerName : '${devices.length} phones';
     return _StatusCard(
       status: status,

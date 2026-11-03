@@ -22,9 +22,17 @@ data class CapturedNotification(
     val conversationId: String?,
     /** A message from a person: MessagingStyle or `CATEGORY_MESSAGE`. */
     val isMessage: Boolean,
+    /**
+     * When the latest message was written, as the app stamps it (MessagingStyle); null for other notifications. The
+     * app keeps this stamp when it re-posts the same message, and a new message gets a new one even with the same words.
+     */
+    val messageAt: Long? = null,
 ) {
-    /** What the receiver would see; an update with the same fingerprint is not worth mirroring again. */
-    val fingerprint: Int get() = "$title\u0000$text".hashCode()
+    /**
+     * What the receiver would see; an update with the same fingerprint is not worth mirroring again. For a message it
+     * includes the message's own time, so "ok" sent twice is two messages, while a re-post of one message is not.
+     */
+    val fingerprint: Int get() = "$title\u0000$text\u0000${messageAt ?: 0}".hashCode()
 
     fun toMap(): Map<String, Any?> = mapOf(
         "key" to key,

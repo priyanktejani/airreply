@@ -115,13 +115,29 @@ List<FeedEntry> buildFeed(
     thread.sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
   final sorted = [...notifications]..sort((a, b) => b.postedAt.compareTo(a.postedAt));
+  // The same message mirrored twice (an app re-posting it): one entry, with the replies sent to either copy. Copies
+  // match exactly, down to the message's own time, so two real messages with the same words are never merged.
+  final unique = <String, MirroredNotification>{};
+  final repliesOf = <String, List<ReplyCommand>>{};
+  for (final notification in sorted) {
+    final c = notification.content;
+    final id = '${c.key}\u0000${c.title}\u0000${c.text}\u0000${c.postedAt.millisecondsSinceEpoch}';
+    final kept = unique[id];
+    final replies = byNotification[notification.id] ?? const <ReplyCommand>[];
+    if (kept == null) {
+      unique[id] = notification;
+      repliesOf[notification.id] = replies;
+    } else if (replies.isNotEmpty) {
+      repliesOf[kept.id] = [...repliesOf[kept.id]!, ...replies]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    }
+  }
   return [
-    for (final notification in sorted)
+    for (final notification in unique.values)
       FeedEntry(
         pairId: pairId,
         deviceName: deviceName,
         notification: notification,
-        replies: byNotification[notification.id] ?? const [],
+        replies: repliesOf[notification.id] ?? const [],
       ),
   ];
 }

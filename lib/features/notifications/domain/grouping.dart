@@ -33,9 +33,13 @@ ThreadIdentity threadIdentity(MirroredNotification notification) {
   final groupTitle = content.conversationTitle?.trim() ?? '';
   final isGroup = content.isGroupConversation && groupTitle.isNotEmpty;
 
-  // 1. The app's own conversation id (Android shortcutId, hashed on the phone): the most reliable.
+  // 1. The app's own conversation id (Android shortcutId, hashed on the phone): the most reliable. A one-to-one chat
+  //    is also told apart by the person, so an app that reuses one id for several chats never mixes two contacts;
+  //    your own messages and nameless updates ("2 new messages") carry the bare id and join their chat later.
   if (content.conversationId case final id? when id.isNotEmpty) {
-    return ThreadIdentity('id:$id', isGroup || content.isGroupConversation ? ThreadKind.group : ThreadKind.person);
+    if (isGroup || content.isGroupConversation) return ThreadIdentity('id:$id', ThreadKind.group);
+    final person = isTitledAsUser(content) ? null : personName(content);
+    return ThreadIdentity(person == null ? 'id:$id' : 'id:$id|${normalizeName(person)}', ThreadKind.person);
   }
   // 2. A group chat, by its name.
   if (isGroup) return ThreadIdentity('group:${normalizeName(groupTitle)}', ThreadKind.group);
@@ -94,10 +98,12 @@ const echoWindow = Duration(minutes: 2);
 /// Whether [entry] is the messaging app's copy of [reply].
 ///
 /// After a reply is sent, the messaging app on the phone usually posts the conversation again with that message in it,
-/// and the copy is mirrored like any other notification. It has the reply's words and comes within [echoWindow] of it
-/// (the phone's clock and this device's can differ, so either may look first).
+/// and the copy is mirrored like any other notification. It is marked as the user's (titled or sent by "You"), has the
+/// reply's words and comes within [echoWindow] of it (the phone's clock and this device's can differ, so either may
+/// look first). The other person answering with the same words is their own message, never a copy.
 bool isEchoOf(FeedEntry entry, ReplyCommand reply) {
   if (reply.status == ReplyStatus.failed || reply.status == ReplyStatus.expired) return false;
+  if (!isMarkedAsUser(entry.notification.content)) return false;
   final text = messageText(entry.notification.content).trim();
   return text.isNotEmpty && text == reply.text.trim() && entry.postedAt.difference(reply.createdAt).abs() <= echoWindow;
 }
@@ -126,6 +132,11 @@ OwnMessage? ownMessage(FeedEntry entry, Iterable<ReplyCommand> replies) {
 /// A one-to-one message titled as the phone's user ("You"): the user's own words, whoever the chat is with.
 bool isTitledAsUser(NotificationContent content) =>
     !content.isGroupConversation && _selfNames.contains(content.title.trim().toLowerCase());
+
+/// A message the app attributes to the phone's user: titled "You" one-to-one, or sent by "You". In a group "You" can
+/// also be a member's name, so on its own this only qualifies a copy of a reply with the same words (see [isEchoOf]).
+bool isMarkedAsUser(NotificationContent content) =>
+    isTitledAsUser(content) || _selfNames.contains(content.sender?.trim().toLowerCase());
 
 /// The app's copy of each reply among [entries], by reply id: the closest match in time, each notification used once.
 /// A chat shows a reply once, with its copy as the sign that the phone sent it.
@@ -177,6 +188,10 @@ final class ConversationThread {
 
   /// The replies sent in this conversation.
   late final List<ReplyCommand> replies = [for (final e in entries) ...e.replies];
+
+  /// How many messages its chat shows: the notifications, less the app's copies of replies (shown on the reply), plus
+  /// the replies sent from here.
+  late final int messageCount = entries.length - replyEchoes(entries, replies).length + replies.length;
 
   /// The person or group name, from the newest notification that names them; the user's own messages are skipped,
   /// as their title is the user ("You"), not the other side. The app's name when nobody is known.
@@ -259,34 +274,49 @@ const _ownThread = 'person:you';
 
 /// Gathers [entries] into app groups and threads, both ordered by latest activity. With [perDevice] (receivers),
 /// the same app on two phones makes two groups; senders gather the copies sent to every device under one.
+///
+/// Messages that do not say who the chat is with (your own, titled "You"; "2 new messages") join the one chat they
+/// can belong to: the chat with the same conversation id, else the one whose notification they updated. When more
+/// than one chat fits, they stay apart rather than risk putting them in the wrong conversation.
 List<AppGroup> groupByApp(Iterable<FeedEntry> entries, {bool perDevice = true}) {
   final apps = <String, Map<String, List<FeedEntry>>>{};
   final identities = <String, ThreadIdentity>{};
   final firstOfApp = <String, FeedEntry>{};
 
-  // Your own messages titled "You" in apps without a conversation id: placed once the chats are known.
-  final own = <(String, FeedEntry)>[];
+  final unplaced = <(String, ThreadIdentity, FeedEntry)>[];
   for (final entry in entries) {
     final source = perDevice ? entry.pairId : AppGroup.allDevices;
     final appKey = '$source|${entry.notification.content.packageName}';
     final identity = threadIdentity(entry.notification);
     firstOfApp.putIfAbsent(appKey, () => entry);
-    if (identity.key == _ownThread) {
-      own.add((appKey, entry));
+    final bareId = identity.kind == ThreadKind.person && identity.key.startsWith('id:') && !identity.key.contains('|');
+    if (identity.key == _ownThread || bareId) {
+      unplaced.add((appKey, identity, entry));
       continue;
     }
-    identities['$appKey|${identity.key}'] = identity;
+    // a conversation is a group chat if any of its notifications says so
+    identities.update(
+      '$appKey|${identity.key}',
+      (known) => known.kind == ThreadKind.group ? known : identity,
+      ifAbsent: () => identity,
+    );
     ((apps[appKey] ??= {})[identity.key] ??= []).add(entry);
   }
-  // ...in the chat whose notification they updated (the app posts one notification per chat), else on their own
-  for (final (appKey, entry) in own) {
+  for (final (appKey, identity, entry) in unplaced) {
     final threads = apps[appKey] ??= {};
-    final home = threads.entries
-        .where((t) => t.value.any((e) => e.notification.content.key == entry.notification.content.key))
-        .firstOrNull
-        ?.key;
-    final key = home ?? _ownThread;
-    identities.putIfAbsent('$appKey|$key', () => const ThreadIdentity(_ownThread, ThreadKind.person));
+    final candidates = identity.key == _ownThread
+        ? [
+            for (final t in threads.entries)
+              if (identities['$appKey|${t.key}']?.kind == ThreadKind.person &&
+                  t.value.any((e) => e.notification.content.key == entry.notification.content.key))
+                t.key,
+          ]
+        : [
+            for (final key in threads.keys)
+              if (key.startsWith('${identity.key}|')) key,
+          ];
+    final key = candidates.length == 1 ? candidates.single : identity.key;
+    identities.putIfAbsent('$appKey|$key', () => identity);
     (threads[key] ??= []).add(entry);
   }
 

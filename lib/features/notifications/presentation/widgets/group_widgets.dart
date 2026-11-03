@@ -227,7 +227,8 @@ class ThreadTile extends ConsumerWidget {
       ThreadKind.single => 'Notification',
     };
     final title = thread.kind == ThreadKind.single ? latest.notification.content.title : thread.title;
-    final summary = thread.count == 1 ? '1 $noun' : '${thread.count} ${noun}s';
+    final count = thread.kind == ThreadKind.single ? thread.count : thread.messageCount;
+    final summary = count == 1 ? '1 $noun' : '$count ${noun}s';
     final swipe = CardSwipe(
       id: 'thread/${thread.source}/${thread.packageName}/${thread.key}',
       isRead: allRead,

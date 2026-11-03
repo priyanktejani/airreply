@@ -57,6 +57,18 @@ shell, nav bar) in `lib/app/`; demo data in `lib/demo/`.
 - Phones get the floating bottom bar; tablets, phones on their side and desktops get the rail. Home is two columns on
   a desktop. `test/app/screen_sizes_test.dart` opens every screen at landscape, tablet and desktop sizes.
 
+## Notification grouping
+
+- `lib/features/notifications/domain/grouping.dart` decides threads. Contacts must never mix: a one-to-one chat is
+  its conversation id plus the person; messages that name nobody (your own "You", "2 new messages") join a chat only
+  when exactly one fits. Group chats are their id or name.
+- The app's copy of a reply is only recognised when it is marked as the user's ("You"); same words from the other
+  person are their message.
+- Look up a notification's chat with `chatOfProvider` / `conversationProvider` (grouping), never by Android's
+  notification key, which some apps share between chats.
+- The phone stamps messages with their own time (MessagingStyle), so re-posted copies are exact duplicates and
+  `buildFeed` drops them; two real messages with the same words are kept.
+
 ## Conventions
 
 - Rows inside a card are square (the card clips the corners); a swipe behind a card rounds only its outer corners.

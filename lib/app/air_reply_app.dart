@@ -4,6 +4,7 @@ import 'package:air_reply/app/router/app_router.dart';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_theme.dart';
 import 'package:air_reply/core/theme/theme_mode.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
@@ -11,6 +12,8 @@ import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/push/push_registration.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,22 +70,46 @@ class _PairEffects extends ConsumerStatefulWidget {
 }
 
 class _PairEffectsState extends ConsumerState<_PairEffects> {
+  StreamSubscription<RemoteMessage>? _pushTaps;
+
   @override
   void initState() {
     super.initState();
     unawaited(_openLaunchAlert());
+    if (AppPlatform.usesPush && Firebase.apps.isNotEmpty) {
+      // A push the system showed itself (Apple's alert text) opens its notification too, like the app's own alerts.
+      _pushTaps = FirebaseMessaging.onMessageOpenedApp.listen(_openPush);
+      unawaited(FirebaseMessaging.instance.getInitialMessage().then((m) => m == null ? null : _openPush(m)));
+    }
+  }
+
+  @override
+  void dispose() {
+    unawaited(_pushTaps?.cancel());
+    super.dispose();
   }
 
   Future<void> _openLaunchAlert() async {
     try {
       final target = await ref.read(mirroredAlertsProvider).launchTarget();
       if (target == null) return;
-      final session = await ref.read(deviceSessionProvider.future);
-      if (!mounted || session.pair(target.pairId) == null) return;
-      ref.read(appRouterProvider).go(AppRoutes.notification(target.pairId, target.notificationId));
+      await _open(target.pairId, target.notificationId);
     } on Object {
       // No launch details on this platform.
     }
+  }
+
+  Future<void> _openPush(RemoteMessage message) async {
+    final data = message.data;
+    if (data['type'] != 'notification') return;
+    if ((data['pairId'], data['id']) case (final String pairId, final String id)) await _open(pairId, id);
+  }
+
+  /// Opens a notification of a phone this device is still paired with.
+  Future<void> _open(String pairId, String notificationId) async {
+    final session = await ref.read(deviceSessionProvider.future);
+    if (!mounted || session.pair(pairId) == null) return;
+    ref.read(appRouterProvider).go(AppRoutes.notification(pairId, notificationId));
   }
 
   @override

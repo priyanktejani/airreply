@@ -9,14 +9,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
-/// Opens the app on a narrow phone ([width] wide), with reduced motion so frames settle.
-Future<void> go(WidgetTester tester, String role, double width) async {
+/// Opens the app on a narrow phone ([width] wide), with reduced motion so frames settle, at [textScale] text size.
+Future<void> go(WidgetTester tester, String role, double width, {double textScale = 1}) async {
   SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
   resetDemoData();
   tester.view
     ..physicalSize = Size(width, 640)
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  tester.platformDispatcher.textScaleFactorTestValue = textScale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
   tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
   addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
   await tester.pumpWidget(
@@ -40,9 +42,9 @@ Future<void> scrollAll(WidgetTester tester) async {
 /// screen's edge fails the test (Flutter reports overflow as an error).
 void main() {
   for (final role in ['receiver', 'sender']) {
-    for (final width in [320.0, 360.0]) {
-      testWidgets('nothing overflows for a $role at $width px', (tester) async {
-        await go(tester, role, width);
+    for (final (width, textScale) in [(320.0, 1.0), (360.0, 1.0), (360.0, 1.3)]) {
+      testWidgets('nothing overflows for a $role at $width px, text at ${(textScale * 100).round()}%', (tester) async {
+        await go(tester, role, width, textScale: textScale);
         await scrollAll(tester);
         for (final tab in ['Notifications', 'Devices', 'Settings']) {
           await tester.tap(find.descendant(of: find.byType(FloatingNavBar), matching: find.text(tab)));

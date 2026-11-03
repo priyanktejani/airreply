@@ -35,6 +35,8 @@ class NotificationParser(private val context: Context) {
         }
         if (title.isBlank() && text.isBlank()) return null
         val isMessage = message != null || notification.category == Notification.CATEGORY_MESSAGE
+        // the message's own time when the app gives it: a re-post of the same message keeps it, so copies line up
+        val messageAt = message?.time?.takeIf { it > 0 }
 
         return CapturedNotification(
             key = sbn.key,
@@ -42,7 +44,7 @@ class NotificationParser(private val context: Context) {
             appName = appName(sbn.packageName),
             title = title,
             text = text,
-            postedAt = sbn.postTime,
+            postedAt = messageAt ?: sbn.postTime,
             canReply = replyAction(notification) != null,
             conversationTitle = conversationTitle,
             isGroupConversation = isGroup,
@@ -51,6 +53,7 @@ class NotificationParser(private val context: Context) {
             sender = message?.sender,
             conversationId = conversationId(notification),
             isMessage = isMessage,
+            messageAt = messageAt,
         )
     }
 
@@ -76,7 +79,7 @@ class NotificationParser(private val context: Context) {
         }
     }
 
-    private data class Message(val text: String, val sender: String?)
+    private data class Message(val text: String, val sender: String?, val time: Long)
 
     /** Latest entry of `EXTRA_MESSAGES` (MessagingStyle), as the platform bundles it. */
     private fun lastMessage(extras: Bundle): Message? {
@@ -88,7 +91,7 @@ class NotificationParser(private val context: Context) {
         }
         val last = messages?.lastOrNull() as? Bundle ?: return null
         val text = last.getCharSequence(KEY_TEXT)?.toString() ?: return null
-        return Message(text, senderName(last))
+        return Message(text, senderName(last), last.getLong(KEY_TIMESTAMP))
     }
 
     private fun senderName(message: Bundle): String? {
@@ -111,6 +114,7 @@ class NotificationParser(private val context: Context) {
 
         // Keys of Notification.MessagingStyle.Message#toBundle().
         const val KEY_TEXT = "text"
+        const val KEY_TIMESTAMP = "time"
         const val KEY_SENDER = "sender"
         const val KEY_SENDER_PERSON = "sender_person"
     }

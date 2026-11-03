@@ -116,7 +116,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final c = context.palette;
     final replyTarget = view.replyTarget;
     final isConversation = view.kind != ThreadKind.single;
-    final subtitle = [view.appName, view.count == 1 ? '1 message' : '${view.count} messages'].join(' · ');
+    final messages = view.messageCount;
+    final subtitle = [view.appName, messages == 1 ? '1 message' : '$messages messages'].join(' · ');
 
     final Widget? bottom = isReceiver && replyTarget != null
         ? ReplyComposer(
@@ -348,8 +349,11 @@ class _TimelineState extends State<_Timeline> {
     return items;
   }
 
-  /// Who to name above a message: its sender, in a group. A one-to-one chat already names the person at the top.
-  String? _senderOf(FeedEntry entry) => kind == ThreadKind.group ? messageSender(entry, kind) : null;
+  /// Who to name above a message: its sender, in a group. A one-to-one chat already names the person at the top. A
+  /// group message whose sender the phone did not report says so, rather than seeming to continue the one before it.
+  String? _senderOf(FeedEntry entry) => kind == ThreadKind.group ? messageSender(entry, kind) ?? _unknownSender : null;
+
+  static const _unknownSender = 'Unknown sender';
 
   @override
   Widget build(BuildContext context) {

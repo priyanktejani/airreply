@@ -30,7 +30,8 @@ class PinnedSearchBar extends StatelessWidget {
       delegate: _PinnedSearchDelegate(
         field: field,
         maxWidth: maxWidth,
-        extent: AppDimensions.fieldHeight + grow + AppSpacing.sm * 2,
+        // whole pixels: a pinned header with a fractional extent (larger text sizes) fails Flutter's sliver checks
+        extent: (AppDimensions.fieldHeight + grow + AppSpacing.sm * 2).ceilToDouble(),
       ),
     );
   }
@@ -54,7 +55,10 @@ class _PinnedSearchDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
-      _SearchSurface(raised: overlapsContent || shrinkOffset > 0, maxWidth: maxWidth, child: field);
+      // fills the header's whole extent: a pinned header must paint as much as it takes up
+      SizedBox.expand(
+        child: _SearchSurface(raised: overlapsContent || shrinkOffset > 0, maxWidth: maxWidth, child: field),
+      );
 
   @override
   bool shouldRebuild(_PinnedSearchDelegate old) =>

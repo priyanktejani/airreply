@@ -48,12 +48,42 @@ FeedEntry entry(MirroredNotification n, {String pairId = 'pixel', List<ReplyComm
 
 void main() {
   group('which conversation a notification belongs to', () {
-    test('the app\'s conversation id wins over names', () {
+    test('a one-to-one chat is its conversation id and its person: two contacts are never one chat', () {
       final a = threadIdentity(note('1', title: 'Alex', chat: 'c1'));
-      final b = threadIdentity(note('2', title: 'Alex Morgan', chat: 'c1'));
-      expect(a.key, b.key);
       expect(a.kind, ThreadKind.person);
+      expect(threadIdentity(note('2', title: 'alex', chat: 'c1')).key, a.key);
       expect(threadIdentity(note('3', title: 'Alex', chat: 'c2')).key, isNot(a.key));
+      // an app that reuses one id for every chat still keeps its contacts apart
+      expect(threadIdentity(note('4', title: 'Mom', chat: 'c1')).key, isNot(a.key));
+      // a group chat is its id, whoever writes in it
+      final dad = threadIdentity(note('5', title: 'Family', group: 'Family', sender: 'Dad', chat: 'g'));
+      final riya = threadIdentity(note('6', title: 'Family', group: 'Family', sender: 'Riya', chat: 'g'));
+      expect(dad.key, riya.key);
+      expect(dad.kind, ThreadKind.group);
+    });
+
+    test('contacts sharing a conversation id never mix, and your own message joins the only chat that fits', () {
+      final threads = groupByApp([
+        entry(note('alex', title: 'Alex', text: 'Dinner?', minute: 1, chat: 'shared')),
+        entry(note('mom', title: 'Mom', text: 'Call me', minute: 2, chat: 'shared')),
+        entry(note('you', title: 'You', text: 'Sure', minute: 3, chat: 'solo')),
+        entry(note('sam', title: 'Sam', text: 'Hey', minute: 0, chat: 'solo')),
+      ]).single.threads;
+      final byTitle = {for (final t in threads) t.title: t.entries.map((e) => e.notification.id).toSet()};
+      expect(byTitle['Alex'], {'alex'});
+      expect(byTitle['Mom'], {'mom'});
+      expect(byTitle['Sam'], {'sam', 'you'});
+    });
+
+    test('your own message stays apart when more than one chat could be its home', () {
+      // one notification key shared by two chats (some apps post every chat under one)
+      final threads = groupByApp([
+        entry(note('alex', title: 'Alex', minute: 1, key: 'shared')),
+        entry(note('mom', title: 'Mom', minute: 2, key: 'shared')),
+        entry(note('you', title: 'You', text: 'Typed on the phone', minute: 3, key: 'shared')),
+      ]).single.threads;
+      expect(threads, hasLength(3));
+      expect(threads.where((t) => t.entries.any((e) => e.notification.id == 'you')).single.count, 1);
     });
 
     test('group chats by their name, with the sender kept per message', () {
@@ -214,14 +244,28 @@ void main() {
     test('the same words within two minutes, either side of the reply, are its copy', () {
       final sent = reply('On my way', 10, second: 20);
       // the phone's clock behind this device's: the copy looks older than the reply
-      expect(isEchoOf(entry(note('a', text: 'On my way', minute: 10)), sent), isTrue);
-      expect(isEchoOf(entry(note('b', text: ' On my way ', minute: 11)), sent), isTrue);
-      expect(isEchoOf(entry(note('c', text: 'See you', minute: 10)), sent), isFalse);
-      expect(isEchoOf(entry(note('d', text: 'On my way', minute: 30)), sent), isFalse);
+      expect(isEchoOf(entry(note('a', title: 'You', text: 'On my way', minute: 10)), sent), isTrue);
+      expect(isEchoOf(entry(note('b', title: 'You', text: ' On my way ', minute: 11)), sent), isTrue);
+      expect(isEchoOf(entry(note('c', title: 'You', text: 'See you', minute: 10)), sent), isFalse);
+      expect(isEchoOf(entry(note('d', title: 'You', text: 'On my way', minute: 30)), sent), isFalse);
+      // in a group, the copy is sent by "You"
+      expect(
+        isEchoOf(
+          entry(note('g', title: 'Family', group: 'Family', sender: 'You', text: 'On my way', minute: 10)),
+          sent,
+        ),
+        isTrue,
+      );
+    });
+
+    test('the other person answering with the same words is their message, not a copy of yours', () {
+      final sent = reply('ok', 10);
+      expect(isEchoOf(entry(note('a', title: 'Alex', text: 'ok', minute: 10)), sent), isFalse);
+      expect(ownMessage(entry(note('a', title: 'Alex', text: 'ok', minute: 10)), [sent]), isNull);
     });
 
     test('a reply that was not delivered has no copy', () {
-      final copy = entry(note('a', text: 'On my way', minute: 10));
+      final copy = entry(note('a', title: 'You', text: 'On my way', minute: 10));
       expect(isEchoOf(copy, reply('On my way', 10, status: ReplyStatus.failed)), isFalse);
       expect(isEchoOf(copy, reply('On my way', 10, status: ReplyStatus.expired)), isFalse);
     });
@@ -229,9 +273,9 @@ void main() {
     test('each reply gets its closest copy, and each copy one reply', () {
       final first = reply('Yes', 10);
       final second = reply('Yes', 11);
-      final early = entry(note('e', text: 'Yes', minute: 10));
-      final late = entry(note('l', text: 'Yes', minute: 11));
-      final other = entry(note('o', text: 'Dinner at 8?', minute: 9));
+      final early = entry(note('e', title: 'You', text: 'Yes', minute: 10));
+      final late = entry(note('l', title: 'You', text: 'Yes', minute: 11));
+      final other = entry(note('o', title: 'You', text: 'Dinner at 8?', minute: 9));
       final echoes = replyEchoes([late, other, early], [second, first]);
       expect(echoes[first.id]?.notification.id, 'e');
       expect(echoes[second.id]?.notification.id, 'l');
@@ -330,6 +374,25 @@ void main() {
       expect(legacy.isMessage, isNull);
       expect(legacy.sender, isNull);
       expect(legacy.conversationId, isNull);
+    });
+  });
+
+  group('the feed', () {
+    test('drops a message mirrored twice, but keeps two messages with the same words', () {
+      final first = note('1', title: 'Alex', text: 'ok', minute: 1, key: 'chat');
+      final repost = note('2', title: 'Alex', text: 'ok', minute: 1, key: 'chat');
+      final again = note('3', title: 'Alex', text: 'ok', minute: 4, key: 'chat');
+      final reply = ReplyCommand(
+        id: 'r',
+        notificationId: '2',
+        text: 'sure',
+        status: ReplyStatus.sent,
+        createdAt: t0.add(const Duration(minutes: 2)),
+      );
+      final feed = buildFeed([first, repost, again], [reply], pairId: 'p', deviceName: 'Pixel');
+      expect(feed, hasLength(2));
+      // the reply sent to the dropped copy stays with the message
+      expect(feed.expand((e) => e.replies).map((r) => r.id), ['r']);
     });
   });
 }

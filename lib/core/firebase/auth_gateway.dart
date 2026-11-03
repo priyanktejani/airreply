@@ -7,6 +7,9 @@ abstract interface class AuthGateway {
   String? get currentUid;
 
   Future<String> ensureSignedIn();
+
+  /// A current ID token of this install, signing in first if needed; [forceRefresh] when the last one was refused.
+  Future<String> idToken({bool forceRefresh = false});
 }
 
 final class FirebaseAuthGateway implements AuthGateway {
@@ -26,5 +29,13 @@ final class FirebaseAuthGateway implements AuthGateway {
     } on FirebaseAuthException catch (e) {
       throw SyncException('Could not reach AirReply servers. Check your connection.', cause: e);
     }
+  }
+
+  @override
+  Future<String> idToken({bool forceRefresh = false}) async {
+    await ensureSignedIn();
+    final token = await _auth.currentUser!.getIdToken(forceRefresh);
+    if (token == null) throw const SyncException('Could not reach AirReply servers. Check your connection.');
+    return token;
   }
 }

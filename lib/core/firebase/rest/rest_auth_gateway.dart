@@ -32,6 +32,7 @@ final class RestAuthGateway implements AuthGateway {
   Future<String> ensureSignedIn() async => (await _validSession()).uid;
 
   /// A fresh ID token for the `Authorization: Bearer` header.
+  @override
   Future<String> idToken({bool forceRefresh = false}) async {
     if (forceRefresh && _session != null) _session = _session!.expired();
     return (await _validSession()).idToken!;

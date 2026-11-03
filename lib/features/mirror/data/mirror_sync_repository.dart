@@ -28,6 +28,7 @@ final class MirrorSyncRepository implements MirrorRepository {
     this._history, {
     required this.collects,
     this.historyCheckInterval = const Duration(seconds: 2),
+    this._ring,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now {
     _updates = StreamController<HistoryRecords>.broadcast(onListen: _open, onCancel: _close);
@@ -44,6 +45,9 @@ final class MirrorSyncRepository implements MirrorRepository {
   /// another isolate. A receiver writes its history only here, so it never needs to.
   final Duration historyCheckInterval;
   final DateTime Function() _clock;
+
+  /// Rings the pair's doorbell (see Doorbell): a desktop then reads the mailbox at once instead of on its next check.
+  final Future<void> Function()? _ring;
 
   late final StreamController<HistoryRecords> _updates;
   final _subscriptions = <StreamSubscription<Object?>>[];
@@ -84,6 +88,7 @@ final class MirrorSyncRepository implements MirrorRepository {
       ),
     ]);
     await _history.notePublished(keyHash);
+    _ringBell();
   }
 
   @override
@@ -94,6 +99,7 @@ final class MirrorSyncRepository implements MirrorRepository {
     final at = _clock();
     await _mailbox.create(FirestoreSchema.dismissals, _mailbox.newId(), _documents.dismissal(keyHash, at));
     await _save(() => _history.putDismissals({keyHash: at}), (records) => records.dismissals[keyHash] = at);
+    _ringBell();
   }
 
   static final _pendingFilter = (field: 'status', value: ReplyStatus.pending.wire);
@@ -109,6 +115,7 @@ final class MirrorSyncRepository implements MirrorRepository {
   @override
   Future<void> resolve(String replyId, ReplyStatus status) async {
     await _mailbox.update(FirestoreSchema.replies, replyId, MirrorDocuments.resolved(status));
+    _ringBell();
     if (_pending.remove(replyId) case final reply?) await _saveReplies([reply.withStatus(status)]);
   }
 
@@ -316,6 +323,17 @@ final class MirrorSyncRepository implements MirrorRepository {
     }
     _subscriptions.clear();
     _records = null;
+  }
+
+  /// After the server has a write: a lost ring only delays the desktop until its next check.
+  void _ringBell() {
+    final ring = _ring;
+    if (ring == null) return;
+    unawaited(
+      ring().catchError((Object e) {
+        appLog('Could not ring the doorbell: $e', name: 'air_reply.sync');
+      }),
+    );
   }
 
   /// Stops everything this sync runs; it is not used again.

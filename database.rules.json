@@ -1,0 +1,13 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "doorbells": {
+      "$bell": {
+        ".read": "auth != null && $bell.matches(/^[0-9a-f]{32}$/)",
+        ".write": "auth != null && $bell.matches(/^[0-9a-f]{32}$/)",
+        ".validate": "newData.isNumber() && newData.val() == now"
+      }
+    }
+  }
+}

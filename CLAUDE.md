@@ -64,6 +64,11 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
   version (see `mirror_sync_repository_test.dart`).
 - Desktop (REST) reads each pair document through one shared poll (`DocumentPolls`): the connection status and the
   pair-active check use the same read.
+- Desktop doorbell (`lib/features/mirror/data/doorbell.dart`): the phone rings `doorbells/<blind index of the pair key>`
+  in the Realtime Database after each notification, dismissal and reply status; Windows/Linux listen over one
+  server-sent-events stream per pair and read the mailbox on each ring (backstop every 2 minutes; every 3 seconds while
+  the stream is down). Off when the project has no Realtime Database (`FirebaseRestConfig.hasDatabase`). Rules in
+  `database.rules.json`; emulator tests need `--only auth,firestore,database`.
 - Delivery is at-least-once and idempotent: a document is saved (upsert by id) before its mailbox copy is deleted, so a
   failed delete or a server retry only redelivers it. Each receiver has its own pair, so its own mailbox.
 - Web needs `web/sqlite3.wasm` and `web/drift_worker.js`, matching the sqlite3 and drift versions in `pubspec.lock`;

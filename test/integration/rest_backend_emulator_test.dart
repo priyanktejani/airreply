@@ -1,7 +1,7 @@
 // End-to-end over the REST transport (what Windows and Linux use) against the Firebase emulators, with the real
 // firestore.rules enforced. Run with:
 //
-//   firebase emulators:exec --only auth,firestore --project demo-airreply "flutter test test/integration"
+//   firebase emulators:exec --only auth,firestore,database --project demo-airreply "flutter test test/integration"
 //
 // Skipped when the emulators are not running.
 @Tags(['emulator'])
@@ -15,6 +15,7 @@ import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/firebase/rest/firebase_rest_config.dart';
 import 'package:air_reply/core/firebase/rest/firestore_rest_client.dart';
 import 'package:air_reply/core/firebase/rest/rest_auth_gateway.dart';
+import 'package:air_reply/features/mirror/data/doorbell.dart';
 import 'package:air_reply/features/mirror/data/history_database.dart';
 import 'package:air_reply/features/mirror/data/message_history.dart';
 import 'package:air_reply/features/mirror/data/mirror_documents.dart';
@@ -36,35 +37,55 @@ import '../support/fakes.dart';
 
 final _firestoreHost = Platform.environment['FIRESTORE_EMULATOR_HOST'];
 final _authHost = Platform.environment['FIREBASE_AUTH_EMULATOR_HOST'];
+final _databaseHost = Platform.environment['FIREBASE_DATABASE_EMULATOR_HOST'];
 
 /// One simulated install: its own anonymous user, secrets, backend clients and stored pairs.
 final class _Device {
   _Device(this.name, http.Client http) {
-    final config = FirebaseRestConfig(
+    config = FirebaseRestConfig(
       apiKey: 'fake-api-key',
       projectId: Platform.environment['GCLOUD_PROJECT'] ?? 'demo-airreply',
       authEmulatorHost: _authHost,
       firestoreEmulatorHost: _firestoreHost,
+      databaseEmulatorHost: _databaseHost,
     );
+    _http = http;
     auth = RestAuthGateway(config, http, MemorySecretStore());
     client = FirestoreRestClient(config, http, auth);
     pairing = RestPairingRepository(client, auth, sessionPollInterval: const Duration(milliseconds: 200));
   }
 
   final String name;
+  late final FirebaseRestConfig config;
+  late final http.Client _http;
   late final RestAuthGateway auth;
   late final FirestoreRestClient client;
   late final RestPairingRepository pairing;
   final store = InMemoryCredentialsStore();
   final history = HistoryDatabase(NativeDatabase.memory());
 
-  /// The pair's sync as the app builds it, with this install's history.
-  MirrorSyncRepository mirror(PairingCredentials pair) => MirrorSyncRepository(
-    RestMailbox(client, pair.pairId, pollInterval: const Duration(milliseconds: 200)),
+  /// The pair's doorbell, as the app builds it.
+  Doorbell doorbell(PairingCredentials pair) => Doorbell(
+    config: config,
+    client: _http,
+    idToken: auth.idToken,
+    name: () =>
+        PairCipher(cipher: CryptoService(), pairId: pair.pairId, key: pair.sharedKey).blindIndex('air_reply.doorbell'),
+  );
+
+  /// The pair's sync as the app builds it, with this install's history. [poll] is how often the mailbox is read when
+  /// no doorbell is live.
+  MirrorSyncRepository mirror(
+    PairingCredentials pair, {
+    Duration poll = const Duration(milliseconds: 200),
+    Doorbell? bell,
+  }) => MirrorSyncRepository(
+    RestMailbox(client, pair.pairId, pollInterval: poll, doorbell: bell),
     MirrorDocuments(PairCipher(cipher: CryptoService(), pairId: pair.pairId, key: pair.sharedKey)),
     MessageHistory(history, pair.pairId),
     collects: pair.role == DeviceRole.receiver,
     historyCheckInterval: const Duration(milliseconds: 200),
+    ring: bell?.ring,
   );
 }
 
@@ -203,6 +224,55 @@ void main() {
       throwsA(isA<RestFirestoreException>().having((e) => e.status, 'status', 'PERMISSION_DENIED')),
     );
   }, skip: skip);
+
+  test('the doorbell: a desktop reads its mailbox the moment the phone rings, not on its next check', () async {
+    final phone = _Device('Pixel 9', httpClient);
+    final desktop = _Device('Linux PC', httpClient);
+    final (phonePair, desktopPair) = await pair(phone, desktop);
+    final desktopBell = desktop.doorbell(desktopPair);
+    addTearDown(desktopBell.dispose);
+
+    // without a ring, this desktop would not look again for five minutes
+    final feed = desktop
+        .mirror(desktopPair, poll: const Duration(minutes: 5), bell: desktopBell)
+        .watchNotifications()
+        .asBroadcastStream();
+    await feed.first.timeout(const Duration(seconds: 10));
+    await _eventually(() async => desktopBell.live);
+
+    final sent = DateTime.now();
+    await phone.mirror(phonePair, bell: phone.doorbell(phonePair)).publish(message('k', 'Rang'), canReply: false);
+    final items = await feed.firstWhere((items) => items.isNotEmpty).timeout(const Duration(seconds: 10));
+    expect(items.single.content.text, 'Rang');
+    expect(DateTime.now().difference(sent), lessThan(const Duration(seconds: 5)));
+  }, skip: _databaseHost == null ? 'The Realtime Database emulator is not running' : skip);
+
+  test('doorbell rules: only signed-in installs, only bell-shaped names, only the server time', () async {
+    final device = _Device('Pixel 9', httpClient);
+    final token = await device.auth.idToken();
+    const bell = '0123456789abcdef0123456789abcdef';
+    Future<int> put(String path, String body, {String? auth}) async => (await httpClient.put(
+      auth == null
+          ? Uri.parse('http://$_databaseHost/$path.json?ns=${device.config.projectId}-default-rtdb')
+          : device.config.database(path, auth: auth),
+      body: body,
+    )).statusCode;
+    Future<int> get(String path, {String? auth}) async => (await httpClient.get(
+      auth == null
+          ? Uri.parse('http://$_databaseHost/$path.json?ns=${device.config.projectId}-default-rtdb')
+          : device.config.database(path, auth: auth),
+    )).statusCode;
+
+    expect(await put('doorbells/$bell', '{".sv":"timestamp"}', auth: token), 200);
+    expect(await get('doorbells/$bell', auth: token), 200);
+    expect(await put('doorbells/$bell', '{".sv":"timestamp"}'), 401, reason: 'not signed in');
+    expect(await get('doorbells/$bell'), 401);
+    expect(await put('doorbells/$bell', '"hello"', auth: token), 401, reason: 'only the server time');
+    expect(await put('doorbells/$bell', '42', auth: token), 401);
+    expect(await put('doorbells/not-a-bell', '{".sv":"timestamp"}', auth: token), 401);
+    expect(await get('doorbells', auth: token), 401, reason: 'nobody lists the doorbells');
+    expect(await put('elsewhere', '{".sv":"timestamp"}', auth: token), 401);
+  }, skip: _databaseHost == null ? 'The Realtime Database emulator is not running' : skip);
 
   test('security rules: strangers and wrong roles are refused', () async {
     final phone = _Device('Pixel 9', httpClient);

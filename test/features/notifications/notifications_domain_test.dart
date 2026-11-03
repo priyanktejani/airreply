@@ -147,34 +147,6 @@ void main() {
       expect(filter.copyWith(pairId: () => 'p').activeCount, 3);
       expect(filter.copyWith(query: '').copyWith(unreadOnly: false, period: FeedPeriod.all).isActive, isFalse);
     });
-
-    test('groups by day, and within a day by conversation', () {
-      final entries = [
-        entry('3', DateTime(2026, 10, 24, 12), key: 'chat'),
-        entry('2', DateTime(2026, 10, 24, 11)),
-        entry('1', DateTime(2026, 10, 24, 10), key: 'chat'),
-        entry('0', DateTime(2026, 10, 23, 22), key: 'chat'),
-      ];
-
-      final days = groupByDay(entries);
-      expect(days.map((d) => d.date), [DateTime(2026, 10, 24), DateTime(2026, 10, 23)]);
-      expect(days.first.count, 3);
-      expect(days.first.groups, hasLength(2));
-      final chat = days.first.groups.first;
-      expect(chat.isGroup, isTrue);
-      expect(chat.latest.notification.id, '3');
-      expect(chat.entries.map((e) => e.notification.id), ['3', '1']);
-      // The same conversation on another day is a separate group.
-      expect(days.last.groups.single.entries.single.notification.id, '0');
-    });
-
-    test('groups keep different phones apart even for the same key', () {
-      final days = groupByDay([
-        entry('a', DateTime(2026, 10, 24, 12), key: 'k', pairId: 'pixel'),
-        entry('b', DateTime(2026, 10, 24, 11), key: 'k', pairId: 'galaxy'),
-      ]);
-      expect(days.single.groups, hasLength(2));
-    });
   });
 
   group('inbox state', () {

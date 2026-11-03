@@ -33,33 +33,32 @@ reads a single document, not the whole feed.
 
 ## Design
 
-**Editorial minimal**: warm paper, ink type, thin rules, generous whitespace, and colour only for meaningful states
-(connected, needs attention, failed). Light, dark and system themes, chosen in Settings and restored before the first
-frame.
+**Modern frosted glass**: clean, contemporary, and intuitive interface with refined frosted glassmorphism.
+Translucent surfaces with background blur, fine borders, and subtle highlights for depth, paired with solid high-contrast
+surfaces for maximum reading comfort. Light, dark and system themes, chosen in Settings and restored before the first frame.
 
-* **Type:** Instrument Serif for page and section titles (display 36/40, section 28/32), DM Sans for everything
-  functional (notification title 18/24, body 15/22, supporting 13/18, labels 11/16 in caps, buttons 14/20). Both are
-  bundled under the SIL Open Font License (`assets/fonts/`, listed in Settings → Open-source licences).
+* **Type:** Modern sans-serif throughout (DM Sans). Clear, moderately sized semibold page titles (24/30), compact
+  section headings (18/24), readable notification titles (16/22), comfortable body text (14/20), and concise labels (11/15).
+  SIL Open Font License text bundled in `assets/fonts/` and listed in Settings → Open-source licences.
 * **Tokens** live in `lib/core/theme/app_tokens.dart`: colours (`AppColors` theme extension: paper `#F8F7F4`, ink
-  `#20201E`, secondary `#77756F`, border `#E5E2DC`, surface, success, warning, error, disabled, with dark
-  counterparts), a 4 px spacing scale with 24 px page padding, 8 px control and 20 px sheet radii, and 150 to 250 ms
-  motion. `lib/core/theme/app_theme.dart` styles every Material component from them, so screens never pick colours.
-* **Components** (`lib/core/widgets/editorial.dart`): `EditorialPage`, `PageHeader`, `SectionLabel`, `RuledList`,
-  `InfoRow` / `SwitchRow`, `StatusBadge` (icon + word, never colour alone), `Stat`, `Notice`, `StateMessage` (empty,
-  error and permission states), `SkeletonList`, `AsyncButton`, `SearchField`; app icons with a monogram fallback in
+  `#1E1E1C`, secondary `#75736D`, border `#E5E2DC`, surface, glass `#D9FFFFFF`, glassBorder, glassHighlight, success
+  `#2E7D56`, warning, error, disabled, with dark counterparts), a 4 px spacing scale with 24 px page padding, 10 px
+  control, 16 px card, 22 px glass and 24 px sheet radii, and standard blur strengths (subtle 10 px, standard 16 px, heavy 24 px).
+* **Components** (`lib/core/widgets/glass.dart` and `editorial.dart`): `GlassContainer`, `GlassCard`, `GlassNavBar`,
+  `GlassSheet`, `EditorialPage`, `PageHeader`, `SectionLabel`, `RuledList`, `InfoRow` / `SwitchRow`, `StatusBadge`,
+  `Stat`, `Notice`, `StateMessage`, `SkeletonList`, `AsyncButton`, `SearchField`; app icons with a monogram fallback in
   `app_icon.dart`.
-* **Navigation:** four tabs (Home, Notifications, Devices, Settings): a bottom bar on phones, a rail on wide
-  windows. Back on another tab returns to Home before leaving the app. Detail, pairing, app management and diagnostics
-  open above the tabs.
-* **Home:** date, greeting, connection state, today / unread / device counts (each opens the matching view), what
-  needs attention with the fix, the latest notifications, and, on the phone, the sharing switch.
+* **Navigation:** four tabs (Home, Notifications, Devices, Settings): a refined floating frosted-glass navigation bar
+  on phones, a navigation rail on wide windows. Designed with safe insets so it never obscures content or interferes with
+  system navigation. Detail, pairing, app management and diagnostics open above the tabs.
+* **Home:** live connection status card (`GlassCard`), today / unread / device metrics (`GlassContainer`),
+  what needs attention with the fix, recent activity, and, on the phone, the sharing switch.
 * **Notifications:** grouped by day, with one conversation's notifications folded into an expandable row; app icons;
   unread dots; search; filters for unread, time, device and app; swipe right for read/unread and left to hide, with
   Undo (long-press or the row menu do the same); mark all as read with Undo. The detail view shows the full text,
-  earlier messages of the conversation, replies with their delivery state, and a reply bar (Enter sends on desktop).
+  earlier messages of the conversation, replies with delivery state, and a frosted glass reply bar.
 * **Devices:** live state per device (connected, connecting, offline, needs permission), last sync and last
-  notification, a sheet with the fix for its problem, removal with confirmation, and troubleshooting answers with
-  the actions that help.
+  notification, a frosted glass sheet with the fix for its problem, removal with confirmation, and troubleshooting answers.
 * **Settings:** permissions, apps to share (phone) or muted apps (receivers), message text in alerts, sharing, sync
   status, theme, haptics, data (mark all read, restore hidden, remove all devices), diagnostics with a copyable
   report, and licences.

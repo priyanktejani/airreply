@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:air_reply/app/router/app_router.dart';
 import 'package:air_reply/app/router/route_guard.dart';
+import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/theme/app_theme.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
 import 'package:air_reply/core/theme/theme_mode.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
@@ -26,7 +26,7 @@ class AirReplyApp extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ref.watch(themeModeProvider),
-      themeAnimationDuration: Motion.slow,
+      themeAnimationDuration: AppMotion.slow,
       routerConfig: ref.watch(appRouterProvider),
       builder: (context, child) => _SystemBars(
         child: _PairEffects(child: _InAppAlerts(child: child!)),
@@ -47,7 +47,7 @@ class _SystemBars extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: (dark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor: context.colors.paper,
+        systemNavigationBarColor: Colors.transparent,
         systemNavigationBarContrastEnforced: false,
       ),
       child: child,

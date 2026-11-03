@@ -22,6 +22,12 @@ final class FeedEntry {
   DateTime get postedAt => notification.postedAt;
 
   ReplyCommand? get latestReply => replies.isEmpty ? null : replies.last;
+
+  /// When anything last happened to it: posted, or answered from a paired device.
+  DateTime get lastActivity => switch (latestReply) {
+    final reply? when reply.createdAt.isAfter(postedAt) => reply.createdAt,
+    _ => postedAt,
+  };
 }
 
 enum FeedPeriod {
@@ -140,52 +146,4 @@ List<FeedEntry> mergeFeeds(Iterable<List<FeedEntry>> feeds, {bool dedupe = false
           );
   }
   return [...merged.values];
-}
-
-/// Several notifications from the same conversation on the same day, shown as one expandable row.
-final class FeedGroup {
-  const FeedGroup(this.entries);
-
-  /// Newest first.
-  final List<FeedEntry> entries;
-
-  FeedEntry get latest => entries.first;
-
-  int get count => entries.length;
-
-  bool get isGroup => entries.length > 1;
-}
-
-/// One day of the inbox.
-final class FeedDay {
-  const FeedDay(this.date, this.groups);
-
-  final DateTime date;
-  final List<FeedGroup> groups;
-
-  int get count => groups.fold(0, (sum, g) => sum + g.count);
-}
-
-/// Splits [entries] (newest first) into days, and within a day gathers notifications of the same conversation
-/// (same phone and same source notification key) under their latest one.
-List<FeedDay> groupByDay(List<FeedEntry> entries) {
-  final days = <FeedDay>[];
-  DateTime? current;
-  var groups = <String, List<FeedEntry>>{};
-
-  void close() {
-    if (current != null) days.add(FeedDay(current, [for (final g in groups.values) FeedGroup(g)]));
-  }
-
-  for (final entry in entries) {
-    final day = DateTime(entry.postedAt.year, entry.postedAt.month, entry.postedAt.day);
-    if (day != current) {
-      close();
-      current = day;
-      groups = {};
-    }
-    (groups['${entry.pairId}/${entry.notification.content.key}'] ??= []).add(entry);
-  }
-  close();
-  return days;
 }

@@ -16,6 +16,12 @@ data class CapturedNotification(
     val isGroupConversation: Boolean,
     /** The latest message of a conversation was written by this phone's user (e.g. a reply we just sent). */
     val isSelfMessage: Boolean,
+    /** Who wrote the latest message (MessagingStyle), when the app says. */
+    val sender: String?,
+    /** The app's id for the conversation (`Notification.getShortcutId()`), when it declares one. */
+    val conversationId: String?,
+    /** A message from a person: MessagingStyle or `CATEGORY_MESSAGE`. */
+    val isMessage: Boolean,
 ) {
     /** What the receiver would see; an update with the same fingerprint is not worth mirroring again. */
     val fingerprint: Int get() = "$title\u0000$text".hashCode()
@@ -30,5 +36,8 @@ data class CapturedNotification(
         "canReply" to canReply,
         "conversationTitle" to conversationTitle,
         "isGroupConversation" to isGroupConversation,
+        "sender" to sender,
+        "conversationId" to conversationId,
+        "isMessage" to isMessage,
     )
 }

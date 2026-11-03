@@ -1,10 +1,21 @@
 import 'package:air_reply/app/router/route_guard.dart';
+import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_radius.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
+import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/utils/time_format.dart';
+import 'package:air_reply/core/widgets/app_card.dart';
 import 'package:air_reply/core/widgets/app_icon.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/async_button.dart';
+import 'package:air_reply/core/widgets/card_group.dart';
+import 'package:air_reply/core/widgets/empty_state.dart';
+import 'package:air_reply/core/widgets/eyebrow.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/presentation/device_sheet.dart';
 import 'package:air_reply/features/devices/presentation/device_status_badge.dart';
@@ -28,54 +39,84 @@ class DevicesScreen extends ConsumerWidget {
     final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
 
     return Scaffold(
-      body: EditorialPage(
+      body: GlassScrollPage(
         onRefresh: () async {
           for (final pair in devices) {
             refreshPair(ref, pair.pairId);
           }
           await Future<void>.delayed(const Duration(milliseconds: 600));
         },
-        header: PageHeader(
-          eyebrow: '${devices.length} paired',
-          title: 'Devices',
-          subtitle: Text(
-            isSender
-                ? 'This phone shares its notifications with these devices.'
-                : 'This device shows notifications from these phones.',
+        title: const Text('Devices'),
+        actions: [
+          IconButton(
+            tooltip: isSender ? 'Add a device' : 'Add a phone',
+            onPressed: () => context.push(AppRoutes.pair),
+            icon: const Icon(Icons.add_rounded),
           ),
-          actions: [
-            IconButton(
-              tooltip: isSender ? 'Add a device' : 'Add a phone',
-              onPressed: () => context.push(AppRoutes.pair),
-              icon: const Icon(Icons.add),
-            ),
-          ],
-        ),
+        ],
         slivers: [
           SliverToBoxAdapter(
-            child: devices.isEmpty
-                ? StateMessage(
-                    icon: Icons.devices_outlined,
-                    title: 'No devices',
-                    message: 'Pair a device to start.',
-                    action: FilledButton(onPressed: () => context.push(AppRoutes.pair), child: const Text('Pair')),
-                  )
-                : RuledList(
-                    children: [for (final d in devices) _DeviceRow(device: d, isSender: isSender)],
+            child: Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.base),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Eyebrow('${devices.length} paired'),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    isSender
+                        ? 'This phone shares its notifications with these devices.'
+                        : 'This device shows notifications from these phones.',
+                    style: AppType.body.copyWith(color: context.palette.muted),
                   ),
+                ],
+              ),
+            ),
           ),
+          if (devices.isEmpty)
+            SliverToBoxAdapter(
+              child: EmptyState(
+                icon: Icons.devices_rounded,
+                title: 'No devices',
+                description: 'Pair a device to start.',
+                action: FilledButton(onPressed: () => context.push(AppRoutes.pair), child: const Text('Pair')),
+              ),
+            )
+          else
+            SliverList.separated(
+              itemCount: devices.length,
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, i) => FadeSlideIn.staggered(
+                index: i,
+                child: _DeviceRow(device: devices[i], isSender: isSender),
+              ),
+            ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: Space.x6),
+              padding: const EdgeInsets.only(top: AppSpacing.lg),
               child: OutlinedButton.icon(
                 onPressed: () => context.push(AppRoutes.pair),
-                icon: const Icon(Icons.add_link, size: 18),
+                icon: const Icon(Icons.add_link_rounded, size: 18),
                 label: Text(isSender ? 'Add a device' : 'Add another phone'),
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SectionLabel('Troubleshooting')),
-          SliverToBoxAdapter(child: isSender ? const _SenderHelp() : const _ReceiverHelp()),
+          SliverToBoxAdapter(
+            child: FadeSlideIn.staggered(
+              index: devices.length + 1,
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.section),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SectionHeader(eyebrow: 'Help', title: 'Troubleshooting', padding: EdgeInsets.zero),
+                    const SizedBox(height: AppSpacing.md),
+                    if (isSender) const _SenderHelp() else const _ReceiverHelp(),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -90,44 +131,38 @@ class _DeviceRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.colors;
+    final c = context.palette;
     final status = ref.watch(deviceStatusProvider(device.pairId));
     final last = ref.watch(lastActivityProvider(device.pairId));
     final facts = [
       if (last != null) '${isSender ? 'Last shared' : 'Last notification'} ${formatAgo(last)}',
       'Paired ${formatRelativeTime(device.pairedAt)}',
     ];
-    return InkWell(
+    return AppCard(
       onTap: () => showDeviceSheet(context, device),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: Space.x4),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: c.border),
-              ),
-              child: Icon(deviceIcon(device.peerName, isPhone: !isSender), size: 22, color: c.ink),
+      child: Row(
+        children: [
+          Container(
+            width: AppDimensions.iconTileLg,
+            height: AppDimensions.iconTileLg,
+            decoration: BoxDecoration(color: c.accentSoft, borderRadius: AppRadius.mdBorder),
+            child: Icon(deviceIcon(device.peerName, isPhone: !isSender), size: 26, color: c.accent),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(device.peerName, style: AppType.title.copyWith(color: c.ink)),
+                const SizedBox(height: AppSpacing.xs),
+                DeviceStatusBadge(status: status),
+                const SizedBox(height: AppSpacing.xs),
+                Text(facts.join(' · '), style: AppType.supporting.copyWith(color: c.muted)),
+              ],
             ),
-            const SizedBox(width: Space.x4),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(device.peerName, style: AppType.title.copyWith(color: c.ink)),
-                  const SizedBox(height: 2),
-                  DeviceStatusBadge(status: status),
-                  const SizedBox(height: 2),
-                  Text(facts.join(' · '), style: AppType.supporting.copyWith(color: c.secondary)),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right, color: c.secondary, size: 20),
-          ],
-        ),
+          ),
+          Icon(Icons.chevron_right_rounded, color: c.muted, size: AppDimensions.iconMd),
+        ],
       ),
     );
   }
@@ -143,19 +178,16 @@ class _Help extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     return ExpansionTile(
-      title: Text(
-        question,
-        style: AppType.subtitle.copyWith(color: c.ink, fontWeight: FontWeight.w400),
-      ),
+      title: Text(question, style: AppType.subtitle.copyWith(color: c.ink)),
       expandedCrossAxisAlignment: CrossAxisAlignment.start,
-      childrenPadding: const EdgeInsets.only(bottom: Space.x4),
+      childrenPadding: const EdgeInsets.fromLTRB(AppSpacing.card, 0, AppSpacing.card, AppSpacing.base),
       children: [
-        Text(answer, style: AppType.body.copyWith(color: c.secondary)),
+        Text(answer, style: AppType.body.copyWith(color: c.muted)),
         if (actions.isNotEmpty) ...[
-          const SizedBox(height: Space.x3),
-          Wrap(spacing: Space.x2, runSpacing: Space.x2, children: actions),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(spacing: AppSpacing.sm, runSpacing: AppSpacing.sm, children: actions),
         ],
       ],
     );
@@ -166,7 +198,8 @@ class _ReceiverHelp extends ConsumerWidget {
   const _ReceiverHelp();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => RuledList(
+  Widget build(BuildContext context, WidgetRef ref) => CardGroup(
+    inset: AppSpacing.card,
     children: [
       _Help(
         question: 'Notifications are not arriving',
@@ -215,7 +248,8 @@ class _SenderHelp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final permissions = ref.read(senderPermissionsProvider.notifier);
     final restrictions = ref.watch(senderPermissionsProvider.select((p) => p.value?.restrictions));
-    return RuledList(
+    return CardGroup(
+      inset: AppSpacing.card,
       children: [
         _Help(
           question: 'Devices are not receiving notifications',

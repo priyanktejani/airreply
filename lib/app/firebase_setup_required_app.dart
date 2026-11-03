@@ -1,7 +1,12 @@
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_radius.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_theme.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/app_logo.dart';
+import 'package:air_reply/core/widgets/eyebrow.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,48 +26,58 @@ class FirebaseSetupRequiredApp extends StatelessWidget {
       darkTheme: AppTheme.dark(),
       home: Builder(
         builder: (context) {
-          final c = context.colors;
+          final c = context.palette;
           return Scaffold(
-            body: EditorialPage(
+            body: GlassScrollPage(
               maxWidth: 560,
-              header: const PageHeader(
-                eyebrow: 'Setup required',
-                title: 'Connect Firebase',
-                subtitle: Text(
-                  'AirReply syncs your devices through your own Firebase project. Run this in the project folder, '
-                  'then rebuild the app.',
-                ),
-              ),
+              centerTitle: true,
+              title: const AppLogo(),
               slivers: [
                 SliverList.list(
                   children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    const SectionHeader(
+                      eyebrow: 'Setup required',
+                      title: 'Connect Firebase',
+                      large: true,
+                      padding: EdgeInsets.zero,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'AirReply syncs your devices through your own Firebase project. Run this in the project folder, '
+                      'then rebuild the app.',
+                      style: AppType.bodyLarge.copyWith(color: c.muted),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
                     Container(
-                      padding: const EdgeInsets.all(Space.x4),
+                      padding: const EdgeInsets.all(AppSpacing.base),
                       decoration: BoxDecoration(
                         color: c.surface,
-                        borderRadius: Radii.controlBorder,
-                        border: Border.all(color: c.border),
+                        borderRadius: AppRadius.mdBorder,
+                        border: Border.all(color: c.line),
                       ),
                       child: SelectableText(
                         command,
                         style: AppType.body.copyWith(
                           color: c.ink,
-                          fontFamily: 'monospace',
-                          fontFamilyFallback: const ['Menlo', 'Consolas'],
+                          fontFamily: mono,
+                          fontFamilyFallback: const ['Menlo', 'Consolas', 'monospace'],
                         ),
                       ),
                     ),
-                    const SizedBox(height: Space.x3),
+                    const SizedBox(height: AppSpacing.md),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: OutlinedButton.icon(
                         onPressed: () => Clipboard.setData(const ClipboardData(text: command)),
-                        icon: const Icon(Icons.content_copy_outlined, size: 18),
+                        icon: const Icon(Icons.content_copy_rounded, size: 18),
                         label: const Text('Copy command'),
                       ),
                     ),
-                    const SectionLabel('Details'),
-                    SelectableText('$error', style: AppType.supporting.copyWith(color: c.secondary)),
+                    const SizedBox(height: AppSpacing.section),
+                    const Eyebrow('Details'),
+                    const SizedBox(height: AppSpacing.sm),
+                    SelectableText('$error', style: AppType.supporting.copyWith(color: c.muted)),
                   ],
                 ),
               ],

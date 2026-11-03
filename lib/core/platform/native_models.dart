@@ -12,6 +12,9 @@ final class CapturedNotification {
     required this.canReply,
     this.conversationTitle,
     this.isGroupConversation = false,
+    this.sender,
+    this.conversationId,
+    this.isMessage = false,
   });
 
   factory CapturedNotification.fromMap(Map<Object?, Object?> map) => CapturedNotification(
@@ -24,6 +27,9 @@ final class CapturedNotification {
     canReply: map['canReply'] == true,
     conversationTitle: map['conversationTitle'] as String?,
     isGroupConversation: map['isGroupConversation'] == true,
+    sender: map['sender'] as String?,
+    conversationId: map['conversationId'] as String?,
+    isMessage: map['isMessage'] == true,
   );
 
   /// `StatusBarNotification.getKey()`: stable for one notification of one app, reused when the app updates it.
@@ -40,6 +46,16 @@ final class CapturedNotification {
   final bool canReply;
   final String? conversationTitle;
   final bool isGroupConversation;
+
+  /// Who wrote the latest message of a conversation, when the app says.
+  final String? sender;
+
+  /// The app's own id for the conversation (Android `shortcutId`), when it declares one. Contains contact ids such
+  /// as phone numbers, so only a hash of it leaves the phone.
+  final String? conversationId;
+
+  /// A message from a person (MessagingStyle or the message category), not an app's own notice.
+  final bool isMessage;
 }
 
 /// A launchable app on the sender, for the "which apps to mirror" list.

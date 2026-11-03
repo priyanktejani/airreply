@@ -1,14 +1,22 @@
 import 'dart:async';
 
 import 'package:air_reply/app/router/route_guard.dart';
+import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/platform/native_models.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
+import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/theme/theme_mode.dart';
+import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/utils/time_format.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/async_button.dart';
+import 'package:air_reply/core/widgets/card_group.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/info_row.dart';
+import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
@@ -27,32 +35,63 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
+    final sections = [
+      _Section(
+        eyebrow: 'Access',
+        title: 'Permissions',
+        child: isSender ? const _SenderPermissions() : const _ReceiverPermissions(),
+      ),
+      const _Section(eyebrow: 'Apps', title: 'Apps', child: _AppsRow()),
+      _Section(
+        eyebrow: 'Privacy',
+        title: 'Mirroring and privacy',
+        child: isSender ? const _SharingSettings() : const _AlertSettings(),
+      ),
+      const _Section(eyebrow: 'Connection', title: 'Sync', child: _SyncSettings()),
+      const _Section(eyebrow: 'Appearance', title: 'Appearance and accessibility', child: _AppearanceSettings()),
+      const _Section(eyebrow: 'Data', title: 'Your data', child: _DataSettings()),
+      const _Section(eyebrow: 'Help', title: 'Help and about', child: _HelpSettings()),
+    ];
     return Scaffold(
-      body: EditorialPage(
-        header: const PageHeader(title: 'Settings'),
+      body: GlassScrollPage(
+        title: const Text('Settings'),
         slivers: [
-          SliverList.list(
-            children: [
-              const SectionLabel('Permissions', top: 0),
-              if (isSender) const _SenderPermissions() else const _ReceiverPermissions(),
-              const SectionLabel('Apps'),
-              const _AppsRow(),
-              const SectionLabel('Mirroring and privacy'),
-              if (isSender) const _SharingSettings() else const _AlertSettings(),
-              const SectionLabel('Sync'),
-              const _SyncSettings(),
-              const SectionLabel('Appearance and accessibility'),
-              const _AppearanceSettings(),
-              const SectionLabel('Data'),
-              const _DataSettings(),
-              const SectionLabel('Help and about'),
-              const _HelpSettings(),
-            ],
+          SliverPadding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            sliver: SliverList.list(
+              children: [for (final (i, w) in sections.indexed) FadeSlideIn.staggered(index: i, child: w)],
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+/// A titled group: the section heading, then its card of rows.
+class _Section extends StatelessWidget {
+  const _Section({required this.eyebrow, required this.title, required this.child});
+
+  final String eyebrow;
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: AppSpacing.section),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SectionHeader(
+          eyebrow: eyebrow,
+          title: title,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        child,
+      ],
+    ),
+  );
 }
 
 /// A short status word for a permission row, with "Open" / "Allow" when it is not granted.
@@ -62,17 +101,14 @@ Widget _permissionTrailing(
   required VoidCallback onFix,
   String fix = 'Open',
 }) {
-  final c = context.colors;
+  final c = context.palette;
   return switch (granted) {
     true => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.check, size: 16, color: c.success),
-        const SizedBox(width: Space.x1),
-        Text(
-          'On',
-          style: TextStyle(color: c.success, fontWeight: FontWeight.w500),
-        ),
+        Icon(Icons.check_rounded, size: 16, color: c.accent),
+        const SizedBox(width: AppSpacing.xs),
+        Text('On', style: AppType.button.copyWith(color: c.accent)),
       ],
     ),
     _ => TextButton(onPressed: onFix, child: Text(fix)),
@@ -87,10 +123,10 @@ class _SenderPermissions extends ConsumerWidget {
     final permissions = ref.watch(senderPermissionsProvider).value;
     final controller = ref.read(senderPermissionsProvider.notifier);
     final restrictions = permissions?.restrictions ?? BackgroundRestrictions.none;
-    return RuledList(
+    return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.notifications_active_outlined,
+          icon: Icons.notifications_active_rounded,
           title: 'Notification access',
           subtitle: 'Required to read and share notifications',
           onTap: guarded(context, controller.openNotificationAccess),
@@ -101,7 +137,7 @@ class _SenderPermissions extends ConsumerWidget {
           ),
         ),
         InfoRow(
-          icon: Icons.campaign_outlined,
+          icon: Icons.campaign_rounded,
           title: 'Status notification',
           subtitle: 'Shows "Notification Sync Active" with a Pause button',
           onTap: guarded(context, controller.requestPostNotifications),
@@ -114,14 +150,14 @@ class _SenderPermissions extends ConsumerWidget {
         ),
         if (restrictions.hasAutostartScreen)
           InfoRow(
-            icon: Icons.rocket_launch_outlined,
+            icon: Icons.rocket_launch_rounded,
             title: 'Autostart',
             subtitle: 'Required on ${restrictions.vendorName} phones. Android cannot report it, so check it there.',
             trailing: InfoRow.chevron,
             onTap: guarded(context, controller.openAutostartSettings),
           ),
         InfoRow(
-          icon: Icons.battery_charging_full_outlined,
+          icon: Icons.battery_charging_full_rounded,
           title: 'Battery optimisation',
           subtitle: restrictions.ignoringBatteryOptimizations
               ? 'Unrestricted: Android will not pause sharing'
@@ -145,10 +181,10 @@ class _ReceiverPermissions extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allowed = ref.watch(alertPermissionProvider).value;
     final request = ref.read(alertPermissionProvider.notifier).request;
-    return RuledList(
+    return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.notifications_active_outlined,
+          icon: Icons.notifications_active_rounded,
           title: 'Alerts',
           subtitle: AppPlatform.isWeb
               ? 'Lets this browser show new notifications'
@@ -179,10 +215,10 @@ class _AppsRow extends ConsumerWidget {
       final muted = ref.watch(appPreferencesProvider).value?.mutedApps.length ?? 0;
       subtitle = muted == 0 ? 'Every app can alert you' : '$muted muted: they arrive silently';
     }
-    return RuledList(
+    return CardGroup(
       children: [
         InfoRow(
-          icon: isSender ? Icons.apps_outlined : Icons.notifications_off_outlined,
+          icon: isSender ? Icons.apps_rounded : Icons.notifications_off_rounded,
           title: isSender ? 'Apps to share' : 'Muted apps',
           subtitle: subtitle,
           trailing: InfoRow.chevron,
@@ -208,10 +244,10 @@ class _SharingSettings extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sharing = ref.watch(syncStatusProvider).value ?? SyncStatus.off;
     final access = ref.watch(senderPermissionsProvider.select((p) => p.value?.notificationAccess)) ?? true;
-    return RuledList(
+    return CardGroup(
       children: [
         SwitchRow(
-          icon: Icons.podcasts_outlined,
+          icon: Icons.podcasts_rounded,
           title: 'Share notifications',
           subtitle: access ? sharing.label : 'Turn on notification access first',
           value: sharing.enabled,
@@ -234,10 +270,10 @@ class _AlertSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appPreferencesProvider).value;
-    return RuledList(
+    return CardGroup(
       children: [
         SwitchRow(
-          icon: Icons.visibility_outlined,
+          icon: Icons.visibility_rounded,
           title: 'Show message text in alerts',
           subtitle: 'Off: alerts only name the app, for lock screens and shared displays',
           value: preferences?.alertShowsContent ?? true,
@@ -250,7 +286,7 @@ class _AlertSettings extends ConsumerWidget {
         ),
         if (!AppPlatform.usesPush)
           InfoRow(
-            icon: Icons.desktop_windows_outlined,
+            icon: Icons.desktop_windows_rounded,
             title: AppPlatform.isWeb ? 'Alerts in this browser' : 'Alerts on this computer',
             subtitle:
                 'New notifications alert you while AirReply is running. Keep it open (on Mac it keeps running when '
@@ -276,10 +312,10 @@ class _SyncSettings extends ConsumerWidget {
       _ when lastSynced != null => '${status!.label}. Last synced ${formatAgo(lastSynced)}.',
       _ => '${status!.label}. ${status.detail}',
     };
-    return RuledList(
+    return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.sync,
+          icon: Icons.sync_rounded,
           title: 'Sync status',
           subtitle: subtitle,
           trailing: TextButton(
@@ -294,7 +330,7 @@ class _SyncSettings extends ConsumerWidget {
         ),
         if (isSender)
           InfoRow(
-            icon: Icons.sensors_outlined,
+            icon: Icons.sensors_rounded,
             title: 'Notification listener',
             subtitle: 'Ask Android to connect AirReply\'s listener again if devices stop receiving',
             trailing: AsyncButton(
@@ -315,16 +351,16 @@ class _AppearanceSettings extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final haptics = ref.watch(appPreferencesProvider).value?.haptics ?? true;
-    return RuledList(
+    return CardGroup(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: Space.x4),
+          padding: const EdgeInsets.only(bottom: AppSpacing.base),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const InfoRow(icon: Icons.contrast, title: 'Theme', subtitle: 'System follows this device'),
+              const InfoRow(icon: Icons.contrast_rounded, title: 'Theme', subtitle: 'System follows this device'),
               Padding(
-                padding: const EdgeInsets.only(left: Space.x10),
+                padding: const EdgeInsets.only(left: InfoRow.textInset, right: AppSpacing.card),
                 child: SegmentedButton<ThemeMode>(
                   segments: const [
                     ButtonSegment(value: ThemeMode.system, label: Text('System')),
@@ -344,7 +380,7 @@ class _AppearanceSettings extends ConsumerWidget {
         ),
         if (!AppPlatform.isDesktop && !AppPlatform.isWeb)
           SwitchRow(
-            icon: Icons.vibration,
+            icon: Icons.vibration_rounded,
             title: 'Haptic feedback',
             subtitle: 'A light tap when you send, toggle or confirm',
             value: haptics,
@@ -354,7 +390,7 @@ class _AppearanceSettings extends ConsumerWidget {
             },
           ),
         const InfoRow(
-          icon: Icons.text_fields,
+          icon: Icons.text_fields_rounded,
           title: 'Text size',
           subtitle: 'AirReply follows the text size and bold text set on this device',
         ),
@@ -390,10 +426,10 @@ class _DataSettings extends ConsumerWidget {
       });
     }
 
-    return RuledList(
+    return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.done_all,
+          icon: Icons.done_all_rounded,
           title: 'Mark all as read',
           subtitle: unread == 0 ? 'Nothing unread' : '$unread unread',
           enabled: unread > 0,
@@ -404,7 +440,7 @@ class _DataSettings extends ConsumerWidget {
           },
         ),
         InfoRow(
-          icon: Icons.visibility_outlined,
+          icon: Icons.visibility_rounded,
           title: 'Restore hidden notifications',
           subtitle: hidden == 0 ? 'Nothing hidden' : '$hidden hidden on this device',
           enabled: hidden > 0,
@@ -415,7 +451,7 @@ class _DataSettings extends ConsumerWidget {
           },
         ),
         InfoRow(
-          icon: Icons.link_off,
+          icon: Icons.link_off_rounded,
           title: 'Remove all devices',
           subtitle: 'Ends every pair and deletes the keys and shared history',
           destructive: true,
@@ -431,24 +467,24 @@ class _HelpSettings extends ConsumerWidget {
   const _HelpSettings();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => RuledList(
+  Widget build(BuildContext context, WidgetRef ref) => CardGroup(
     children: [
       InfoRow(
-        icon: Icons.help_outline,
+        icon: Icons.help_outline_rounded,
         title: 'Troubleshooting',
         subtitle: 'What to check when notifications or replies do not arrive',
         trailing: InfoRow.chevron,
         onTap: () => context.go(AppRoutes.devices),
       ),
       InfoRow(
-        icon: Icons.monitor_heart_outlined,
+        icon: Icons.monitor_heart_rounded,
         title: 'Diagnostics',
         subtitle: 'Connection, permission and sync details to check or share',
         trailing: InfoRow.chevron,
         onTap: () => context.push(AppRoutes.diagnostics),
       ),
       InfoRow(
-        icon: Icons.description_outlined,
+        icon: Icons.description_rounded,
         title: 'Open-source licences',
         trailing: InfoRow.chevron,
         onTap: () => showLicensePage(

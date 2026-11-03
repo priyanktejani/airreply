@@ -1,8 +1,18 @@
+import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_radius.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/utils/guarded.dart';
+import 'package:air_reply/core/widgets/app_card.dart';
+import 'package:air_reply/core/widgets/app_logo.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/icon_tile.dart';
+import 'package:air_reply/core/widgets/section_header.dart';
+import 'package:air_reply/core/widgets/underlined_headline.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +24,7 @@ class WelcomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.colors;
+    final c = context.palette;
     final canShare = AppPlatform.canShareNotifications;
 
     void choose(DeviceRole role) {
@@ -23,7 +33,7 @@ class WelcomeScreen extends ConsumerWidget {
     }
 
     final sender = _RoleOption(
-      icon: Icons.smartphone_outlined,
+      icon: Icons.smartphone_rounded,
       title: 'Share my notifications',
       description: canShare
           ? 'This phone sends its notifications to your other devices, and sends the replies you write there.'
@@ -31,42 +41,67 @@ class WelcomeScreen extends ConsumerWidget {
       onTap: canShare ? () => choose(DeviceRole.sender) : null,
     );
     final receiver = _RoleOption(
-      icon: Icons.devices_outlined,
+      icon: Icons.devices_rounded,
       title: 'View and reply here',
       description: 'See your phone\'s notifications on this device and answer messages without picking it up.',
       onTap: () => choose(DeviceRole.receiver),
     );
+    // the option this platform can use goes first
+    final options = canShare ? [sender, receiver] : [receiver, sender];
 
-    return Scaffold(
-      body: EditorialPage(
-        maxWidth: 560,
-        header: PageHeader(
-          eyebrow: 'AirReply',
-          title: 'Your phone\'s notifications, on every screen.',
-          subtitle: const Text('Read them on your iPhone, iPad, Mac, PC or browser, and reply to messages from there.'),
-        ),
-        slivers: [
-          SliverList.list(
+    final sections = <Widget>[
+      const UnderlinedHeadline(first: 'Your phone,', second: 'Everywhere.'),
+      Text(
+        'Read your phone\'s notifications on your iPhone, iPad, Mac, PC or browser, and reply to messages from there.',
+        style: AppType.bodyLarge.copyWith(color: c.muted),
+      ),
+      const SectionHeader(eyebrow: 'Get started', title: 'How will you use this device?', padding: EdgeInsets.zero),
+      for (final option in options) option,
+      DecoratedBox(
+        decoration: BoxDecoration(color: c.soft, borderRadius: AppRadius.lgBorder),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.base),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SectionLabel('How will you use this device?', top: Space.x4),
-              // The option this platform can use goes first.
-              RuledList(children: canShare ? [sender, receiver] : [receiver, sender]),
-              const SizedBox(height: Space.x8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.lock_outline, size: 16, color: c.secondary),
-                  const SizedBox(width: Space.x2),
-                  Expanded(
-                    child: Text(
-                      'End-to-end encrypted with a key only your devices hold. The server relays ciphertext it '
-                      'cannot read.',
-                      style: AppType.supporting.copyWith(color: c.secondary),
-                    ),
-                  ),
-                ],
+              Icon(Icons.lock_rounded, size: AppDimensions.iconMd, color: c.accent),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  'End-to-end encrypted with a key only your devices hold. The server relays ciphertext it '
+                  'cannot read.',
+                  style: AppType.supporting.copyWith(color: c.muted),
+                ),
               ),
             ],
+          ),
+        ),
+      ),
+    ];
+
+    return Scaffold(
+      body: GlassScrollPage(
+        maxWidth: 560,
+        centerTitle: true,
+        title: const AppLogo(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.only(top: AppSpacing.lg),
+            sliver: SliverList.list(
+              children: [
+                for (final (i, w) in sections.indexed)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: i == 0
+                          ? 0
+                          : w is SectionHeader
+                          ? AppSpacing.section
+                          : AppSpacing.md,
+                    ),
+                    child: i == 0 ? w : FadeSlideIn.staggered(index: i, child: w),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
@@ -74,6 +109,8 @@ class WelcomeScreen extends ConsumerWidget {
   }
 }
 
+/// One way to use this device, on a card: its icon on a tile, what it does, and an arrow. A way this device cannot
+/// use is shown faded, with the reason.
 class _RoleOption extends StatelessWidget {
   const _RoleOption({required this.icon, required this.title, required this.description, required this.onTap});
 
@@ -84,32 +121,37 @@ class _RoleOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     final enabled = onTap != null;
     return Semantics(
       button: true,
       enabled: enabled,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: Space.x5),
+      child: Opacity(
+        opacity: enabled ? 1 : .6,
+        child: AppCard(
+          onTap: onTap,
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 24, color: enabled ? c.ink : c.disabled),
-              const SizedBox(width: Space.x4),
+              IconTile(icon, size: AppDimensions.iconTileLg, enabled: enabled),
+              const SizedBox(width: AppSpacing.base),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title, style: AppType.title.copyWith(color: enabled ? c.ink : c.disabled)),
-                    const SizedBox(height: Space.x1),
-                    Text(description, style: AppType.body.copyWith(color: c.secondary)),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(description, style: AppType.body.copyWith(color: c.muted)),
                   ],
                 ),
               ),
-              const SizedBox(width: Space.x3),
-              Icon(enabled ? Icons.arrow_forward : Icons.block, size: 20, color: enabled ? c.ink : c.disabled),
+              const SizedBox(width: AppSpacing.md),
+              Icon(
+                enabled ? Icons.arrow_forward_rounded : Icons.block_rounded,
+                size: AppDimensions.iconMd,
+                color: enabled ? c.accent : c.disabled,
+              ),
             ],
           ),
         ),

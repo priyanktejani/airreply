@@ -1,7 +1,10 @@
 import 'package:air_reply/core/domain/device_role.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/app_sheet.dart';
+import 'package:air_reply/core/widgets/eyebrow.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_widgets.dart';
@@ -14,9 +17,26 @@ Future<void> showFilterSheet(BuildContext context) => showModalBottomSheet<void>
   context: context,
   useRootNavigator: true,
   isScrollControlled: true,
-  constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
+  backgroundColor: Colors.transparent,
+  showDragHandle: false,
+  elevation: 0,
+  constraints: const BoxConstraints(maxWidth: AppDimensions.maxContentWidth),
   builder: (_) => const _FilterSheet(),
 );
+
+/// A small green label over one group of choices.
+class _Label extends StatelessWidget {
+  const _Label(this.text, {this.top = AppSpacing.xl});
+
+  final String text;
+  final double top;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(top: top, bottom: AppSpacing.md),
+    child: Eyebrow(text),
+  );
+}
 
 /// Show (all / unread), time, device and app. Changes apply as they are made; the button closes the sheet.
 class _FilterSheet extends ConsumerWidget {
@@ -24,7 +44,7 @@ class _FilterSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.colors;
+    final c = context.palette;
     final filter = ref.watch(inboxFilterProvider);
     final controller = ref.read(inboxFilterProvider.notifier);
     final devices = ref.watch(pairedDevicesProvider);
@@ -40,7 +60,6 @@ class _FilterSheet extends ConsumerWidget {
         ref.tick();
         onTap();
       },
-      labelStyle: AppType.supporting.copyWith(color: selected ? c.paper : c.ink, fontWeight: FontWeight.w500),
     );
 
     return DraggableScrollableSheet(
@@ -48,98 +67,108 @@ class _FilterSheet extends ConsumerWidget {
       initialChildSize: 0.7,
       minChildSize: 0.4,
       maxChildSize: 0.92,
-      builder: (context, scroll) => Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Space.x6, 0, Space.x3, Space.x2),
-            child: Row(
-              children: [
-                Expanded(child: Text('Filter', style: Theme.of(context).textTheme.headlineSmall)),
-                TextButton(
-                  onPressed: filter.activeCount == 0 ? null : controller.clearFilters,
-                  child: const Text('Clear all'),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              controller: scroll,
-              padding: const EdgeInsets.symmetric(horizontal: Space.x6),
-              children: [
-                const SectionLabel('Show', top: Space.x2),
-                SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(value: false, label: Text('All')),
-                    ButtonSegment(value: true, label: Text('Unread only')),
-                  ],
-                  selected: {filter.unreadOnly},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (s) {
-                    ref.tick();
-                    controller.unreadOnly(s.first);
-                  },
-                ),
-                const SectionLabel('When', top: Space.x6),
-                Wrap(
-                  spacing: Space.x2,
-                  runSpacing: Space.x2,
+      builder: (context, scroll) => AppSheetFrame(
+        child: Expanded(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.base, AppSpacing.md, AppSpacing.sm),
+                child: Row(
                   children: [
-                    for (final period in FeedPeriod.values)
-                      choice(period.label, selected: filter.period == period, onTap: () => controller.period(period)),
+                    Expanded(
+                      child: Text('Filter', style: AppType.section.copyWith(color: c.ink)),
+                    ),
+                    TextButton(
+                      onPressed: filter.activeCount == 0 ? null : controller.clearFilters,
+                      child: const Text('Clear all'),
+                    ),
                   ],
-                ),
-                if (devices.length > 1) ...[
-                  SectionLabel(isSender ? 'Shared with' : 'Phone', top: Space.x6),
-                  Wrap(
-                    spacing: Space.x2,
-                    runSpacing: Space.x2,
-                    children: [
-                      choice('All', selected: filter.pairId == null, onTap: () => controller.device(null)),
-                      for (final d in devices)
-                        choice(
-                          d.peerName,
-                          selected: filter.pairId == d.pairId,
-                          onTap: () => controller.device(d.pairId),
-                        ),
-                    ],
-                  ),
-                ],
-                if (apps.isNotEmpty) ...[
-                  const SectionLabel('App', top: Space.x6),
-                  Wrap(
-                    spacing: Space.x2,
-                    runSpacing: Space.x2,
-                    children: [
-                      choice('All apps', selected: filter.packageName == null, onTap: () => controller.app(null)),
-                      for (final MapEntry(key: package, value: name) in apps.entries)
-                        choice(
-                          name,
-                          selected: filter.packageName == package,
-                          onTap: () => controller.app(package),
-                          avatar: MirroredAppIcon(packageName: package, appName: name, size: 18),
-                        ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: Space.x6),
-              ],
-            ),
-          ),
-          SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(Space.x6, Space.x2, Space.x6, Space.x4),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(results == 1 ? 'Show 1 notification' : 'Show $results notifications'),
                 ),
               ),
-            ),
+              Expanded(
+                child: ListView(
+                  controller: scroll,
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  children: [
+                    const _Label('Show', top: AppSpacing.sm),
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment(value: false, label: Text('All')),
+                        ButtonSegment(value: true, label: Text('Unread only')),
+                      ],
+                      selected: {filter.unreadOnly},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (s) {
+                        ref.tick();
+                        controller.unreadOnly(s.first);
+                      },
+                    ),
+                    const _Label('When'),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        for (final period in FeedPeriod.values)
+                          choice(
+                            period.label,
+                            selected: filter.period == period,
+                            onTap: () => controller.period(period),
+                          ),
+                      ],
+                    ),
+                    if (devices.length > 1) ...[
+                      _Label(isSender ? 'Shared with' : 'Phone'),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: [
+                          choice('All', selected: filter.pairId == null, onTap: () => controller.device(null)),
+                          for (final d in devices)
+                            choice(
+                              d.peerName,
+                              selected: filter.pairId == d.pairId,
+                              onTap: () => controller.device(d.pairId),
+                            ),
+                        ],
+                      ),
+                    ],
+                    if (apps.isNotEmpty) ...[
+                      const _Label('App'),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: [
+                          choice('All apps', selected: filter.packageName == null, onTap: () => controller.app(null)),
+                          for (final MapEntry(key: package, value: name) in apps.entries)
+                            choice(
+                              name,
+                              selected: filter.packageName == package,
+                              onTap: () => controller.app(package),
+                              avatar: MirroredAppIcon(packageName: package, appName: name, size: 18),
+                            ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.base),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(results == 1 ? 'Show 1 notification' : 'Show $results notifications'),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

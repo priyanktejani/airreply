@@ -158,16 +158,9 @@ final class _DemoMirror implements MirrorRepository {
   final List<ReplyCommand> _replies;
   final _changes = StreamController<void>.broadcast();
 
-  static NotificationContent _content(String id, String package, String app, String title, String text, Duration ago) =>
-      NotificationContent(
-        key: 'demo|$package|$id',
-        packageName: package,
-        appName: app,
-        title: title,
-        text: text,
-        postedAt: _ago(ago),
-      );
-
+  /// One sample notification. [chat] (the app's conversation id) and [group] (a group chat's name) give it the
+  /// conversation metadata a real phone reports; [isMessage] null mimics a notification mirrored before the phone
+  /// reported it.
   static MirroredNotification _n(
     String id,
     String package,
@@ -177,12 +170,30 @@ final class _DemoMirror implements MirrorRepository {
     Duration ago, {
     bool canReply = true,
     bool dismissed = false,
+    bool? isMessage = true,
+    String? chat,
+    String? group,
+    String? sender,
   }) => MirroredNotification(
     id: id,
-    content: _content(id, package, app, title, text, ago),
+    content: NotificationContent(
+      key: 'demo|$package|$id',
+      packageName: package,
+      appName: app,
+      title: title,
+      text: sender == null ? text : '$sender: $text',
+      postedAt: _ago(ago),
+      conversationTitle: group,
+      isGroupConversation: group != null,
+      sender: sender,
+      conversationId: chat,
+      isMessage: isMessage,
+    ),
     canReply: canReply,
     dismissedOnSender: dismissed,
   );
+
+  static Duration _min(int m) => Duration(minutes: m);
 
   static _DemoMirror _seed(String pairId) {
     if (pairId == 'galaxy') {
@@ -193,16 +204,29 @@ final class _DemoMirror implements MirrorRepository {
           'WhatsApp',
           'Mom',
           'Call me when you\'re free, nothing urgent 🙂',
-          const Duration(minutes: 12),
+          _min(12),
+          chat: 'mom',
         ),
+        _n('g0', 'com.whatsapp', 'WhatsApp', 'Mom', 'Did you eat?', _min(55), chat: 'mom'),
         _n(
           'g2',
           'com.google.android.calendar',
           'Calendar',
           'Design review',
           'Starts in 10 minutes · Room 4B',
-          const Duration(minutes: 48),
+          _min(48),
           canReply: false,
+          isMessage: false,
+        ),
+        _n(
+          'g4',
+          'com.google.android.calendar',
+          'Calendar',
+          'Standup',
+          'Starts in 5 minutes · Zoom',
+          const Duration(hours: 5),
+          canReply: false,
+          isMessage: false,
         ),
         _n(
           'g3',
@@ -213,35 +237,99 @@ final class _DemoMirror implements MirrorRepository {
           const Duration(hours: 26),
           canReply: false,
           dismissed: true,
+          isMessage: false,
         ),
       ], []);
     }
     return _DemoMirror(
       [
+        // WhatsApp: two people (one known only by number, mirrored before conversation ids existed), a family group
+        // with several senders, and an app notice that must stay on its own.
         _n(
           'p1',
           'com.whatsapp',
           'WhatsApp',
           'Alex Morgan',
           'Are we still on for 7? I booked the table by the window 🍝',
-          const Duration(minutes: 2),
+          _min(2),
+          chat: 'alex',
         ),
+        _n('p1b', 'com.whatsapp', 'WhatsApp', 'Alex Morgan', 'Traffic is light, 15 min', _min(4), chat: 'alex'),
+        _n('p1a', 'com.whatsapp', 'WhatsApp', 'Alex Morgan', 'Leaving the office now', _min(31), chat: 'alex'),
+        _n(
+          'w3',
+          'com.whatsapp',
+          'WhatsApp',
+          'Family',
+          'Dinner at 8?',
+          _min(15),
+          chat: 'family',
+          group: 'Family',
+          sender: 'Dad',
+        ),
+        _n(
+          'w2',
+          'com.whatsapp',
+          'WhatsApp',
+          'Family',
+          'Landed safely ✈️',
+          _min(52),
+          chat: 'family',
+          group: 'Family',
+          sender: 'Riya',
+        ),
+        _n(
+          'w1',
+          'com.whatsapp',
+          'WhatsApp',
+          '+91 74052 94614',
+          'Is this the right number for the delivery?',
+          _min(40),
+          isMessage: null,
+        ),
+        _n('w0', 'com.whatsapp', 'WhatsApp', '+91 74052-94614', 'I\'m at the gate', _min(38), isMessage: null),
+        _n(
+          'w9',
+          'com.whatsapp',
+          'WhatsApp',
+          'WhatsApp',
+          'Chat backup completed',
+          const Duration(hours: 6),
+          canReply: false,
+          isMessage: false,
+        ),
+        // Telegram and Slack group chats.
         _n(
           'p2',
           'org.telegram.messenger',
           'Telegram',
           'Design Crew',
-          'Sam: pushed the new frosted-glass mockups, have a look before standup',
-          const Duration(minutes: 9),
+          'pushed the new editorial mockups, have a look before standup',
+          _min(9),
+          group: 'Design Crew',
+          sender: 'Sam',
+        ),
+        _n(
+          'p2b',
+          'org.telegram.messenger',
+          'Telegram',
+          'Design Crew',
+          'the serif headlines look great',
+          _min(8),
+          group: 'Design Crew',
+          sender: 'Lee',
         ),
         _n(
           'p3',
           'com.Slack',
           'Slack',
           '#launch',
-          'Priya: release checklist is all green ✅ shipping at 5',
-          const Duration(minutes: 34),
+          'release checklist is all green ✅ shipping at 5',
+          _min(34),
+          group: '#launch',
+          sender: 'Priya',
         ),
+        // Emails are notices, not chats: one per message, never merged by sender.
         _n(
           'p4',
           'com.google.android.gm',
@@ -250,6 +338,17 @@ final class _DemoMirror implements MirrorRepository {
           'Your payout of ₹48,200 is on its way and should arrive within 2 business days.',
           const Duration(hours: 3),
           canReply: false,
+          isMessage: false,
+        ),
+        _n(
+          'p6',
+          'com.google.android.gm',
+          'Gmail',
+          'Figma',
+          'Your export "AirReply screens" is ready to download.',
+          const Duration(hours: 4),
+          canReply: false,
+          isMessage: false,
         ),
         _n(
           'p5',
@@ -265,9 +364,9 @@ final class _DemoMirror implements MirrorRepository {
         ReplyCommand(
           id: 'r1',
           notificationId: 'p2',
-          text: 'Looks great — will review in 5',
+          text: 'Looks great, will review in 5',
           status: ReplyStatus.sent,
-          createdAt: _ago(const Duration(minutes: 7)),
+          createdAt: _ago(_min(7)),
         ),
       ],
     );

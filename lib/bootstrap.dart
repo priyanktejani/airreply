@@ -88,7 +88,7 @@ Future<void> _startBackend() async {
 
 /// The bundled typefaces are under the SIL Open Font License; it ships with them and shows in Settings → licences.
 void _registerFontLicenses() => LicenseRegistry.addLicense(() async* {
-  for (final (family, file) in const [('DM Sans', 'OFL-DMSans.txt'), ('Instrument Serif', 'OFL-InstrumentSerif.txt')]) {
+  for (final (family, file) in const [('Geist', 'OFL-Geist.txt')]) {
     yield LicenseEntryWithLineBreaks([family], await rootBundle.loadString('assets/fonts/$file'));
   }
 });

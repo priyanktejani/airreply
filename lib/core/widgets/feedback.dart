@@ -1,12 +1,14 @@
 import 'package:air_reply/core/error/app_exception.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
+import 'package:air_reply/core/widgets/app_dialog.dart';
 import 'package:flutter/material.dart';
 
 extension FeedbackContext on BuildContext {
   /// A short confirmation at the bottom of the screen.
   void showMessage(String message, {IconData? icon}) => _snack(message, icon: icon);
 
-  void showError(Object error) => _snack(describeError(error), icon: Icons.error_outline);
+  void showError(Object error) => _snack(describeError(error), icon: Icons.error_outline_rounded);
 
   /// A message with an Undo action, for reversible actions (hide, mark all as read).
   void showUndo(String message, VoidCallback onUndo) => _snack(
@@ -21,7 +23,7 @@ extension FeedbackContext on BuildContext {
     SnackBarAction? action,
     Duration duration = const Duration(seconds: 3),
   }) {
-    final paper = colors.paper;
+    final ink = palette.deepInk;
     ScaffoldMessenger.of(this)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -30,7 +32,7 @@ extension FeedbackContext on BuildContext {
           action: action,
           content: Row(
             children: [
-              if (icon != null) ...[Icon(icon, size: 18, color: paper), const SizedBox(width: Space.x3)],
+              if (icon != null) ...[Icon(icon, size: 18, color: ink), const SizedBox(width: AppSpacing.md)],
               Expanded(child: Text(message)),
             ],
           ),
@@ -38,25 +40,26 @@ extension FeedbackContext on BuildContext {
       );
   }
 
-  /// Asks before an action that cannot be undone. [destructive] marks the confirm button in the error colour.
+  /// Asks before an action that cannot be undone, over a frosted page. [destructive] marks the confirm button in the
+  /// danger colour.
   Future<bool> confirm({
     required String title,
     required String message,
     required String confirmLabel,
     bool destructive = false,
   }) async {
-    final result = await showDialog<bool>(
+    final result = await showAppDialog<bool>(
       context: this,
       builder: (context) {
-        final c = context.colors;
+        final c = context.palette;
         return AlertDialog(
           title: Text(title),
           content: Text(message),
-          actionsPadding: const EdgeInsets.fromLTRB(Space.x6, 0, Space.x6, Space.x5),
+          actionsPadding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
           actions: [
             TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
             FilledButton(
-              style: destructive ? FilledButton.styleFrom(backgroundColor: c.error, foregroundColor: c.paper) : null,
+              style: destructive ? FilledButton.styleFrom(backgroundColor: c.danger, foregroundColor: c.surface) : null,
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(confirmLabel),
             ),

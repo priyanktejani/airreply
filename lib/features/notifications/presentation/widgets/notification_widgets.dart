@@ -1,18 +1,26 @@
 import 'dart:async';
 
 import 'package:air_reply/app/router/route_guard.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_radius.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
+import 'package:air_reply/core/utils/app_dimen.dart';
 import 'package:air_reply/core/utils/time_format.dart';
 import 'package:air_reply/core/widgets/app_icon.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/app_sheet.dart';
+import 'package:air_reply/core/widgets/card_group.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
+import 'package:air_reply/core/widgets/info_row.dart';
+import 'package:air_reply/core/widgets/status_badge.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
+import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/notifications/presentation/widgets/notification_card.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -32,9 +40,29 @@ class MirroredAppIcon extends ConsumerWidget {
 
 /// The actions every notification offers, wherever it is shown (row swipe, long press, menu, detail).
 extension EntryActions on WidgetRef {
+  /// Opens a notification where it belongs: a message from a person or a group chat opens its chat, scrolled to it;
+  /// anything else (an email, an app's own notice) opens on its own.
   void open(BuildContext context, FeedEntry entry) {
     unawaited(read(inboxStateProvider.notifier).markRead([entry.key]));
-    unawaited(context.push(AppRoutes.notification(entry.pairId, entry.notification.id)));
+    final chat = read(chatOfProvider((pairId: entry.pairId, id: entry.notification.id)));
+    unawaited(
+      context.push(
+        chat == null
+            ? AppRoutes.notification(entry.pairId, entry.notification.id)
+            : AppRoutes.thread(chat.source, chat.packageName, chat.key, at: entry.notification.id),
+      ),
+    );
+  }
+
+  /// Copy, mark unread or hide one notification, from a sheet (a long press in a chat).
+  Future<void> showEntryActions(BuildContext context, FeedEntry entry) async {
+    final isRead = read(readCheckProvider)(entry);
+    final action = await showAppSheet<_RowAction>(
+      context,
+      builder: (context) => _ActionSheet(isRead: isRead, count: 1),
+    );
+    if (!context.mounted || action == null) return;
+    await NotificationRow._perform(context, this, action, isRead: isRead, hideTargets: [entry]);
   }
 
   Future<void> toggleRead(BuildContext context, FeedEntry entry, {required bool isRead}) async {
@@ -56,6 +84,25 @@ extension EntryActions on WidgetRef {
     return inbox.hide(keys);
   }
 
+  /// Marks every notification of a group read, or (when all are read) its newest one unread again.
+  Future<void> toggleReadAll(BuildContext context, List<FeedEntry> entries, {required bool allRead}) async {
+    tick();
+    final inbox = read(inboxStateProvider.notifier);
+    await (allRead ? inbox.markUnread([entries.first.key]) : inbox.markRead([for (final e in entries) e.key]));
+  }
+
+  /// Opens an app group: its only notification, or the list of its conversations.
+  void openGroup(BuildContext context, AppGroup group) {
+    if (group.count == 1) return open(context, group.latest);
+    unawaited(context.push(AppRoutes.appGroup(group.source, group.packageName)));
+  }
+
+  /// Opens a conversation; a lone notification with no known sender opens as itself.
+  void openThread(BuildContext context, ConversationThread thread) {
+    if (thread.count == 1 && thread.kind == ThreadKind.single) return open(context, thread.latest);
+    unawaited(context.push(AppRoutes.thread(thread.source, thread.packageName, thread.key)));
+  }
+
   Future<void> copyText(BuildContext context, FeedEntry entry) async {
     final c = entry.notification.content;
     await Clipboard.setData(ClipboardData(text: [c.title, c.text].where((s) => s.isNotEmpty).join('\n')));
@@ -63,169 +110,72 @@ extension EntryActions on WidgetRef {
   }
 }
 
-/// One notification in a list: app and source, time, unread mark, title, text and the latest reply. Swipe right to
-/// mark read or unread, left to hide; long-press (or the menu on wide screens) for the same actions.
+/// One notification on a [NotificationCard]: the app and source, time, unread count, title, text and the latest
+/// reply. Swipe right to mark read or unread, left to hide; long-press (or the menu on wide screens) for these and
+/// Copy.
 class NotificationRow extends ConsumerWidget {
-  const NotificationRow({
-    required this.entry,
-    this.showDevice = false,
-    this.compact = false,
-    this.swipeable = true,
-    this.group,
-    super.key,
-  });
+  const NotificationRow({required this.entry, this.showDevice = false, this.compact = false, super.key});
 
   final FeedEntry entry;
   final bool showDevice;
 
   /// Smaller type and one line of text: Home and expanded groups.
   final bool compact;
-  final bool swipeable;
-
-  /// When this row stands for a whole group, hiding it hides every notification of the group.
-  final FeedGroup? group;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.colors;
+    final c = context.palette;
     final isRead = ref.watch(readCheckProvider)(entry);
     final content = entry.notification.content;
     final latest = entry.latestReply;
-    final wide = MediaQuery.sizeOf(context).width >= 600;
-    final hideTargets = group?.entries ?? [entry];
+    final wide = AppDimen.of(context).isWide;
+    final hideTargets = [entry];
     final source = [content.appName, if (showDevice) entry.deviceName].join(' · ');
+    final target = (pairId: entry.pairId, id: entry.notification.id);
+    // your own message: under the other person's name, as yours
+    final own = ref.watch(ownMessageProvider(target));
+    final title = own == null ? content.title : ref.watch(conversationNameProvider(target)) ?? content.title;
+    final text = own == null ? content.text : 'You: ${messageText(content)}';
 
     Future<void> showActions() async {
-      final action = await showModalBottomSheet<_RowAction>(
-        context: context,
-        useRootNavigator: true,
+      final action = await showAppSheet<_RowAction>(
+        context,
         builder: (context) => _ActionSheet(isRead: isRead, count: hideTargets.length),
       );
       if (!context.mounted || action == null) return;
       await _perform(context, ref, action, isRead: isRead, hideTargets: hideTargets);
     }
 
-    final row = InkWell(
+    return NotificationCard(
+      leading: (size) => MirroredAppIcon(packageName: content.packageName, appName: content.appName, size: size),
+      source: source,
+      time: entry.postedAt,
+      unread: isRead ? 0 : 1,
+      title: title,
+      text: content.text.isEmpty ? '' : text,
+      badges: [
+        if (own != null) OwnMessageBadge(own: own, appName: content.appName),
+        if (latest != null) ReplyStatusBadge(reply: latest, prefix: true),
+        if (entry.notification.dismissedOnSender)
+          const StatusBadge(label: 'Dismissed on phone', icon: Icons.phonelink_erase_rounded),
+      ],
+      trailing: wide
+          ? PopupMenuButton<_RowAction>(
+              tooltip: 'More actions',
+              icon: Icon(Icons.more_horiz_rounded, color: c.muted, size: AppDimensions.iconMd),
+              onSelected: (a) => _perform(context, ref, a, isRead: isRead, hideTargets: hideTargets),
+              itemBuilder: (_) => _RowAction.menu(isRead: isRead, count: hideTargets.length),
+            )
+          : null,
       onTap: () => ref.open(context, entry),
       onLongPress: wide ? null : showActions,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: compact ? Space.x3 : Space.x4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            MirroredAppIcon(packageName: content.packageName, appName: content.appName, size: compact ? 32 : 40),
-            const SizedBox(width: Space.x4),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          source.toUpperCase(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppType.label.copyWith(color: c.secondary),
-                        ),
-                      ),
-                      const SizedBox(width: Space.x2),
-                      Text(formatRelativeTime(entry.postedAt), style: AppType.supporting.copyWith(color: c.secondary)),
-                      AnimatedSwitcher(
-                        duration: Motion.fast,
-                        child: isRead
-                            ? const SizedBox(width: 0)
-                            : Padding(
-                                padding: const EdgeInsets.only(left: Space.x2),
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(color: c.ink, shape: BoxShape.circle),
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: Space.x1),
-                  if (content.title.isNotEmpty)
-                    Text(
-                      content.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: (compact ? AppType.subtitle : AppType.title).copyWith(
-                        color: c.ink,
-                        fontWeight: isRead ? FontWeight.w500 : FontWeight.w600,
-                      ),
-                    ),
-                  if (content.text.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        content.text,
-                        maxLines: compact ? 1 : 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppType.body.copyWith(color: isRead ? c.secondary : c.ink),
-                      ),
-                    ),
-                  if (latest != null || entry.notification.dismissedOnSender)
-                    Padding(
-                      padding: const EdgeInsets.only(top: Space.x2),
-                      child: Wrap(
-                        spacing: Space.x4,
-                        runSpacing: Space.x1,
-                        children: [
-                          if (latest != null) ReplyStatusBadge(reply: latest, prefix: true),
-                          if (entry.notification.dismissedOnSender)
-                            const StatusBadge(label: 'Dismissed on phone', icon: Icons.phonelink_erase_outlined),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (wide && swipeable)
-              PopupMenuButton<_RowAction>(
-                tooltip: 'More actions',
-                icon: Icon(Icons.more_horiz, color: c.secondary, size: 20),
-                onSelected: (a) => _perform(context, ref, a, isRead: isRead, hideTargets: hideTargets),
-                itemBuilder: (_) => _RowAction.menu(isRead: isRead, count: hideTargets.length),
-              ),
-          ],
-        ),
+      compact: compact,
+      swipe: CardSwipe(
+        id: entry.key,
+        isRead: isRead,
+        onToggleRead: () => ref.toggleRead(context, entry, isRead: isRead),
+        onHide: () => ref.hide(context, hideTargets),
       ),
-    );
-
-    final semantic = Semantics(
-      customSemanticsActions: {
-        CustomSemanticsAction(label: isRead ? 'Mark as unread' : 'Mark as read'): () =>
-            ref.toggleRead(context, entry, isRead: isRead),
-        const CustomSemanticsAction(label: 'Hide'): () => ref.hide(context, hideTargets),
-      },
-      child: row,
-    );
-    if (!swipeable) return semantic;
-
-    return Dismissible(
-      key: ValueKey('swipe/${entry.key}'),
-      background: _SwipeBackground(
-        icon: isRead ? Icons.mark_email_unread_outlined : Icons.mark_email_read_outlined,
-        label: isRead ? 'Unread' : 'Read',
-        alignment: Alignment.centerLeft,
-      ),
-      secondaryBackground: const _SwipeBackground(
-        icon: Icons.visibility_off_outlined,
-        label: 'Hide',
-        alignment: Alignment.centerRight,
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          await ref.toggleRead(context, entry, isRead: isRead);
-          return false; // the row stays, only its read state changes
-        }
-        return true;
-      },
-      onDismissed: (_) => ref.hide(context, hideTargets),
-      child: semantic,
     );
   }
 
@@ -261,77 +211,46 @@ class _ActionSheet extends StatelessWidget {
   final int count;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(Space.x6, 0, Space.x6, Space.x4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InfoRow(
-            icon: isRead ? Icons.mark_email_unread_outlined : Icons.mark_email_read_outlined,
-            title: isRead ? 'Mark as unread' : 'Mark as read',
-            onTap: () => Navigator.pop(context, _RowAction.toggleRead),
-          ),
-          InfoRow(
-            icon: Icons.content_copy_outlined,
-            title: 'Copy text',
-            onTap: () => Navigator.pop(context, _RowAction.copy),
-          ),
-          InfoRow(
-            icon: Icons.visibility_off_outlined,
-            title: count > 1 ? 'Hide $count notifications' : 'Hide from this device',
-            onTap: () => Navigator.pop(context, _RowAction.hide),
-          ),
-        ],
+  Widget build(BuildContext context) => CardGroup(
+    children: [
+      InfoRow(
+        icon: isRead ? Icons.mark_email_unread_rounded : Icons.mark_email_read_rounded,
+        title: isRead ? 'Mark as unread' : 'Mark as read',
+        onTap: () => Navigator.pop(context, _RowAction.toggleRead),
       ),
-    ),
+      InfoRow(
+        icon: Icons.content_copy_rounded,
+        title: 'Copy text',
+        onTap: () => Navigator.pop(context, _RowAction.copy),
+      ),
+      InfoRow(
+        icon: Icons.visibility_off_rounded,
+        destructive: true,
+        title: count > 1 ? 'Hide $count notifications' : 'Hide from this device',
+        onTap: () => Navigator.pop(context, _RowAction.hide),
+      ),
+    ],
   );
-}
-
-class _SwipeBackground extends StatelessWidget {
-  const _SwipeBackground({required this.icon, required this.label, required this.alignment});
-
-  final IconData icon;
-  final String label;
-  final Alignment alignment;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return ColoredBox(
-      color: c.subtle,
-      child: Align(
-        alignment: alignment,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: Space.x5),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 20, color: c.ink),
-              const SizedBox(width: Space.x2),
-              Text(label, style: AppType.button.copyWith(color: c.ink)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// "Sending…", "Sent", "Expired on phone", "Not delivered".
 class ReplyStatusBadge extends StatelessWidget {
-  const ReplyStatusBadge({required this.reply, this.prefix = false, super.key});
+  const ReplyStatusBadge({required this.reply, this.prefix = false, this.delivered = false, super.key});
 
   final ReplyCommand reply;
 
   /// "Reply sent" instead of "Sent", for rows where the reply text is not shown.
   final bool prefix;
 
+  /// The messaging app on the phone has shown the reply in its conversation: two ticks, "Delivered".
+  final bool delivered;
+
   @override
   Widget build(BuildContext context) {
     final (label, icon, tone) = switch (reply.status) {
-      ReplyStatus.pending => ('Sending', Icons.schedule, Tone.neutral),
-      ReplyStatus.sent => ('Sent', Icons.done_all, Tone.success),
+      ReplyStatus.pending => ('Sending', Icons.schedule_rounded, Tone.neutral),
+      ReplyStatus.sent when delivered => ('Delivered', Icons.done_all_rounded, Tone.success),
+      ReplyStatus.sent => ('Sent', Icons.done_rounded, Tone.success),
       ReplyStatus.expired => ('Expired on phone', Icons.timer_off_outlined, Tone.warning),
       ReplyStatus.failed => ('Not delivered', Icons.error_outline, Tone.error),
     };
@@ -344,39 +263,81 @@ class ReplyStatusBadge extends StatelessWidget {
   }
 }
 
-/// A reply sent from a receiver, with its delivery status.
+/// A reply sent from a receiver, with when and whether it was delivered: brand green on the right, with a small corner
+/// towards the sender. One tick once the phone sent it; two once the messaging app shows it there ([echo], its copy
+/// of the reply, which is never shown as a message of its own).
 class ReplyBubble extends StatelessWidget {
-  const ReplyBubble({required this.reply, super.key});
+  const ReplyBubble({required this.reply, this.echo, super.key});
 
   final ReplyCommand reply;
+  final FeedEntry? echo;
+
+  static const _round = Radius.circular(AppRadius.lg);
+  static const _tail = Radius.circular(AppSpacing.xs);
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     return Align(
       alignment: Alignment.centerRight,
-      child: Padding(
-        padding: const EdgeInsets.only(left: Space.x12, bottom: Space.x3),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: Space.x4, vertical: Space.x3),
-              decoration: BoxDecoration(color: c.subtle, borderRadius: Radii.controlBorder),
-              child: SelectableText(reply.text, style: AppType.body.copyWith(color: c.ink)),
-            ),
-            const SizedBox(height: Space.x1),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(formatClock(reply.createdAt), style: AppType.supporting.copyWith(color: c.secondary)),
-                const SizedBox(width: Space.x3),
-                ReplyStatusBadge(reply: reply),
-              ],
-            ),
-          ],
+      // a share of the conversation's width (beside the rail on wide windows), not of the whole window
+      child: LayoutBuilder(
+        builder: (context, box) => ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: box.maxWidth * .78),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: c.accent,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: _round,
+                    topRight: _round,
+                    bottomLeft: _round,
+                    bottomRight: _tail,
+                  ),
+                ),
+                child: SelectableText(reply.text, style: AppType.body.copyWith(color: c.accentInk)),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.xs, AppSpacing.xs, 0),
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: AppSpacing.md,
+                  runSpacing: AppSpacing.xxs,
+                  children: [
+                    Text(formatClock(reply.createdAt), style: AppType.label.copyWith(color: c.muted)),
+                    ReplyStatusBadge(reply: reply, delivered: echo != null),
+                  ],
+                ),
+              ),
+              // the same rhythm as every message in a chat: bubble, its time and state, then the next one
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// On a notification that is the user's own message, so the same words read as theirs rather than as a message from
+/// someone else: "Your reply, as WhatsApp shows it", or "Sent from your phone".
+class OwnMessageBadge extends StatelessWidget {
+  const OwnMessageBadge({required this.own, required this.appName, super.key});
+
+  final OwnMessage own;
+  final String appName;
+
+  @override
+  Widget build(BuildContext context) => switch (own) {
+    OwnMessage.reply => StatusBadge(
+      label: 'Your reply, as $appName shows it',
+      icon: Icons.reply_rounded,
+      tone: Tone.success,
+    ),
+    OwnMessage.phone => const StatusBadge(label: 'Sent from your phone', icon: Icons.smartphone_rounded),
+  };
 }

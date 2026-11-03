@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
-/// An app's icon, or its initial on a quiet tile when the icon is not known (yet).
+/// An app's icon, or its initial in green on the soft green tile when the icon is not known (yet).
 class AppIconView extends StatelessWidget {
   const AppIconView({required this.appName, this.png, this.size = 40, super.key});
 
@@ -14,8 +14,8 @@ class AppIconView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
-    final radius = BorderRadius.circular(size * 0.24);
+    final c = context.palette;
+    final radius = BorderRadius.circular(size * 0.3);
     final icon = png;
     if (icon != null) {
       return ClipRRect(
@@ -33,20 +33,16 @@ class AppIconView extends StatelessWidget {
     return _monogram(c, radius);
   }
 
-  Widget _monogram(AppColors c, BorderRadius radius) {
+  Widget _monogram(AppPalette c, BorderRadius radius) {
     final name = appName.trim();
     return Container(
       width: size,
       height: size,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: c.subtle,
-        borderRadius: radius,
-        border: Border.all(color: c.border),
-      ),
+      decoration: BoxDecoration(color: c.accentSoft, borderRadius: radius),
       child: Text(
         name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-        style: AppType.subtitle.copyWith(color: c.ink, fontSize: size * 0.42, height: 1, fontWeight: FontWeight.w600),
+        style: AppType.title.copyWith(color: c.accent, fontSize: size * 0.42, height: 1, fontWeight: FontWeight.w700),
       ),
     );
   }

@@ -1,7 +1,16 @@
 import 'package:air_reply/app/router/route_guard.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/animations/fade_slide_in.dart';
+import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/utils/guarded.dart';
+import 'package:air_reply/core/widgets/card_group.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/page_intro.dart';
+import 'package:air_reply/core/widgets/responsive_center.dart';
+import 'package:air_reply/core/widgets/sticky_action_bar.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter/material.dart';
@@ -19,20 +28,17 @@ class SetupScreen extends ConsumerWidget {
     final session = ref.watch(deviceSessionProvider).value;
     final accepted = session?.disclosureAccepted ?? false;
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: (session?.isPaired ?? false) ? BackButton(onPressed: () => context.go(AppRoutes.home)) : null,
-      ),
       body: AnimatedSwitcher(
-        duration: Motion.slow,
+        duration: context.motion(AppMotion.slow),
         child: accepted ? _Checklist(isPaired: session?.isPaired ?? false) : const _Disclosure(),
       ),
     );
   }
 }
 
-/// A scrolling page with its main actions pinned at the bottom.
-class _WithActions extends StatelessWidget {
+/// A scrolling page under the glass app bar, with its main actions on a glass panel floating at the bottom; the
+/// content scrolls under both.
+class _WithActions extends ConsumerWidget {
   const _WithActions({required this.header, required this.content, required this.actions});
 
   final Widget header;
@@ -40,35 +46,38 @@ class _WithActions extends StatelessWidget {
   final List<Widget> actions;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    return Column(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paired = ref.watch(deviceSessionProvider.select((s) => s.value?.isPaired ?? false));
+    // one row of buttons per action, with the gaps between them
+    final reserve = actions.length * (AppDimensions.buttonHeight + AppSpacing.sm) + AppSpacing.xl;
+    return Stack(
       children: [
-        Expanded(
-          child: EditorialPage(
-            header: header,
-            slivers: [SliverList.list(children: content)],
+        Positioned.fill(
+          child: GlassScrollPage(
+            title: const Text('Set up'),
+            leading: paired ? BackButton(onPressed: () => context.go(AppRoutes.home)) : null,
+            slivers: [
+              SliverToBoxAdapter(child: header),
+              SliverList.list(
+                children: [
+                  for (final (i, w) in content.indexed) FadeSlideIn.staggered(index: i, child: w),
+                  SizedBox(height: reserve),
+                ],
+              ),
+            ],
           ),
         ),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: c.paper,
-            border: Border(top: BorderSide(color: c.border)),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Center(
-              heightFactor: 1,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: Space.maxContentWidth),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: Space.page(context), vertical: Space.x4),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: actions,
-                  ),
-                ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: ResponsiveCenter(
+            child: StickyActionBar(
+              pill: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: actions,
               ),
             ),
           ),
@@ -85,19 +94,18 @@ class _Disclosure extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(deviceSessionProvider.notifier);
     return _WithActions(
-      header: const PageHeader(
+      header: const PageIntro(
         eyebrow: 'Before you start',
         title: 'AirReply needs access to your notifications',
-        subtitle: Text(
-          'To share this phone\'s notifications with your paired devices, AirReply uses Android\'s Notification '
-          'Access permission.',
-        ),
+        subtitle:
+            'To share this phone\'s notifications with your paired devices, AirReply uses Android\'s Notification '
+            'Access permission.',
       ),
       content: const [
-        RuledList(
+        CardGroup(
           children: [
             _Point(
-              icon: Icons.visibility_outlined,
+              icon: Icons.visibility_rounded,
               title: 'What is accessed',
               body:
                   'The notifications shown on this phone: app name, title, text, time, and the reply action of '
@@ -130,7 +138,7 @@ class _Disclosure extends ConsumerWidget {
       ],
       actions: [
         FilledButton(onPressed: controller.acceptDisclosure, child: const Text('Agree and continue')),
-        const SizedBox(height: Space.x2),
+        const SizedBox(height: AppSpacing.sm),
         TextButton(onPressed: controller.clearRole, child: const Text('No thanks')),
       ],
     );
@@ -146,21 +154,21 @@ class _Point extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Space.x4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 22, color: c.secondary),
-          const SizedBox(width: Space.x4),
+          Icon(icon, size: 22, color: c.muted),
+          const SizedBox(width: AppSpacing.base),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: AppType.subtitle.copyWith(color: c.ink)),
-                const SizedBox(height: Space.x1),
-                Text(body, style: AppType.body.copyWith(color: c.secondary)),
+                const SizedBox(height: AppSpacing.xs),
+                Text(body, style: AppType.body.copyWith(color: c.muted)),
               ],
             ),
           ),
@@ -204,15 +212,15 @@ class _ChecklistState extends ConsumerState<_Checklist> {
     final autostart = granted?.restrictions.hasAutostartScreen ?? false;
 
     return _WithActions(
-      header: PageHeader(
+      header: PageIntro(
         eyebrow: '$done of 2 required steps done',
         title: 'Set up this phone',
-        subtitle: const Text('Two permissions let AirReply share notifications and keep running in the background.'),
+        subtitle: 'Two permissions let AirReply share notifications and keep running in the background.',
       ),
       content: [
         LinearProgressIndicator(value: done / 2),
-        const SizedBox(height: Space.x4),
-        RuledList(
+        const SizedBox(height: AppSpacing.base),
+        CardGroup(
           children: [
             _Step(
               index: 1,
@@ -282,43 +290,43 @@ class _Step extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     final isDone = done ?? false;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Space.x4),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AnimatedContainer(
-            duration: Motion.medium,
+            duration: AppMotion.medium,
             width: 28,
             height: 28,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isDone ? c.success : null,
-              border: isDone ? null : Border.all(color: c.border),
+              color: isDone ? c.accent : null,
+              border: isDone ? null : Border.all(color: c.line),
             ),
             child: isDone
-                ? Icon(Icons.check, size: 16, color: c.paper)
+                ? Icon(Icons.check, size: 16, color: c.bg)
                 : Text(
                     '$index',
                     style: AppType.supporting.copyWith(color: c.ink, fontWeight: FontWeight.w600),
                   ),
           ),
-          const SizedBox(width: Space.x4),
+          const SizedBox(width: AppSpacing.base),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: AppType.subtitle.copyWith(color: c.ink)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: AppType.supporting.copyWith(color: c.secondary)),
-                const SizedBox(height: Space.x2),
+                Text(subtitle, style: AppType.supporting.copyWith(color: c.muted)),
+                const SizedBox(height: AppSpacing.sm),
                 if (isDone)
                   Text(
                     'Done',
-                    style: AppType.supporting.copyWith(color: c.success, fontWeight: FontWeight.w600),
+                    style: AppType.supporting.copyWith(color: c.accent, fontWeight: FontWeight.w600),
                   )
                 else
                   OutlinedButton(onPressed: onAction, child: Text(actionLabel)),

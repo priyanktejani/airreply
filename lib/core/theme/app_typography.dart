@@ -1,73 +1,85 @@
+import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 
-/// The type scale. Instrument Serif for large editorial headlines, DM Sans for everything functional.
-/// Line heights are expressed as ratios so system text scaling keeps the rhythm.
+/// The type scale (Geist, as in the iFixxer app): tight, heavy headlines, calm body text, firm labels, and the small
+/// green mono label above headings ([eyebrow]). [AppTheme] maps it onto Material's text roles, so plain widgets use it.
 abstract final class AppType {
-  static const serif = 'InstrumentSerif';
-  static const sans = 'DMSans';
+  static const _fallback = ['Roboto', 'Helvetica Neue', 'Segoe UI', 'Noto Sans', 'sans-serif'];
 
-  /// Fallbacks while (or if) the bundled fonts cannot be used, e.g. scripts they do not cover.
-  static const _serifFallback = ['Georgia', 'Times New Roman', 'Noto Serif', 'serif'];
-  static const _sansFallback = ['Roboto', 'Helvetica Neue', 'Segoe UI', 'Noto Sans', 'sans-serif'];
+  static TextStyle _geist(double size, double height, FontWeight weight, {double tracking = 0, String family = font}) =>
+      TextStyle(
+        fontFamily: family,
+        fontFamilyFallback: _fallback,
+        fontSize: size,
+        height: height,
+        fontWeight: weight,
+        letterSpacing: tracking,
+      );
 
-  static TextStyle _serif(double size, double line) => TextStyle(
-    fontFamily: serif,
-    fontFamilyFallback: _serifFallback,
-    fontSize: size,
-    height: line / size,
-    fontWeight: FontWeight.w400,
-    letterSpacing: -0.2,
-  );
+  /// 52 extra bold — Home's headline, the one deliberate exception to the scale.
+  static final hero = _geist(52, 1.0, FontWeight.w800, tracking: -2.6);
 
-  static TextStyle _sans(double size, double line, FontWeight weight, {double tracking = 0}) => TextStyle(
-    fontFamily: sans,
-    fontFamilyFallback: _sansFallback,
-    fontSize: size,
-    height: line / size,
-    fontWeight: weight,
-    letterSpacing: tracking,
-  );
+  /// 32 extra bold — the largest page text.
+  static final display = _geist(32, 1.05, FontWeight.w800, tracking: -1.3);
 
-  /// 36/40 — page titles.
-  static final display = _serif(36, 40);
+  /// 26 bold — a page's own title, under the bar.
+  static final pageTitle = _geist(26, 1.15, FontWeight.w700, tracking: -.9);
 
-  /// 28/32 — section and detail headlines.
-  static final section = _serif(28, 32);
+  /// 22 bold — hero card headlines.
+  static final headline = _geist(22, 1.18, FontWeight.w700, tracking: -.6);
 
-  /// 18/24 — notification titles.
-  static final title = _sans(18, 24, FontWeight.w500, tracking: -0.1);
+  /// 20 bold — section titles.
+  static final section = _geist(20, 1.25, FontWeight.w700, tracking: -.4);
 
-  /// 16/24 — app bar titles, list primary text.
-  static final subtitle = _sans(16, 24, FontWeight.w500);
+  /// 16 semibold — card and row titles.
+  static final title = _geist(16, 1.3, FontWeight.w600, tracking: -.2);
 
-  /// 15/22 — reading text.
-  static final body = _sans(15, 22, FontWeight.w400);
+  /// 15.5 semibold — list row titles and app bar subtitles.
+  static final subtitle = _geist(15.5, 1.3, FontWeight.w600, tracking: -.1);
 
-  /// 13/18 — supporting text, timestamps, metadata.
-  static final supporting = _sans(13, 18, FontWeight.w400);
+  /// 14 semibold — titles in small tiles, and times on message cards.
+  static final titleSmall = _geist(14, 1.3, FontWeight.w600, tracking: -.1);
 
-  /// 11/16 — compact labels (eyebrows, badges), set in caps with tracking.
-  static final label = _sans(11, 16, FontWeight.w600, tracking: 0.8);
+  /// 16 — longer reading text.
+  static final bodyLarge = _geist(16, 1.5, FontWeight.w400);
 
-  /// 14/20 — buttons.
-  static final button = _sans(14, 20, FontWeight.w600, tracking: 0.1);
+  /// 15 — body text.
+  static final body = _geist(15, 1.48, FontWeight.w400);
 
-  /// Maps the scale onto Material's roles so every component picks it up.
-  static TextTheme textTheme(Color ink, Color secondary) => TextTheme(
-    displayLarge: display.copyWith(fontSize: 44, height: 48 / 44, color: ink),
-    displayMedium: display.copyWith(color: ink),
-    displaySmall: section.copyWith(color: ink),
-    headlineLarge: section.copyWith(color: ink),
-    headlineMedium: section.copyWith(color: ink),
-    headlineSmall: _serif(24, 28).copyWith(color: ink),
-    titleLarge: title.copyWith(color: ink),
-    titleMedium: subtitle.copyWith(color: ink),
-    titleSmall: _sans(14, 20, FontWeight.w600).copyWith(color: ink),
-    bodyLarge: _sans(16, 24, FontWeight.w400).copyWith(color: ink),
-    bodyMedium: body.copyWith(color: ink),
-    bodySmall: supporting.copyWith(color: secondary),
-    labelLarge: button.copyWith(color: ink),
-    labelMedium: _sans(12, 16, FontWeight.w500).copyWith(color: ink),
-    labelSmall: label.copyWith(color: secondary),
+  /// 13 — supporting text, times, hints.
+  static final supporting = _geist(13, 1.42, FontWeight.w400);
+
+  /// 12 semibold — badges and small labels.
+  static final label = _geist(12, 1.3, FontWeight.w600, tracking: .2);
+
+  /// 11 semibold — counts in badges and the nav bar's labels.
+  static final caption = _geist(11, 1.2, FontWeight.w600);
+
+  /// 13 semibold — inline green actions and summaries ("Open", "3 notifications").
+  static final link = _geist(13, 1.3, FontWeight.w600);
+
+  /// 15 semibold — buttons.
+  static final button = _geist(15, 1.3, FontWeight.w600);
+
+  /// 13 mono — the small green label above headings.
+  static final eyebrow = _geist(13, 1.3, FontWeight.w500, tracking: .3, family: mono);
+
+  /// The scale as Material's text roles.
+  static TextTheme textTheme(AppPalette c) => TextTheme(
+    displayLarge: hero.copyWith(color: c.ink),
+    displayMedium: display.copyWith(color: c.ink, fontSize: 40),
+    displaySmall: display.copyWith(color: c.ink, fontSize: 36),
+    headlineLarge: display.copyWith(color: c.ink),
+    headlineMedium: _geist(26, 1.12, FontWeight.w700, tracking: -.9).copyWith(color: c.ink),
+    headlineSmall: headline.copyWith(color: c.ink),
+    titleLarge: section.copyWith(color: c.ink),
+    titleMedium: title.copyWith(color: c.ink),
+    titleSmall: _geist(14, 1.3, FontWeight.w600, tracking: -.1).copyWith(color: c.ink),
+    bodyLarge: bodyLarge.copyWith(color: c.ink),
+    bodyMedium: body.copyWith(color: c.ink),
+    bodySmall: supporting.copyWith(color: c.muted),
+    labelLarge: button.copyWith(color: c.ink),
+    labelMedium: _geist(13, 1.3, FontWeight.w600, tracking: .1).copyWith(color: c.ink),
+    labelSmall: label.copyWith(color: c.muted),
   );
 }

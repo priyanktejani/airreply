@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
+import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// The notification an alert stands for, decoded from its payload: where tapping it should lead.
@@ -67,7 +68,8 @@ final class MirroredAlerts {
   }
 
   /// Raises the alert. With [showContent] false (Settings → "Show message text in alerts"), the alert names only the
-  /// app, so nothing private appears on a lock screen or a shared display.
+  /// app, so nothing private appears on a lock screen or a shared display. The user's own messages (a reply's copy,
+  /// or words typed on the phone) raise no alert: they still arrive in the Notifications tab.
   Future<void> show(
     MirroredNotification notification, {
     required String pairId,
@@ -75,6 +77,7 @@ final class MirroredAlerts {
     bool showContent = true,
   }) {
     final content = notification.content;
+    if (isTitledAsUser(content)) return Future.value();
     final canReply = notification.acceptsReplies;
     // The icon stays out of the payload: the alert never shows it, and payloads should stay small.
     final payload = jsonEncode({

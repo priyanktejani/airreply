@@ -1,7 +1,8 @@
 import 'package:air_reply/core/error/app_exception.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
-import 'package:air_reply/core/theme/app_typography.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
+import 'package:air_reply/core/widgets/app_logo.dart';
+import 'package:air_reply/core/widgets/empty_state.dart';
+import 'package:air_reply/core/widgets/status_badge.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,15 +13,14 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.colors;
     return Scaffold(
       body: Center(
         child: switch (ref.watch(deviceSessionProvider)) {
-          AsyncError(:final error) => StateMessage(
+          AsyncError(:final error) => EmptyState(
             icon: Icons.error_outline,
             tone: Tone.error,
             title: 'AirReply could not start',
-            message: describeError(error),
+            description: describeError(error),
             action: FilledButton(
               onPressed: () => ref.invalidate(deviceSessionProvider),
               child: const Text('Try again'),
@@ -31,8 +31,8 @@ class SplashScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('AirReply', style: AppType.display.copyWith(color: c.ink)),
-                const SizedBox(height: Space.x6),
+                const AppLogo(height: 34),
+                const SizedBox(height: AppSpacing.xl),
                 const SizedBox(width: 96, child: LinearProgressIndicator()),
               ],
             ),

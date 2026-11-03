@@ -1,6 +1,9 @@
 import 'dart:async';
 
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_radius.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,15 +20,15 @@ class DigitCells extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     Widget cell(String digit) => Container(
       width: cellSize,
       height: cellSize * 1.2,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: Radii.controlBorder,
-        border: Border.all(color: highlight ? c.ink : c.border, width: highlight ? 1.5 : 1),
+        borderRadius: AppRadius.smBorder,
+        border: Border.all(color: highlight ? c.ink : c.line, width: highlight ? 1.5 : 1),
       ),
       child: Text(
         digit,
@@ -107,7 +110,7 @@ class _ExpiryCountdownState extends State<ExpiryCountdown> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     final left = _remaining;
     final fraction = (left.inMilliseconds / widget.lifetime.inMilliseconds).clamp(0.0, 1.0);
     final seconds = (left.inSeconds % 60).toString().padLeft(2, '0');
@@ -115,12 +118,12 @@ class _ExpiryCountdownState extends State<ExpiryCountdown> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        LinearProgressIndicator(value: fraction, color: urgent ? c.warning : c.ink),
-        const SizedBox(height: Space.x2),
+        LinearProgressIndicator(value: fraction, color: urgent ? c.warnInk : c.ink),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           left == Duration.zero ? 'Code expired, making a new one' : 'Expires in ${left.inMinutes}:$seconds',
           textAlign: TextAlign.center,
-          style: AppType.supporting.copyWith(color: urgent ? c.warning : c.secondary),
+          style: AppType.supporting.copyWith(color: urgent ? c.warnInk : c.muted),
         ),
       ],
     );
@@ -172,7 +175,7 @@ class _PairingCodeFieldState extends State<PairingCodeField> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     final text = widget.controller.text;
 
     Widget cell(int i) {
@@ -181,12 +184,12 @@ class _PairingCodeFieldState extends State<PairingCodeField> {
         child: AspectRatio(
           aspectRatio: 0.85,
           child: AnimatedContainer(
-            duration: Motion.fast,
+            duration: AppMotion.fast,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: c.surface,
-              borderRadius: Radii.controlBorder,
-              border: Border.all(color: active ? c.ink : c.border, width: active ? 1.5 : 1),
+              borderRadius: AppRadius.smBorder,
+              border: Border.all(color: active ? c.ink : c.line, width: active ? 1.5 : 1),
             ),
             child: Text(
               i < text.length ? text[i] : '',
@@ -204,7 +207,7 @@ class _PairingCodeFieldState extends State<PairingCodeField> {
           Row(
             children: [
               for (var i = 0; i < 6; i++) ...[
-                if (i == 3) const SizedBox(width: Space.x4) else if (i > 0) const SizedBox(width: 6),
+                if (i == 3) const SizedBox(width: AppSpacing.base) else if (i > 0) const SizedBox(width: 6),
                 cell(i),
               ],
             ],
@@ -245,7 +248,7 @@ class CornerFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = context.colors.ink;
+    final color = context.palette.ink;
     Widget corner(Alignment alignment) => Align(
       alignment: alignment,
       child: SizedBox(
@@ -292,7 +295,7 @@ class PairingSteps extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     return Semantics(
       label: 'Step ${current + 1} of ${steps.length}: ${steps[current]}',
       excludeSemantics: true,
@@ -303,8 +306,8 @@ class PairingSteps extends StatelessWidget {
               Expanded(
                 child: Container(
                   height: 1,
-                  margin: const EdgeInsets.symmetric(horizontal: Space.x2),
-                  color: i <= current ? c.ink : c.border,
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                  color: i <= current ? c.ink : c.line,
                 ),
               ),
             Container(
@@ -314,20 +317,20 @@ class PairingSteps extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: i <= current ? c.ink : null,
-                border: i <= current ? null : Border.all(color: c.border),
+                border: i <= current ? null : Border.all(color: c.line),
               ),
               child: i < current
-                  ? Icon(Icons.check, size: 13, color: c.paper)
+                  ? Icon(Icons.check, size: 13, color: c.bg)
                   : Text(
                       '${i + 1}',
-                      style: AppType.label.copyWith(color: i <= current ? c.paper : c.secondary, letterSpacing: 0),
+                      style: AppType.label.copyWith(color: i <= current ? c.bg : c.muted, letterSpacing: 0),
                     ),
             ),
-            const SizedBox(width: Space.x2),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               steps[i],
               style: AppType.supporting.copyWith(
-                color: i == current ? c.ink : c.secondary,
+                color: i == current ? c.ink : c.muted,
                 fontWeight: i == current ? FontWeight.w600 : FontWeight.w400,
               ),
             ),

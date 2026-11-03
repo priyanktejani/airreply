@@ -12,6 +12,9 @@ final class NotificationContent {
     required this.postedAt,
     this.conversationTitle,
     this.isGroupConversation = false,
+    this.sender,
+    this.conversationId,
+    this.isMessage,
     this.iconPng,
   });
 
@@ -24,6 +27,9 @@ final class NotificationContent {
     postedAt: DateTime.fromMillisecondsSinceEpoch((json['at']! as num).toInt()),
     conversationTitle: json['ct'] as String?,
     isGroupConversation: json['g'] == true,
+    sender: json['s'] as String?,
+    conversationId: json['cid'] as String?,
+    isMessage: json['m'] as bool?,
     iconPng: switch (json['ic']) {
       final String b64 => _decodeIcon(b64),
       _ => null,
@@ -40,6 +46,15 @@ final class NotificationContent {
   final String? conversationTitle;
   final bool isGroupConversation;
 
+  /// Who wrote the latest message, when the app says (group chats name each sender).
+  final String? sender;
+
+  /// A stable, opaque id of the conversation within the app (a hash of the app's own id), when the app declares one.
+  final String? conversationId;
+
+  /// Whether this is a message from a person. Null for notifications mirrored before the phone reported it.
+  final bool? isMessage;
+
   /// The source app's icon (small PNG). Sent with the first notification of an app to each device, then about once
   /// a week, so receivers can show real icons; absent otherwise.
   final Uint8List? iconPng;
@@ -53,6 +68,9 @@ final class NotificationContent {
     postedAt: postedAt,
     conversationTitle: conversationTitle,
     isGroupConversation: isGroupConversation,
+    sender: sender,
+    conversationId: conversationId,
+    isMessage: isMessage,
     iconPng: icon,
   );
 
@@ -74,6 +92,9 @@ final class NotificationContent {
     'at': postedAt.millisecondsSinceEpoch,
     if (conversationTitle != null) 'ct': conversationTitle,
     if (isGroupConversation) 'g': true,
+    if (sender != null) 's': sender,
+    if (conversationId != null) 'cid': conversationId,
+    if (isMessage != null) 'm': isMessage,
     if (iconPng != null) 'ic': base64.encode(iconPng!),
   };
 }

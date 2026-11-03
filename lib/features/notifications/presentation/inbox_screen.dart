@@ -1,24 +1,34 @@
 import 'dart:async';
 
+import 'package:air_reply/core/animations/fade_slide_in.dart';
+import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/error/app_exception.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_radius.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
-import 'package:air_reply/core/utils/time_format.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/empty_state.dart';
+import 'package:air_reply/core/widgets/eyebrow.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/search_field.dart';
+import 'package:air_reply/core/widgets/status_badge.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
+import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/filter_sheet.dart';
-import 'package:air_reply/features/notifications/presentation/widgets/notification_widgets.dart';
+import 'package:air_reply/features/notifications/presentation/widgets/group_widgets.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Every notification across paired devices, by day, with search and filters. Notifications of one conversation on
-/// one day fold into a single row that expands.
+/// Every notification across paired devices, with search and filters: one card per app, latest activity first,
+/// showing the newest notification, counts and unread state; its conversations (people, group chats) list beneath it
+/// on demand, and each opens as a chat.
 class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
 
@@ -27,8 +37,8 @@ class InboxScreen extends ConsumerStatefulWidget {
 }
 
 class _InboxScreenState extends ConsumerState<InboxScreen> {
-  /// Groups opened by the person, by their latest entry's key.
-  final _expanded = <String>{};
+  /// App groups whose conversations are listed, by group id.
+  final _expandedApps = <String>{};
 
   Future<void> _refresh() async {
     for (final pair in ref.read(pairedDevicesProvider)) {
@@ -54,7 +64,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     final unread = ref.watch(unreadCountProvider);
     final filter = ref.watch(inboxFilterProvider);
     final inboxLoaded = ref.watch(inboxStateProvider).hasValue;
-    final days = ref.watch(feedDaysProvider);
+    final groups = ref.watch(groupedInboxProvider);
     final everything = ref.watch(allFeedProvider).value ?? const [];
 
     final source = switch ((isSender, devices)) {
@@ -64,44 +74,75 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
       (false, _) => 'From ${devices.length} phones',
     };
 
+    final count = filter.activeCount;
     return Scaffold(
-      body: EditorialPage(
+      body: GlassScrollPage(
         onRefresh: _refresh,
-        header: PageHeader(
-          eyebrow: unread == 0 ? 'All read' : '$unread unread',
-          title: 'Notifications',
-          subtitle: Text(source),
-          actions: [
-            IconButton(
-              tooltip: 'Mark all as read',
-              onPressed: unread == 0 ? null : _markAllRead,
-              icon: const Icon(Icons.done_all),
+        title: const Text('Notifications'),
+        actions: [
+          IconButton(
+            tooltip: 'Mark all as read',
+            onPressed: unread == 0 ? null : _markAllRead,
+            icon: const Icon(Icons.done_all_rounded),
+          ),
+        ],
+        // the search box stays pinned under the bar, as frosted glass, while the notifications scroll beneath it
+        search: Row(
+          children: [
+            Expanded(
+              child: SearchField(
+                hint: 'Search notifications',
+                value: filter.query,
+                onChanged: ref.read(inboxFilterProvider.notifier).search,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            IconButton.filledTonal(
+              tooltip: count > 0 ? 'Filters, $count on' : 'Filters',
+              onPressed: () => showFilterSheet(context),
+              style: IconButton.styleFrom(
+                fixedSize: const Size(AppDimensions.fieldHeight, AppDimensions.fieldHeight),
+                shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
+              ),
+              // on the icon, as on the bell and the nav bar: inside the button, clear of the pinned bar's edge
+              icon: Badge(isLabelVisible: count > 0, label: Text('$count'), child: const Icon(Icons.tune_rounded)),
             ),
           ],
         ),
         slivers: [
-          const SliverToBoxAdapter(child: AttentionNotices(connection: false)),
-          SliverToBoxAdapter(child: _SearchBar(filter: filter)),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.base),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Eyebrow(unread == 0 ? 'All read' : '$unread unread'),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(source, style: AppType.body.copyWith(color: context.palette.muted)),
+                ],
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: AttentionNotices(connection: false, bottom: AppSpacing.base)),
           if (filter.activeCount > 0) SliverToBoxAdapter(child: _ActiveFilters(filter: filter)),
-          const SliverToBoxAdapter(child: SizedBox(height: Space.x2)),
-          ...switch (days) {
+          ...switch (groups) {
             _ when !inboxLoaded => [const SliverToBoxAdapter(child: SkeletonList())],
             AsyncData(value: final list) when list.isEmpty => [
               SliverToBoxAdapter(
                 child: filter.isActive
-                    ? StateMessage(
+                    ? EmptyState(
                         icon: Icons.filter_alt_off_outlined,
                         title: 'No matches',
-                        message: 'Nothing matches this search or filter.',
+                        description: 'Nothing matches this search or filter.',
                         action: OutlinedButton(
                           onPressed: ref.read(inboxFilterProvider.notifier).clear,
                           child: const Text('Clear search and filters'),
                         ),
                       )
-                    : StateMessage(
-                        icon: everything.isEmpty ? Icons.notifications_none : Icons.inbox_outlined,
+                    : EmptyState(
+                        icon: everything.isEmpty ? Icons.notifications_none_rounded : Icons.inbox_outlined,
                         title: everything.isEmpty ? 'Nothing here yet' : 'All caught up',
-                        message: everything.isEmpty
+                        description: everything.isEmpty
                             ? (isSender
                                   ? 'Notifications this phone shares appear here, with the replies sent from your '
                                         'devices.'
@@ -110,21 +151,22 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                       ),
               ),
             ],
-            AsyncData(value: final list) => [
-              _DaysList(
-                days: list,
+            AsyncData(value: final groups) => [
+              _GroupsList(
+                groups: groups,
                 showDevice: devices.length > 1,
-                expanded: _expanded,
-                onToggle: (key) => setState(() => _expanded.contains(key) ? _expanded.remove(key) : _expanded.add(key)),
+                expanded: _expandedApps,
+                onToggle: (id) =>
+                    setState(() => _expandedApps.contains(id) ? _expandedApps.remove(id) : _expandedApps.add(id)),
               ),
             ],
             AsyncError(:final error) => [
               SliverToBoxAdapter(
-                child: StateMessage(
+                child: EmptyState(
                   icon: Icons.cloud_off_outlined,
                   tone: Tone.error,
                   title: 'Could not load notifications',
-                  message: describeError(error),
+                  description: describeError(error),
                   action: OutlinedButton(onPressed: _refresh, child: const Text('Try again')),
                 ),
               ),
@@ -133,43 +175,6 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
           },
         ],
       ),
-    );
-  }
-}
-
-class _SearchBar extends ConsumerWidget {
-  const _SearchBar({required this.filter});
-
-  final FeedFilter filter;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = filter.activeCount;
-    return Row(
-      children: [
-        Expanded(
-          child: SearchField(
-            hint: 'Search notifications',
-            value: filter.query,
-            onChanged: ref.read(inboxFilterProvider.notifier).search,
-          ),
-        ),
-        const SizedBox(width: Space.x2),
-        Badge(
-          isLabelVisible: count > 0,
-          label: Text('$count'),
-          child: IconButton.outlined(
-            tooltip: count > 0 ? 'Filters, $count on' : 'Filters',
-            onPressed: () => showFilterSheet(context),
-            style: IconButton.styleFrom(
-              minimumSize: const Size(48, 48),
-              side: BorderSide(color: context.colors.border),
-              shape: const RoundedRectangleBorder(borderRadius: Radii.controlBorder),
-            ),
-            icon: const Icon(Icons.tune, size: 20),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -187,15 +192,18 @@ class _ActiveFilters extends ConsumerWidget {
     final apps = ref.watch(feedAppsProvider);
     Widget chip(String label, VoidCallback onDeleted) => InputChip(
       label: Text(label),
+      selected: true,
+      onPressed: onDeleted,
       onDeleted: onDeleted,
       deleteButtonTooltipMessage: 'Remove filter',
-      deleteIconColor: context.colors.secondary,
+      deleteIcon: const Icon(Icons.close_rounded, size: 16),
+      deleteIconColor: context.palette.accent,
     );
     return Padding(
-      padding: const EdgeInsets.only(top: Space.x3),
+      padding: const EdgeInsets.only(bottom: AppSpacing.base),
       child: Wrap(
-        spacing: Space.x2,
-        runSpacing: Space.x2,
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
         children: [
           if (filter.unreadOnly) chip('Unread', () => controller.unreadOnly(false)),
           if (filter.period != FeedPeriod.all) chip(filter.period.label, () => controller.period(FeedPeriod.all)),
@@ -211,92 +219,33 @@ class _ActiveFilters extends ConsumerWidget {
   }
 }
 
-sealed class _Item {
-  const _Item();
-}
+/// One frosted card per app group, latest activity first; expanded groups list their conversations inside.
+class _GroupsList extends StatelessWidget {
+  const _GroupsList({required this.groups, required this.showDevice, required this.expanded, required this.onToggle});
 
-final class _DayItem extends _Item {
-  const _DayItem(this.day);
-  final FeedDay day;
-}
-
-final class _EntryItem extends _Item {
-  const _EntryItem(this.entry, {this.group, this.nested = false});
-  final FeedEntry entry;
-  final FeedGroup? group;
-  final bool nested;
-}
-
-final class _ToggleItem extends _Item {
-  const _ToggleItem(this.group, {required this.expanded});
-  final FeedGroup group;
-  final bool expanded;
-}
-
-class _DaysList extends StatelessWidget {
-  const _DaysList({required this.days, required this.showDevice, required this.expanded, required this.onToggle});
-
-  final List<FeedDay> days;
+  final List<AppGroup> groups;
   final bool showDevice;
   final Set<String> expanded;
   final ValueChanged<String> onToggle;
 
-  List<_Item> get _items => [
-    for (final day in days) ...[
-      _DayItem(day),
-      for (final group in day.groups) ...[
-        _EntryItem(group.latest, group: group.isGroup && !expanded.contains(group.latest.key) ? group : null),
-        if (group.isGroup) _ToggleItem(group, expanded: expanded.contains(group.latest.key)),
-        if (group.isGroup && expanded.contains(group.latest.key))
-          for (final e in group.entries.skip(1)) _EntryItem(e, nested: true),
-      ],
-    ],
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    final items = _items;
-    final c = context.colors;
-    return SliverList.builder(
-      itemCount: items.length,
-      itemBuilder: (context, i) => switch (items[i]) {
-        _DayItem(:final day) => SectionLabel(
-          formatDayLabel(day.date),
-          top: i == 0 ? Space.x4 : Space.x8,
-          trailing: Text('${day.count}', style: AppType.label.copyWith(color: c.secondary)),
-        ),
-        _EntryItem(:final entry, :final group, :final nested) => DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: c.border)),
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(left: nested ? Space.x10 + Space.x4 : 0),
-            child: NotificationRow(
-              key: ValueKey(entry.key),
-              entry: entry,
-              group: group,
-              compact: nested,
-              showDevice: showDevice,
-            ),
+  Widget build(BuildContext context) => SliverList.builder(
+    itemCount: groups.length,
+    itemBuilder: (context, i) {
+      final group = groups[i];
+      return Padding(
+        key: ValueKey('app/${group.id}'),
+        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+        child: FadeSlideIn.staggered(
+          index: i,
+          child: AppGroupTile(
+            group: group,
+            showDevice: showDevice,
+            expanded: expanded.contains(group.id),
+            onToggleExpanded: () => onToggle(group.id),
           ),
         ),
-        _ToggleItem(:final group, :final expanded) => Padding(
-          padding: const EdgeInsets.only(left: Space.x10 + Space.x2, bottom: Space.x2),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () => onToggle(group.latest.key),
-              style: TextButton.styleFrom(foregroundColor: c.secondary),
-              icon: AnimatedRotation(
-                turns: expanded ? 0.5 : 0,
-                duration: Motion.medium,
-                child: const Icon(Icons.expand_more, size: 18),
-              ),
-              label: Text(expanded ? 'Show less' : '${group.count - 1} earlier from this conversation'),
-            ),
-          ),
-        ),
-      },
-    );
-  }
+      );
+    },
+  );
 }

@@ -34,6 +34,7 @@ class NotificationParser(private val context: Context) {
                 ?: extras.getCharSequence(Notification.EXTRA_TEXT))?.toString().orEmpty()
         }
         if (title.isBlank() && text.isBlank()) return null
+        val isMessage = message != null || notification.category == Notification.CATEGORY_MESSAGE
 
         return CapturedNotification(
             key = sbn.key,
@@ -47,8 +48,18 @@ class NotificationParser(private val context: Context) {
             isGroupConversation = isGroup,
             // In MessagingStyle, messages written by the device's user carry no sender.
             isSelfMessage = message != null && message.sender == null,
+            sender = message?.sender,
+            conversationId = conversationId(notification),
+            isMessage = isMessage,
         )
     }
+
+    /**
+     * The conversation a message belongs to, as the app declares it for Android's conversation features (WhatsApp,
+     * Telegram, Messages, Signal...: the chat or contact id). Null for apps that do not declare one.
+     */
+    private fun conversationId(notification: Notification): String? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) notification.shortcutId?.takeIf { it.isNotBlank() } else null
 
     /** The first action that takes free-form text through a [android.app.RemoteInput], i.e. "Reply". */
     fun replyAction(notification: Notification): Notification.Action? =

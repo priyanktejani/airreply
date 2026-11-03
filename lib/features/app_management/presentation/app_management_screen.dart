@@ -1,12 +1,19 @@
 import 'dart:async';
 
+import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/platform/native_models.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
+import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/widgets/app_icon.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/empty_state.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/info_row.dart';
+import 'package:air_reply/core/widgets/search_field.dart';
+import 'package:air_reply/core/widgets/status_badge.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_widgets.dart';
 import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
@@ -37,20 +44,22 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
   Widget build(BuildContext context) {
     final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
     return Scaffold(
-      appBar: AppBar(title: Text(isSender ? 'Apps to share' : 'Muted apps')),
-      body: EditorialPage(slivers: isSender ? _senderSlivers() : _receiverSlivers()),
+      body: GlassScrollPage(
+        title: Text(isSender ? 'Apps to share' : 'Muted apps'),
+        slivers: isSender ? _senderSlivers() : _receiverSlivers(),
+      ),
     );
   }
 
   Widget _search(String hint) => Padding(
-    padding: const EdgeInsets.only(top: Space.x4, bottom: Space.x2),
+    padding: const EdgeInsets.only(top: AppSpacing.base, bottom: AppSpacing.sm),
     child: SearchField(hint: hint, value: _typed, onChanged: (q) => setState(() => _typed = q)),
   );
 
   List<Widget> _senderSlivers() {
     final filter = ref.watch(appFilterProvider);
     final controller = ref.read(appFilterProvider.notifier);
-    final c = context.colors;
+    final c = context.palette;
 
     return switch (filter) {
       AsyncData(value: final current) => [
@@ -60,9 +69,9 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
             children: [
               Text(
                 'Choose what reaches your devices. This applies even while AirReply is closed.',
-                style: AppType.body.copyWith(color: c.secondary),
+                style: AppType.body.copyWith(color: c.muted),
               ),
-              const SizedBox(height: Space.x4),
+              const SizedBox(height: AppSpacing.base),
               SegmentedButton<AppFilterMode>(
                 segments: const [
                   ButtonSegment(value: AppFilterMode.all, label: Text('All apps')),
@@ -81,9 +90,9 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
                   current.packages.isEmpty
                       ? 'Nothing selected: no notifications are shared'
                       : '${current.packages.length} selected',
-                  style: AppType.supporting.copyWith(color: current.packages.isEmpty ? c.warning : c.secondary),
+                  style: AppType.supporting.copyWith(color: current.packages.isEmpty ? c.warnInk : c.muted),
                 ),
-                const SizedBox(height: Space.x2),
+                const SizedBox(height: AppSpacing.sm),
               ],
             ],
           ),
@@ -92,20 +101,20 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
           _InstalledAppList(filter: current, matches: _matches)
         else
           const SliverToBoxAdapter(
-            child: StateMessage(
-              icon: Icons.apps_outlined,
+            child: EmptyState(
+              icon: Icons.apps_rounded,
               title: 'Every app is shared',
-              message: 'Choose "Only selected" to pick which apps reach your devices.',
+              description: 'Choose "Only selected" to pick which apps reach your devices.',
             ),
           ),
       ],
       AsyncError(:final error) => [
         SliverToBoxAdapter(
-          child: StateMessage(
+          child: EmptyState(
             icon: Icons.error_outline,
             tone: Tone.error,
             title: 'Could not load your choice',
-            message: describeError(error),
+            description: describeError(error),
             action: OutlinedButton(onPressed: () => ref.invalidate(appFilterProvider), child: const Text('Try again')),
           ),
         ),
@@ -117,7 +126,7 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
   List<Widget> _receiverSlivers() {
     final apps = ref.watch(feedAppsProvider);
     final preferences = ref.watch(appPreferencesProvider).value;
-    final c = context.colors;
+    final c = context.palette;
     final visible = [
       for (final MapEntry(key: package, value: name) in apps.entries)
         if (_matches(name, package)) (package, name),
@@ -129,7 +138,7 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
           children: [
             Text(
               'Muted apps still arrive in Notifications, but never alert you on this device.',
-              style: AppType.body.copyWith(color: c.secondary),
+              style: AppType.body.copyWith(color: c.muted),
             ),
             if (apps.isNotEmpty) _search('Search apps'),
           ],
@@ -137,16 +146,16 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
       ),
       if (apps.isEmpty)
         const SliverToBoxAdapter(
-          child: StateMessage(
-            icon: Icons.apps_outlined,
+          child: EmptyState(
+            icon: Icons.apps_rounded,
             title: 'No apps yet',
-            message: 'Apps appear here once your phone has sent a notification from them.',
+            description: 'Apps appear here once your phone has sent a notification from them.',
           ),
         )
       else
         SliverList.separated(
           itemCount: visible.length,
-          separatorBuilder: (_, _) => const Divider(),
+          separatorBuilder: (_, _) => const Divider(height: 1, indent: AppSpacing.card),
           itemBuilder: (context, i) {
             final (package, name) = visible[i];
             final muted = preferences?.mutedApps.contains(package) ?? false;
@@ -177,7 +186,7 @@ class _InstalledAppList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final apps = ref.watch(installedAppsProvider);
-    final c = context.colors;
+    final c = context.palette;
     return switch (apps) {
       AsyncData(value: final all) => () {
         final visible = [
@@ -186,12 +195,12 @@ class _InstalledAppList extends ConsumerWidget {
         ];
         if (visible.isEmpty) {
           return const SliverToBoxAdapter(
-            child: StateMessage(icon: Icons.search_off, title: 'No apps match'),
+            child: EmptyState(icon: Icons.search_off, title: 'No apps match'),
           );
         }
         return SliverList.separated(
           itemCount: visible.length,
-          separatorBuilder: (_, _) => const Divider(),
+          separatorBuilder: (_, _) => const Divider(height: 1, indent: AppSpacing.card),
           itemBuilder: (context, i) {
             final app = visible[i];
             final selected = filter.packages.contains(app.packageName);
@@ -208,11 +217,11 @@ class _InstalledAppList extends ConsumerWidget {
         );
       }(),
       AsyncError(:final error) => SliverToBoxAdapter(
-        child: StateMessage(
+        child: EmptyState(
           icon: Icons.error_outline,
           tone: Tone.error,
           title: 'Could not list apps',
-          message: describeError(error),
+          description: describeError(error),
           action: OutlinedButton(
             onPressed: () => ref.invalidate(installedAppsProvider),
             child: const Text('Try again'),
@@ -221,11 +230,11 @@ class _InstalledAppList extends ConsumerWidget {
       ),
       _ => SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.only(top: Space.x2),
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
           child: Column(
             children: [
               const SkeletonList(rows: 6),
-              Text('Reading installed apps…', style: AppType.supporting.copyWith(color: c.secondary)),
+              Text('Reading installed apps…', style: AppType.supporting.copyWith(color: c.muted)),
             ],
           ),
         ),

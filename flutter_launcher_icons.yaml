@@ -1,0 +1,18 @@
+# App icon for every platform. The masters in assets/icon/ are drawn by tool/make_app_icon.py; to regenerate:
+#   python3 tool/make_app_icon.py && dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: assets/icon/app_icon.png
+  android: true
+  adaptive_icon_background: "#0F172A"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
+  adaptive_icon_monochrome: assets/icon/app_icon_monochrome.png
+  ios: true
+  remove_alpha_ios: true
+  macos:
+    generate: true
+    image_path: assets/icon/app_icon_macos.png
+  # Windows: tool/make_app_icon.py writes windows/runner/resources/app_icon.ico with all its sizes.
+  web:
+    generate: true
+    background_color: "#0F172A"
+    theme_color: "#0A7D55"

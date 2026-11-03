@@ -1,11 +1,14 @@
+import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
+import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/utils/time_format.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/widgets/card_group.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
+import 'package:air_reply/core/widgets/glass_scroll_page.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
@@ -58,29 +61,38 @@ class DiagnosticsScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Diagnostics')),
-      body: EditorialPage(
+      body: GlassScrollPage(
+        title: const Text('Diagnostics'),
         slivers: [
           SliverList.list(
             children: [
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 'Nothing here includes notification text or encryption keys.',
-                style: AppType.supporting.copyWith(color: context.colors.secondary),
+                style: AppType.body.copyWith(color: context.palette.muted),
               ),
-              for (final section in sections) ...[
-                SectionLabel(section.title, top: Space.x6),
-                RuledList(children: [for (final (label, value) in section.rows) _Line(label, value)]),
-              ],
-              const SizedBox(height: Space.x8),
+              for (final (i, section) in sections.indexed)
+                FadeSlideIn.staggered(
+                  index: i,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.section),
+                    child: CardGroup(
+                      title: section.title,
+                      inset: AppSpacing.card,
+                      children: [for (final (label, value) in section.rows) _Line(label, value)],
+                    ),
+                  ),
+                ),
+              const SizedBox(height: AppSpacing.xxl),
               FilledButton.icon(
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: diagnosticsText(sections, generatedAt: now)));
                   if (context.mounted) context.showMessage('Report copied');
                 },
-                icon: const Icon(Icons.content_copy_outlined, size: 18),
+                icon: const Icon(Icons.content_copy_rounded, size: 18),
                 label: const Text('Copy report'),
               ),
-              const SizedBox(height: Space.x2),
+              const SizedBox(height: AppSpacing.sm),
               OutlinedButton.icon(
                 onPressed: () {
                   for (final pair in pairs) {
@@ -92,7 +104,7 @@ class DiagnosticsScreen extends ConsumerWidget {
                     ..invalidate(syncStatusProvider);
                   context.showMessage('Checking again…');
                 },
-                icon: const Icon(Icons.refresh, size: 18),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: const Text('Check again'),
               ),
             ],
@@ -136,16 +148,16 @@ class _Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.colors;
+    final c = context.palette;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Space.x3),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.card, vertical: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text(label, style: AppType.body.copyWith(color: c.secondary)),
+            child: Text(label, style: AppType.body.copyWith(color: c.muted)),
           ),
-          const SizedBox(width: Space.x4),
+          const SizedBox(width: AppSpacing.base),
           Flexible(
             child: SelectableText(
               value,

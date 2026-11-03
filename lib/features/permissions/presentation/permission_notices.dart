@@ -1,8 +1,11 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/native_models.dart';
-import 'package:air_reply/core/theme/app_tokens.dart';
-import 'package:air_reply/core/widgets/editorial.dart';
+import 'package:air_reply/core/theme/app_spacing.dart';
+import 'package:air_reply/core/utils/guarded.dart';
+import 'package:air_reply/core/widgets/async_button.dart';
+import 'package:air_reply/core/widgets/notice.dart';
+import 'package:air_reply/core/widgets/status_badge.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
@@ -17,7 +20,7 @@ import 'package:go_router/go_router.dart';
 /// Everything that currently stops notifications from flowing, each with the action that fixes it. Empty when all
 /// is well. [connection] adds offline devices (Home), not just permissions (Notifications).
 class AttentionNotices extends ConsumerWidget {
-  const AttentionNotices({this.connection = true, this.bottom = Space.x6, super.key});
+  const AttentionNotices({this.connection = true, this.bottom = AppSpacing.xl, super.key});
 
   final bool connection;
   final double bottom;
@@ -32,7 +35,7 @@ class AttentionNotices extends ConsumerWidget {
       padding: EdgeInsets.only(bottom: bottom),
       child: Column(
         children: [
-          for (final (i, notice) in notices.indexed) ...[if (i > 0) const SizedBox(height: Space.x3), notice],
+          for (final (i, notice) in notices.indexed) ...[if (i > 0) const SizedBox(height: AppSpacing.md), notice],
         ],
       ),
     );

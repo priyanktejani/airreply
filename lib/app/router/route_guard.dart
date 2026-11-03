@@ -23,6 +23,15 @@ abstract final class AppRoutes {
   static const apps = '/settings/apps';
   static const diagnostics = '/settings/diagnostics';
 
+  /// Every notification of one app. [source] is the pair id, or `*` for a sender's groups.
+  static String appGroup(String source, String packageName) =>
+      '$notifications/app/${Uri.encodeComponent(source)}/${Uri.encodeComponent(packageName)}';
+
+  /// One conversation within an app, as a chat; [at] is a notification to scroll to and point out.
+  static String thread(String source, String packageName, String key, {String? at}) =>
+      '$notifications/thread/${Uri.encodeComponent(source)}/${Uri.encodeComponent(packageName)}/'
+      '${Uri.encodeComponent(key)}${at == null ? '' : '?at=${Uri.encodeQueryComponent(at)}'}';
+
   static String notification(String pairId, String id) =>
       '$notifications/${Uri.encodeComponent(pairId)}/${Uri.encodeComponent(id)}';
 }

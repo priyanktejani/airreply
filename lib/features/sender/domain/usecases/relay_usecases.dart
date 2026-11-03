@@ -44,6 +44,12 @@ final class PublishCapturedNotification {
       postedAt: captured.postedAt,
       conversationTitle: captured.conversationTitle,
       isGroupConversation: captured.isGroupConversation,
+      sender: captured.sender,
+      conversationId: switch (captured.conversationId) {
+        final id? => opaqueId('${captured.packageName}|$id'),
+        null => null,
+      },
+      isMessage: captured.isMessage,
     );
 
     Future<Uint8List?>? icon;
@@ -110,4 +116,20 @@ Future<void> _toAll<T>(List<T> targets, Future<void> Function(T target) action) 
   if (failed > 0) {
     throw SyncException('Could not reach $failed of ${targets.length} paired devices.', cause: firstError);
   }
+}
+
+/// A short, stable stand-in for an app's conversation id: two 32-bit FNV-1a hashes with different seeds, as 16 hex
+/// digits. Receivers only compare it, so the raw id (often a phone number) never leaves the phone, not even inside
+/// the encrypted payload. 32-bit arithmetic keeps it exact on every platform, the web included.
+String opaqueId(String raw) =>
+    [_fnv1a32(raw, 0x811c9dc5), _fnv1a32(raw, 0x9747b28c)].map((h) => h.toRadixString(16).padLeft(8, '0')).join();
+
+int _fnv1a32(String input, int seed) {
+  var hash = seed;
+  for (final unit in input.codeUnits) {
+    hash = (hash ^ unit) & 0xFFFFFFFF;
+    // hash * 16777619 (the FNV prime, 2^24 + 403), modulo 2^32.
+    hash = (((hash << 24) & 0xFFFFFFFF) + hash * 403) & 0xFFFFFFFF;
+  }
+  return hash;
 }

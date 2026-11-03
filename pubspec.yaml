@@ -40,31 +40,21 @@ dev_dependencies:
   mocktail: ^1.0.5
   # In-memory SharedPreferencesAsync for store tests (already a transitive dependency of shared_preferences).
   shared_preferences_platform_interface: ^2.4.2
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
 
   assets:
-    # Open Font License texts, shown on the Licenses page (see bootstrap.dart).
-    - assets/fonts/OFL-DMSans.txt
-    - assets/fonts/OFL-InstrumentSerif.txt
+    # Open Font License text, shown on the Licenses page (see bootstrap.dart).
+    - assets/fonts/OFL-Geist.txt
 
-  # Editorial type: Instrument Serif for headlines, DM Sans for the interface. Bundled so text never shifts while
-  # fonts download, and the app looks the same offline.
+  # Geist for the interface and Geist Mono for the small green labels, as in the iFixxer app. Bundled so text never
+  # shifts while fonts download, and the app looks the same offline.
   fonts:
-    - family: InstrumentSerif
+    - family: Geist
       fonts:
-        - asset: assets/fonts/InstrumentSerif-Regular.ttf
-        - asset: assets/fonts/InstrumentSerif-Italic.ttf
-          style: italic
-    - family: DMSans
+        - asset: assets/fonts/Geist.ttf
+    - family: GeistMono
       fonts:
-        - asset: assets/fonts/DMSans-Regular.ttf
-        - asset: assets/fonts/DMSans-Italic.ttf
-          style: italic
-        - asset: assets/fonts/DMSans-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/DMSans-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/DMSans-Bold.ttf
-          weight: 700
+        - asset: assets/fonts/GeistMono.ttf

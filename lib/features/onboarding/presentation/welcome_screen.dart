@@ -2,6 +2,7 @@ import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -33,7 +34,7 @@ class WelcomeScreen extends ConsumerWidget {
     }
 
     final sender = _RoleOption(
-      icon: Icons.smartphone_rounded,
+      icon: AppIcons.smartphone,
       title: 'Share my notifications',
       description: canShare
           ? 'This phone sends its notifications to your other devices, and sends the replies you write there.'
@@ -41,7 +42,7 @@ class WelcomeScreen extends ConsumerWidget {
       onTap: canShare ? () => choose(DeviceRole.sender) : null,
     );
     final receiver = _RoleOption(
-      icon: Icons.devices_rounded,
+      icon: AppIcons.devices,
       title: 'View and reply here',
       description: 'See your phone\'s notifications on this device and answer messages without picking it up.',
       onTap: () => choose(DeviceRole.receiver),
@@ -64,7 +65,7 @@ class WelcomeScreen extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.lock_rounded, size: AppDimensions.iconMd, color: c.accent),
+              Icon(AppIcons.lock, size: AppDimensions.iconMd, color: c.accent),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Text(
@@ -148,7 +149,7 @@ class _RoleOption extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.md),
               Icon(
-                enabled ? Icons.arrow_forward_rounded : Icons.block_rounded,
+                enabled ? AppIcons.arrowForward : AppIcons.block,
                 size: AppDimensions.iconMd,
                 color: enabled ? c.accent : c.disabled,
               ),

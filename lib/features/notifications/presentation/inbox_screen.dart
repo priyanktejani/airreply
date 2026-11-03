@@ -5,6 +5,7 @@ import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -83,7 +84,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
           IconButton(
             tooltip: 'Mark all as read',
             onPressed: unread == 0 ? null : _markAllRead,
-            icon: const Icon(Icons.done_all_rounded),
+            icon: const Icon(AppIcons.doneAll),
           ),
         ],
         // the search box stays pinned under the bar, as frosted glass, while the notifications scroll beneath it
@@ -105,7 +106,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 shape: const RoundedRectangleBorder(borderRadius: AppRadius.mdBorder),
               ),
               // on the icon, as on the bell and the nav bar: inside the button, clear of the pinned bar's edge
-              icon: Badge(isLabelVisible: count > 0, label: Text('$count'), child: const Icon(Icons.tune_rounded)),
+              icon: Badge(isLabelVisible: count > 0, label: Text('$count'), child: const Icon(AppIcons.tune)),
             ),
           ],
         ),
@@ -131,7 +132,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
               SliverToBoxAdapter(
                 child: filter.isActive
                     ? EmptyState(
-                        icon: Icons.filter_alt_off_outlined,
+                        icon: AppIcons.filterAltOff,
                         title: 'No matches',
                         description: 'Nothing matches this search or filter.',
                         action: OutlinedButton(
@@ -140,7 +141,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                         ),
                       )
                     : EmptyState(
-                        icon: everything.isEmpty ? Icons.notifications_none_rounded : Icons.inbox_outlined,
+                        icon: everything.isEmpty ? AppIcons.notificationsNone : AppIcons.inbox,
                         title: everything.isEmpty ? 'Nothing here yet' : 'All caught up',
                         description: everything.isEmpty
                             ? (isSender
@@ -163,7 +164,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
             AsyncError(:final error) => [
               SliverToBoxAdapter(
                 child: EmptyState(
-                  icon: Icons.cloud_off_outlined,
+                  icon: AppIcons.cloudOff,
                   tone: Tone.error,
                   title: 'Could not load notifications',
                   description: describeError(error),
@@ -196,7 +197,7 @@ class _ActiveFilters extends ConsumerWidget {
       onPressed: onDeleted,
       onDeleted: onDeleted,
       deleteButtonTooltipMessage: 'Remove filter',
-      deleteIcon: const Icon(Icons.close_rounded, size: 16),
+      deleteIcon: const Icon(AppIcons.close, size: 16),
       deleteIconColor: context.palette.accent,
     );
     return Padding(

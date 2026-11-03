@@ -1,3 +1,4 @@
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -45,7 +46,7 @@ class Notice extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    icon ?? (tone == Tone.error ? Icons.error_outline_rounded : Icons.warning_amber_rounded),
+                    icon ?? (tone == Tone.error ? AppIcons.errorOutline : AppIcons.warningAmber),
                     size: 22,
                     color: ink,
                   ),

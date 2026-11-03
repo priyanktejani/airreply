@@ -35,6 +35,9 @@ shell, nav bar) in `lib/app/`; demo data in `lib/demo/`.
   colours or radii.
 - Shared widgets in `lib/core/widgets/` (`AppCard`, `CardGroup`, `InfoRow`, `GlassScrollPage`, `EmptyState`, …) and
   motion in `lib/core/animations/` (`FadeSlideIn`, `PressableScale`, `SmoothSize`, `context.motion`).
+- Icons: `AppIcons` (`lib/core/theme/app_icons.dart`), the Phosphor pack bundled as fonts in `assets/fonts` (regular,
+  plus filled for a selected tab). Never `Icons.*`; add a missing icon to `AppIcons` by its Phosphor code point. Back
+  and close buttons get theirs from the theme's `actionIconTheme`.
 - Glass (`BackdropFilter`) only on floating chrome: app bar, pinned search, nav bar, composer.
 - Every notification, app group and conversation is shown with `NotificationCard`
   (`lib/features/notifications/presentation/widgets/notification_card.dart`), which owns the layout, the press and the

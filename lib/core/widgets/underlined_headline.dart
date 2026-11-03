@@ -3,7 +3,7 @@ import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
-/// The big headline of Home and Welcome: [first] on one line, then [second] in green with a drawn underline, left
+/// The big headline of Home and Welcome: [first] on one line, then [second] in the accent colour with a drawn underline, left
 /// aligned. Each line rises into place, then the underline draws itself.
 class UnderlinedHeadline extends StatefulWidget {
   const UnderlinedHeadline({required this.first, required this.second, super.key});

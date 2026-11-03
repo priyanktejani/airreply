@@ -16,7 +16,7 @@ class AppGlass {
     return c.surface.withValues(alpha: strong ? (dark ? .86 : .9) : (dark ? .7 : .74));
   }
 
-  /// Fill for a selected card: the brand's soft green, still translucent.
+  /// Fill for a selected card: the brand's soft accent, still translucent.
   static Color selectedFill(BuildContext context) {
     final c = context.palette;
     return c.accentSoft.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? .78 : .82);

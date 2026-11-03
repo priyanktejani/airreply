@@ -1,6 +1,7 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -123,7 +124,7 @@ class _DeviceSheet extends ConsumerWidget {
             Navigator.pop(context);
             context.go(AppRoutes.notifications);
           },
-          icon: const Icon(Icons.notifications_none_rounded, size: 18),
+          icon: const Icon(AppIcons.notificationsNone, size: 18),
           label: Text(isSender ? 'Notifications shared with it' : 'Notifications from it'),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -132,7 +133,7 @@ class _DeviceSheet extends ConsumerWidget {
             if (await remove(context, ref, device) && context.mounted) Navigator.pop(context);
           },
           style: TextButton.styleFrom(foregroundColor: c.danger),
-          icon: const Icon(Icons.link_off_rounded, size: 18),
+          icon: const Icon(AppIcons.linkOff, size: 18),
           label: const Text('Remove device'),
         ),
       ],

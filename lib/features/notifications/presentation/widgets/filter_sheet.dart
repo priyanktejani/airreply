@@ -24,7 +24,7 @@ Future<void> showFilterSheet(BuildContext context) => showModalBottomSheet<void>
   builder: (_) => const _FilterSheet(),
 );
 
-/// A small green label over one group of choices.
+/// A small accent label over one group of choices.
 class _Label extends StatelessWidget {
   const _Label(this.text, {this.top = AppSpacing.xl});
 

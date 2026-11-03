@@ -5,7 +5,7 @@ import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:flutter/material.dart';
 
-/// A device's state as a small pill: a dot, the word and its colour together (green connected, amber offline, red
+/// A device's state as a small pill: a dot, the word and its colour together (accent connected, amber offline, red
 /// needs permission, grey connecting with a spinner).
 class DeviceStatusBadge extends StatelessWidget {
   const DeviceStatusBadge({required this.status, super.key});

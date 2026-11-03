@@ -61,6 +61,7 @@ class SyncForegroundService : Service() {
         )
         return Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_air_reply)
+            .setColor(getColor(R.color.accent))
             .setContentTitle("Notification Sync Active")
             .setContentText("Mirroring alerts to your paired device")
             .setCategory(Notification.CATEGORY_SERVICE)

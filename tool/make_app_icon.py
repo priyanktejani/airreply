@@ -1,5 +1,5 @@
-"""Draws the AirReply app icon: the in-app logo's mark (lib/core/widgets/app_logo.dart), a deep-green reply arrow on a
-glowing brand-green circle, on the app's deep navy (lib/core/theme/app_palette.dart).
+"""Draws the AirReply app icon: the in-app logo's mark (lib/core/widgets/app_logo.dart), a deep navy-blue reply arrow on a
+glowing ocean-blue circle, on the app's deep navy (lib/core/theme/app_palette.dart).
 
 Writes the masters that flutter_launcher_icons turns into every platform's icon set, and the Windows .ico (with every
 size Windows asks for, which flutter_launcher_icons does not write):
@@ -10,14 +10,14 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 NAVY = (0x0F, 0x17, 0x2A, 255)  # the icon's ground
-GREEN = (0x3D, 0xDC, 0x97, 255)  # the bubble: AppPalette.dark.accent
-DEEP = (0x04, 0x26, 0x1A, 255)  # the arrow: AppPalette.dark.accentInk
+ACCENT = (0x5C, 0xB2, 0xFF, 255)  # the bubble: AppPalette.dark.accent (Ocean)
+DEEP = (0x03, 0x20, 0x3A, 255)  # the arrow: AppPalette.dark.accentInk
 SIZE = 1024
 SS = 4  # supersampling, for smooth edges
 OUT = Path(__file__).resolve().parent.parent / 'assets' / 'icon'
 
 
-def glyph(draw, s, scale=1.0, bubble=GREEN, arrow=DEEP, cx=0.5, cy=0.5):
+def glyph(draw, s, scale=1.0, bubble=ACCENT, arrow=DEEP, cx=0.5, cy=0.5):
     """The mark: a circle with a reply arrow cut into it, in unit coordinates around (cx, cy), scaled by [scale]."""
 
     def p(x, y):
@@ -48,11 +48,11 @@ RADIUS = 0.30
 
 
 def glow(img, s, scale, cy=0.5):
-    """The logo's soft green glow around the circle, under it."""
+    """The logo's soft accent glow around the circle, under it."""
     layer = Image.new('RGBA', (s, s), (0, 0, 0, 0))
     r = RADIUS * 1.08 * scale * s
     x, y = 0.5 * s, cy * s
-    ImageDraw.Draw(layer).ellipse((x - r, y - r, x + r, y + r), fill=(*GREEN[:3], 120))
+    ImageDraw.Draw(layer).ellipse((x - r, y - r, x + r, y + r), fill=(*ACCENT[:3], 120))
     img.alpha_composite(layer.filter(ImageFilter.GaussianBlur(0.06 * s)))
 
 

@@ -1,6 +1,7 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -12,7 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// A phone's two sharing shortcuts as cards side by side: the apps it shares, and pairing another device. Each has
-/// what it is along the top and its action in green along the bottom.
+/// what it is along the top and its action in the accent colour along the bottom.
 class SharingShortcuts extends ConsumerWidget {
   const SharingShortcuts({super.key});
 
@@ -31,7 +32,7 @@ class SharingShortcuts extends ConsumerWidget {
         children: [
           Expanded(
             child: _Shortcut(
-              icon: Icons.apps_rounded,
+              icon: AppIcons.apps,
               who: 'Apps to share',
               title: apps,
               action: 'Choose apps →',
@@ -41,7 +42,7 @@ class SharingShortcuts extends ConsumerWidget {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: _Shortcut(
-              icon: Icons.add_link_rounded,
+              icon: AppIcons.addLink,
               who: 'Add a device',
               title: 'iPhone, iPad, Mac, PC, browser or Android',
               action: 'Pair →',

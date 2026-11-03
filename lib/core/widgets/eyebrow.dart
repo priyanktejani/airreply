@@ -1,7 +1,7 @@
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 
-/// The small green mono label above headings, as on the website. [color] for dark banners, where the theme's green
+/// The small accent mono label above headings, as on the website. [color] for dark banners, where the theme's accent
 /// would not read; [maxLines] to keep it to one line in tight spaces.
 class Eyebrow extends StatelessWidget {
   const Eyebrow(this.text, {super.key, this.color, this.maxLines});

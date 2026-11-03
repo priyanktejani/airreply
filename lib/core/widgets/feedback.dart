@@ -1,4 +1,5 @@
 import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/app_dialog.dart';
@@ -8,7 +9,7 @@ extension FeedbackContext on BuildContext {
   /// A short confirmation at the bottom of the screen.
   void showMessage(String message, {IconData? icon}) => _snack(message, icon: icon);
 
-  void showError(Object error) => _snack(describeError(error), icon: Icons.error_outline_rounded);
+  void showError(Object error) => _snack(describeError(error), icon: AppIcons.errorOutline);
 
   /// A message with an Undo action, for reversible actions (hide, mark all as read).
   void showUndo(String message, VoidCallback onUndo) => _snack(

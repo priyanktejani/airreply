@@ -23,7 +23,7 @@ class CardSwipe {
 
 /// The one way a notification, an app's notifications or a conversation is shown, on every screen: an icon or avatar,
 /// a muted line saying where it is from with the time and unread count, a title, the text, then status badges and a
-/// green summary. The whole card is one tap target that presses in, and swipes the same way everywhere, the action's
+/// accent summary. The whole card is one tap target that presses in, and swipes the same way everywhere, the action's
 /// colour filling in beneath it as it slides.
 ///
 /// [expansion] opens rows inside the card (an app's conversations); while it is open only the top of the card is the
@@ -84,7 +84,7 @@ class NotificationCard extends StatelessWidget {
   /// Reply and phone states under the text.
   final List<Widget> badges;
 
-  /// A green line at the bottom: how many notifications or messages.
+  /// A accent line at the bottom: how many notifications or messages.
   final String? summary;
 
   /// A small button at the end of the summary line.

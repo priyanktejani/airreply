@@ -1,5 +1,6 @@
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/platform/native_models.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -82,7 +83,7 @@ class SharingStatusCard extends ConsumerWidget {
         borderRadius: AppRadius.mdBorder,
         clipBehavior: Clip.antiAlias,
         child: SwitchRow(
-          icon: Icons.podcasts_rounded,
+          icon: AppIcons.podcasts,
           title: 'Share notifications',
           subtitle: sharing.label,
           value: sharing.enabled,
@@ -125,7 +126,7 @@ class _StatusCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Icon(Icons.lock_rounded, size: 14, color: c.muted),
+              Icon(AppIcons.lock, size: 14, color: c.muted),
               const SizedBox(width: AppSpacing.xs),
               Text('Encrypted', style: AppType.supporting.copyWith(color: c.muted)),
             ],

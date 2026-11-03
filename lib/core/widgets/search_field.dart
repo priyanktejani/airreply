@@ -1,4 +1,5 @@
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:flutter/material.dart';
@@ -54,13 +55,13 @@ class _SearchFieldState extends State<SearchField> {
       hintText: widget.hint,
       prefixIcon: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Icon(Icons.search_rounded, size: AppDimensions.iconMd + 2, color: context.palette.muted),
+        child: Icon(AppIcons.search, size: AppDimensions.iconMd + 2, color: context.palette.muted),
       ),
       suffixIcon: _controller.text.isEmpty
           ? null
           : IconButton(
               tooltip: 'Clear search',
-              icon: const Icon(Icons.close_rounded),
+              icon: const Icon(AppIcons.close),
               onPressed: () {
                 _controller.clear();
                 _changed('');

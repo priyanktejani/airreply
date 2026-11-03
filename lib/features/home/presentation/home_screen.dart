@@ -4,6 +4,7 @@ import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -252,7 +253,7 @@ class _HomeSections extends ConsumerWidget {
   }
 }
 
-/// The bell in Home's app bar: unread notifications as a green count; opens Notifications.
+/// The bell in Home's app bar: unread notifications as an accent count; opens Notifications.
 class _BellButton extends ConsumerWidget {
   const _BellButton();
 
@@ -265,7 +266,7 @@ class _BellButton extends ConsumerWidget {
       icon: Badge(
         isLabelVisible: unread > 0,
         label: Text(unread > 99 ? '99+' : '$unread'),
-        child: const Icon(Icons.notifications_none_rounded),
+        child: const Icon(AppIcons.notificationsNone),
       ),
     );
   }

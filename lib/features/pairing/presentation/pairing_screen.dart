@@ -4,6 +4,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -68,6 +69,7 @@ class _PairingPage extends ConsumerWidget {
           if (!paired && switchRole != null)
             PopupMenuButton<void>(
               tooltip: 'More',
+              icon: const Icon(AppIcons.moreVert),
               itemBuilder: (_) => [
                 PopupMenuItem(onTap: ref.read(deviceSessionProvider.notifier).clearRole, child: Text(switchRole!)),
               ],
@@ -148,7 +150,7 @@ class _SenderPairing extends ConsumerWidget {
           onReject: controller.reject,
         ),
         SenderPairingFailed(:final message) => EmptyState(
-          icon: Icons.link_off,
+          icon: AppIcons.linkOff,
           tone: Tone.error,
           title: 'Pairing stopped',
           description: message,
@@ -226,7 +228,7 @@ class _ShowCode extends StatelessWidget {
               await Clipboard.setData(ClipboardData(text: code));
               if (context.mounted) context.showMessage('Code ${formatSixDigits(code)} copied');
             },
-            icon: const Icon(Icons.content_copy_outlined, size: 16),
+            icon: const Icon(AppIcons.contentCopy, size: 16),
             label: const Text('Copy code'),
           ),
         ),
@@ -235,7 +237,7 @@ class _ShowCode extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
         OutlinedButton.icon(
           onPressed: onNewCode,
-          icon: const Icon(Icons.refresh, size: 18),
+          icon: const Icon(AppIcons.refresh, size: 18),
           label: const Text('New code'),
         ),
       ],
@@ -354,8 +356,8 @@ class _ReceiverPairingState extends ConsumerState<_ReceiverPairing> {
             if (AppPlatform.canScanQr) ...[
               SegmentedButton<_Method>(
                 segments: const [
-                  ButtonSegment(value: _Method.scan, icon: Icon(Icons.qr_code_scanner), label: Text('Scan')),
-                  ButtonSegment(value: _Method.code, icon: Icon(Icons.dialpad), label: Text('Type code')),
+                  ButtonSegment(value: _Method.scan, icon: Icon(AppIcons.qrCodeScanner), label: Text('Scan')),
+                  ButtonSegment(value: _Method.code, icon: Icon(AppIcons.dialpad), label: Text('Type code')),
                 ],
                 selected: {_method},
                 showSelectedIcon: false,
@@ -408,19 +410,72 @@ class _Scanner extends StatefulWidget {
   State<_Scanner> createState() => _ScannerState();
 }
 
-class _ScannerState extends State<_Scanner> {
-  final _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
+class _ScannerState extends State<_Scanner> with WidgetsBindingObserver {
+  // Started and stopped here rather than by the MobileScanner widget: with a controller of its own, the widget leaves
+  // the app's lifecycle to the app. On first use the camera permission dialog pauses and resumes the app; without
+  // this the camera could stay black until the scanner was opened again.
+  final _controller = MobileScannerController(formats: const [BarcodeFormat.qrCode], autoStart: false);
+  StreamSubscription<BarcodeCapture>? _barcodes;
+
+  // the last code handed on, and when: a code still in view after a failed attempt is retried after a pause,
+  // instead of several times a second
+  String? _lastCode;
+  DateTime _lastAt = DateTime.fromMillisecondsSinceEpoch(0);
+  static const _retryAfter = Duration(seconds: 3);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _barcodes = _controller.barcodes.listen(_onDetect);
+    // after the first frame, once the MobileScanner widget is attached to the controller
+    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_start()));
+  }
+
+  /// Starts the camera unless it is running or starting. A camera that failed (or did not start while the permission
+  /// dialog was up) starts again here. On returning to the app it does not ask again for access the user refused: that
+  /// waits for "Try again".
+  Future<void> _start({bool resumed = false}) async {
+    final camera = _controller.value;
+    if (!mounted || camera.isRunning || camera.isStarting) return;
+    if (resumed && camera.error?.errorCode == MobileScannerErrorCode.permissionDenied) return;
+    try {
+      await _controller.start();
+    } on MobileScannerException {
+      // disposed while starting: the screen was left
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        unawaited(_start(resumed: true));
+      // the permission dialog makes the app inactive before access is granted; the camera is not running yet then
+      case AppLifecycleState.inactive when _controller.value.hasCameraPermission:
+        unawaited(_controller.stop());
+      default:
+        return;
+    }
+  }
 
   @override
   void dispose() {
-    unawaited(_controller.dispose());
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_barcodes?.cancel());
     super.dispose();
+    unawaited(_controller.dispose());
   }
 
   void _onDetect(BarcodeCapture capture) {
     if (!widget.enabled) return;
     final raw = capture.barcodes.map((b) => b.rawValue).nonNulls.firstOrNull;
-    if (raw != null) unawaited(widget.onScan(raw));
+    if (raw == null) return;
+    final now = DateTime.now();
+    if (raw == _lastCode && now.difference(_lastAt) < _retryAfter) return;
+    _lastCode = raw;
+    _lastAt = now;
+    unawaited(widget.onScan(raw));
   }
 
   @override
@@ -435,7 +490,10 @@ class _ScannerState extends State<_Scanner> {
               padding: const EdgeInsets.all(AppSpacing.sm),
               child: ClipRRect(
                 borderRadius: AppRadius.smBorder,
-                child: MobileScanner(controller: _controller, onDetect: _onDetect),
+                child: MobileScanner(
+                  controller: _controller,
+                  errorBuilder: (context, error) => _CameraProblem(error: error, onRetry: _start),
+                ),
               ),
             ),
           ),
@@ -447,6 +505,44 @@ class _ScannerState extends State<_Scanner> {
           style: AppType.supporting.copyWith(color: context.palette.muted),
         ),
       ],
+    );
+  }
+}
+
+/// Why the camera is not showing, in place of the preview, with a way to try again. Typing the code always works.
+class _CameraProblem extends StatelessWidget {
+  const _CameraProblem({required this.error, required this.onRetry});
+
+  final MobileScannerException error;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.palette;
+    final denied = error.errorCode == MobileScannerErrorCode.permissionDenied;
+    return ColoredBox(
+      color: c.soft,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(denied ? AppIcons.noPhotography : AppIcons.videocamOff, size: 32, color: c.muted),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                denied
+                    ? 'AirReply needs the camera to scan. Allow it in your phone\'s settings, or type the code instead.'
+                    : 'The camera did not start.',
+                textAlign: TextAlign.center,
+                style: AppType.body.copyWith(color: c.ink),
+              ),
+              const SizedBox(height: AppSpacing.base),
+              OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

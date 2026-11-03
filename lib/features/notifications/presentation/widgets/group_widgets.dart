@@ -4,6 +4,7 @@ import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -17,7 +18,7 @@ import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// A person's initials or a group icon in green on the soft green circle; a plain notification mark on grey.
+/// A person's initials or a group icon in the accent colour on the soft accent circle; a plain notification mark on grey.
 class ConversationAvatar extends StatelessWidget {
   const ConversationAvatar({required this.title, required this.kind, this.size = 32, super.key});
 
@@ -50,9 +51,9 @@ class ConversationAvatar extends StatelessWidget {
             )
           : Icon(
               switch (kind) {
-                ThreadKind.group => Icons.group_rounded,
-                ThreadKind.person => Icons.person_rounded,
-                ThreadKind.single => Icons.notifications_none_rounded,
+                ThreadKind.group => AppIcons.group,
+                ThreadKind.person => AppIcons.person,
+                ThreadKind.single => AppIcons.notificationsNone,
               },
               size: size * 0.5,
               color: kind == ThreadKind.single ? c.muted : c.accent,
@@ -116,7 +117,7 @@ class AppGroupTile extends ConsumerWidget {
                 turns: expanded ? 0.5 : 0,
                 duration: context.motion(AppMotion.slow),
                 curve: AppMotion.curve,
-                child: const Icon(Icons.keyboard_arrow_down_rounded, size: 22),
+                child: const Icon(AppIcons.keyboardArrowDown, size: 22),
               ),
             )
           : null,
@@ -172,6 +173,7 @@ class GroupActionsMenu extends ConsumerWidget {
     final allRead = entries.every(isRead);
     return PopupMenuButton<String>(
       tooltip: 'More actions',
+      icon: const Icon(AppIcons.moreVert),
       onSelected: (action) {
         switch (action) {
           case 'unread':

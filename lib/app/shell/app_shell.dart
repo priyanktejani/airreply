@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/app/widgets/floating_nav_bar.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/utils/app_dimen.dart';
@@ -72,16 +73,16 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
 
     final items = [
-      const FloatingNavItem(icon: Icons.home_outlined, selectedIcon: Icons.home_rounded, label: 'Home'),
+      const FloatingNavItem(icon: AppIcons.home, selectedIcon: AppIcons.homeSelected, label: 'Home'),
       FloatingNavItem(
-        icon: Icons.notifications_none_rounded,
-        selectedIcon: Icons.notifications_rounded,
+        icon: AppIcons.notificationsNone,
+        selectedIcon: AppIcons.notificationsSelected,
         label: 'Notifications',
         semanticLabel: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
         badge: unread,
       ),
-      const FloatingNavItem(icon: Icons.devices_outlined, selectedIcon: Icons.devices_rounded, label: 'Devices'),
-      const FloatingNavItem(icon: Icons.settings_outlined, selectedIcon: Icons.settings_rounded, label: 'Settings'),
+      const FloatingNavItem(icon: AppIcons.devices, selectedIcon: AppIcons.devicesSelected, label: 'Devices'),
+      const FloatingNavItem(icon: AppIcons.settings, selectedIcon: AppIcons.settingsSelected, label: 'Settings'),
     ];
     final body = PopScope(
       canPop: shell.currentIndex == 0,

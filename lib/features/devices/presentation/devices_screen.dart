@@ -1,7 +1,9 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
+import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -51,7 +53,7 @@ class DevicesScreen extends ConsumerWidget {
           IconButton(
             tooltip: isSender ? 'Add a device' : 'Add a phone',
             onPressed: () => context.push(AppRoutes.pair),
-            icon: const Icon(Icons.add_rounded),
+            icon: const Icon(AppIcons.add),
           ),
         ],
         slivers: [
@@ -76,7 +78,7 @@ class DevicesScreen extends ConsumerWidget {
           if (devices.isEmpty)
             SliverToBoxAdapter(
               child: EmptyState(
-                icon: Icons.devices_rounded,
+                icon: AppIcons.devices,
                 title: 'No devices',
                 description: 'Pair a device to start.',
                 action: FilledButton(onPressed: () => context.push(AppRoutes.pair), child: const Text('Pair')),
@@ -96,7 +98,7 @@ class DevicesScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(top: AppSpacing.lg),
               child: OutlinedButton.icon(
                 onPressed: () => context.push(AppRoutes.pair),
-                icon: const Icon(Icons.add_link_rounded, size: 18),
+                icon: const Icon(AppIcons.addLink, size: 18),
                 label: Text(isSender ? 'Add a device' : 'Add another phone'),
               ),
             ),
@@ -161,7 +163,7 @@ class _DeviceRow extends ConsumerWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded, color: c.muted, size: AppDimensions.iconMd),
+          Icon(AppIcons.chevronRight, color: c.muted, size: AppDimensions.iconMd),
         ],
       ),
     );
@@ -169,7 +171,7 @@ class _DeviceRow extends ConsumerWidget {
 }
 
 /// A question that opens to an answer and the actions that help.
-class _Help extends StatelessWidget {
+class _Help extends StatefulWidget {
   const _Help({required this.question, required this.answer, this.actions = const []});
 
   final String question;
@@ -177,9 +179,25 @@ class _Help extends StatelessWidget {
   final List<Widget> actions;
 
   @override
+  State<_Help> createState() => _HelpState();
+}
+
+class _HelpState extends State<_Help> {
+  var _open = false;
+
+  @override
   Widget build(BuildContext context) {
     final c = context.palette;
+    final _Help(:question, :answer, :actions) = widget;
     return ExpansionTile(
+      onExpansionChanged: (open) => setState(() => _open = open),
+      // the app's own caret, turning as the answer opens (the tile's built-in arrow is from another icon set)
+      trailing: AnimatedRotation(
+        turns: _open ? 0.5 : 0,
+        duration: context.motion(AppMotion.medium),
+        curve: AppMotion.curve,
+        child: Icon(AppIcons.keyboardArrowDown, color: _open ? c.accent : c.muted),
+      ),
       title: Text(question, style: AppType.subtitle.copyWith(color: c.ink)),
       expandedCrossAxisAlignment: CrossAxisAlignment.start,
       childrenPadding: const EdgeInsets.fromLTRB(AppSpacing.card, 0, AppSpacing.card, AppSpacing.base),

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 /// The app's card: a surface with the standard radius, hairline and soft shadow (from the theme's CardTheme), standard
 /// inner padding, and — with [onTap] or [onLongPress] — ink and a light press response.
 ///
-/// A [selected] card turns into frosted glass tinted with the brand's soft green and a green edge: chosen trades,
+/// A [selected] card turns into frosted glass tinted with the brand's soft accent and an accent edge: chosen trades,
 /// chosen options, the current item.
 class AppCard extends StatelessWidget {
   const AppCard({

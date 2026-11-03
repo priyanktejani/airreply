@@ -5,6 +5,7 @@ import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/platform/native_models.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -106,7 +107,7 @@ Widget _permissionTrailing(
     true => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.check_rounded, size: 16, color: c.accent),
+        Icon(AppIcons.check, size: 16, color: c.accent),
         const SizedBox(width: AppSpacing.xs),
         Text('On', style: AppType.button.copyWith(color: c.accent)),
       ],
@@ -126,7 +127,7 @@ class _SenderPermissions extends ConsumerWidget {
     return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.notifications_active_rounded,
+          icon: AppIcons.notificationsActive,
           title: 'Notification access',
           subtitle: 'Required to read and share notifications',
           onTap: guarded(context, controller.openNotificationAccess),
@@ -137,7 +138,7 @@ class _SenderPermissions extends ConsumerWidget {
           ),
         ),
         InfoRow(
-          icon: Icons.campaign_rounded,
+          icon: AppIcons.campaign,
           title: 'Status notification',
           subtitle: 'Shows "Notification Sync Active" with a Pause button',
           onTap: guarded(context, controller.requestPostNotifications),
@@ -150,14 +151,14 @@ class _SenderPermissions extends ConsumerWidget {
         ),
         if (restrictions.hasAutostartScreen)
           InfoRow(
-            icon: Icons.rocket_launch_rounded,
+            icon: AppIcons.rocketLaunch,
             title: 'Autostart',
             subtitle: 'Required on ${restrictions.vendorName} phones. Android cannot report it, so check it there.',
             trailing: InfoRow.chevron,
             onTap: guarded(context, controller.openAutostartSettings),
           ),
         InfoRow(
-          icon: Icons.battery_charging_full_rounded,
+          icon: AppIcons.batteryChargingFull,
           title: 'Battery optimisation',
           subtitle: restrictions.ignoringBatteryOptimizations
               ? 'Unrestricted: Android will not pause sharing'
@@ -184,7 +185,7 @@ class _ReceiverPermissions extends ConsumerWidget {
     return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.notifications_active_rounded,
+          icon: AppIcons.notificationsActive,
           title: 'Alerts',
           subtitle: AppPlatform.isWeb
               ? 'Lets this browser show new notifications'
@@ -218,7 +219,7 @@ class _AppsRow extends ConsumerWidget {
     return CardGroup(
       children: [
         InfoRow(
-          icon: isSender ? Icons.apps_rounded : Icons.notifications_off_rounded,
+          icon: isSender ? AppIcons.apps : AppIcons.notificationsOff,
           title: isSender ? 'Apps to share' : 'Muted apps',
           subtitle: subtitle,
           trailing: InfoRow.chevron,
@@ -230,7 +231,7 @@ class _AppsRow extends ConsumerWidget {
 }
 
 const _encryption = InfoRow(
-  icon: Icons.lock_outline,
+  icon: AppIcons.lockOutline,
   title: 'End-to-end encrypted',
   subtitle:
       'Each pair has its own key, agreed between the two devices (X25519). Notifications and replies are sealed '
@@ -247,7 +248,7 @@ class _SharingSettings extends ConsumerWidget {
     return CardGroup(
       children: [
         SwitchRow(
-          icon: Icons.podcasts_rounded,
+          icon: AppIcons.podcasts,
           title: 'Share notifications',
           subtitle: access ? sharing.label : 'Turn on notification access first',
           value: sharing.enabled,
@@ -273,7 +274,7 @@ class _AlertSettings extends ConsumerWidget {
     return CardGroup(
       children: [
         SwitchRow(
-          icon: Icons.visibility_rounded,
+          icon: AppIcons.visibility,
           title: 'Show message text in alerts',
           subtitle: 'Off: alerts only name the app, for lock screens and shared displays',
           value: preferences?.alertShowsContent ?? true,
@@ -286,7 +287,7 @@ class _AlertSettings extends ConsumerWidget {
         ),
         if (!AppPlatform.usesPush)
           InfoRow(
-            icon: Icons.desktop_windows_rounded,
+            icon: AppIcons.desktopWindows,
             title: AppPlatform.isWeb ? 'Alerts in this browser' : 'Alerts on this computer',
             subtitle:
                 'New notifications alert you while AirReply is running. Keep it open (on Mac it keeps running when '
@@ -315,7 +316,7 @@ class _SyncSettings extends ConsumerWidget {
     return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.sync_rounded,
+          icon: AppIcons.sync,
           title: 'Sync status',
           subtitle: subtitle,
           trailing: TextButton(
@@ -330,7 +331,7 @@ class _SyncSettings extends ConsumerWidget {
         ),
         if (isSender)
           InfoRow(
-            icon: Icons.sensors_rounded,
+            icon: AppIcons.sensors,
             title: 'Notification listener',
             subtitle: 'Ask Android to connect AirReply\'s listener again if devices stop receiving',
             trailing: AsyncButton(
@@ -358,7 +359,7 @@ class _AppearanceSettings extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const InfoRow(icon: Icons.contrast_rounded, title: 'Theme', subtitle: 'System follows this device'),
+              const InfoRow(icon: AppIcons.contrast, title: 'Theme', subtitle: 'System follows this device'),
               Padding(
                 padding: const EdgeInsets.only(left: InfoRow.textInset, right: AppSpacing.card),
                 child: SegmentedButton<ThemeMode>(
@@ -380,7 +381,7 @@ class _AppearanceSettings extends ConsumerWidget {
         ),
         if (!AppPlatform.isDesktop && !AppPlatform.isWeb)
           SwitchRow(
-            icon: Icons.vibration_rounded,
+            icon: AppIcons.vibration,
             title: 'Haptic feedback',
             subtitle: 'A light tap when you send, toggle or confirm',
             value: haptics,
@@ -390,7 +391,7 @@ class _AppearanceSettings extends ConsumerWidget {
             },
           ),
         const InfoRow(
-          icon: Icons.text_fields_rounded,
+          icon: AppIcons.textFields,
           title: 'Text size',
           subtitle: 'AirReply follows the text size and bold text set on this device',
         ),
@@ -429,7 +430,7 @@ class _DataSettings extends ConsumerWidget {
     return CardGroup(
       children: [
         InfoRow(
-          icon: Icons.done_all_rounded,
+          icon: AppIcons.doneAll,
           title: 'Mark all as read',
           subtitle: unread == 0 ? 'Nothing unread' : '$unread unread',
           enabled: unread > 0,
@@ -440,7 +441,7 @@ class _DataSettings extends ConsumerWidget {
           },
         ),
         InfoRow(
-          icon: Icons.visibility_rounded,
+          icon: AppIcons.visibility,
           title: 'Restore hidden notifications',
           subtitle: hidden == 0 ? 'Nothing hidden' : '$hidden hidden on this device',
           enabled: hidden > 0,
@@ -451,7 +452,7 @@ class _DataSettings extends ConsumerWidget {
           },
         ),
         InfoRow(
-          icon: Icons.link_off_rounded,
+          icon: AppIcons.linkOff,
           title: 'Remove all devices',
           subtitle: 'Ends every pair and deletes the keys and shared history',
           destructive: true,
@@ -470,21 +471,21 @@ class _HelpSettings extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => CardGroup(
     children: [
       InfoRow(
-        icon: Icons.help_outline_rounded,
+        icon: AppIcons.helpOutline,
         title: 'Troubleshooting',
         subtitle: 'What to check when notifications or replies do not arrive',
         trailing: InfoRow.chevron,
         onTap: () => context.go(AppRoutes.devices),
       ),
       InfoRow(
-        icon: Icons.monitor_heart_rounded,
+        icon: AppIcons.monitorHeart,
         title: 'Diagnostics',
         subtitle: 'Connection, permission and sync details to check or share',
         trailing: InfoRow.chevron,
         onTap: () => context.push(AppRoutes.diagnostics),
       ),
       InfoRow(
-        icon: Icons.description_rounded,
+        icon: AppIcons.description,
         title: 'Open-source licences',
         trailing: InfoRow.chevron,
         onTap: () => showLicensePage(

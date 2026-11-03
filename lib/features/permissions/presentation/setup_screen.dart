@@ -2,6 +2,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -105,28 +106,28 @@ class _Disclosure extends ConsumerWidget {
         CardGroup(
           children: [
             _Point(
-              icon: Icons.visibility_rounded,
+              icon: AppIcons.visibility,
               title: 'What is accessed',
               body:
                   'The notifications shown on this phone: app name, title, text, time, and the reply action of '
                   'messaging apps. This works in the background, even when AirReply is closed.',
             ),
             _Point(
-              icon: Icons.sync,
+              icon: AppIcons.sync,
               title: 'Why',
               body:
                   'Only to show those notifications on the devices you pair, and to send the replies you type there '
                   'through the original app on this phone.',
             ),
             _Point(
-              icon: Icons.lock_outline,
+              icon: AppIcons.lockOutline,
               title: 'How it is protected',
               body:
                   'Each notification is encrypted on this phone with AES-256-GCM, using a key that only this phone '
                   'and the paired device hold. Our servers relay ciphertext they cannot read.',
             ),
             _Point(
-              icon: Icons.tune,
+              icon: AppIcons.tune,
               title: 'You stay in control',
               body:
                   'Choose which apps are shared, pause from the status notification at any time, or remove a device '
@@ -308,7 +309,7 @@ class _Step extends StatelessWidget {
               border: isDone ? null : Border.all(color: c.line),
             ),
             child: isDone
-                ? Icon(Icons.check, size: 16, color: c.bg)
+                ? Icon(AppIcons.check, size: 16, color: c.bg)
                 : Text(
                     '$index',
                     style: AppType.supporting.copyWith(color: c.ink, fontWeight: FontWeight.w600),

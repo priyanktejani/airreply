@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -63,13 +64,13 @@ class _SwipeActionsState extends State<SwipeActions> {
               width: width,
               child: read
                   ? _SwipeBackground(
-                      icon: widget.isRead ? Icons.mark_email_unread_rounded : Icons.mark_email_read_rounded,
+                      icon: widget.isRead ? AppIcons.markEmailUnread : AppIcons.markEmailRead,
                       label: widget.isRead ? 'Unread' : 'Read',
                       alignment: Alignment.centerLeft,
                       radius: widget.radius,
                     )
                   : _SwipeBackground(
-                      icon: Icons.visibility_off_rounded,
+                      icon: AppIcons.visibilityOff,
                       label: 'Hide',
                       alignment: Alignment.centerRight,
                       radius: widget.radius,
@@ -105,7 +106,7 @@ class _SwipeActionsState extends State<SwipeActions> {
   );
 }
 
-/// What a swipe does, under the card: soft green for read, soft red for hide.
+/// What a swipe does, under the card: soft accent for read, soft red for hide.
 class _SwipeBackground extends StatelessWidget {
   const _SwipeBackground({
     required this.icon,

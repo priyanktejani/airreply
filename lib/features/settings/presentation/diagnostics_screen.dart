@@ -2,6 +2,7 @@ import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -89,7 +90,7 @@ class DiagnosticsScreen extends ConsumerWidget {
                   await Clipboard.setData(ClipboardData(text: diagnosticsText(sections, generatedAt: now)));
                   if (context.mounted) context.showMessage('Report copied');
                 },
-                icon: const Icon(Icons.content_copy_rounded, size: 18),
+                icon: const Icon(AppIcons.contentCopy, size: 18),
                 label: const Text('Copy report'),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -104,7 +105,7 @@ class DiagnosticsScreen extends ConsumerWidget {
                     ..invalidate(syncStatusProvider);
                   context.showMessage('Checking again…');
                 },
-                icon: const Icon(Icons.refresh_rounded, size: 18),
+                icon: const Icon(AppIcons.refresh, size: 18),
                 label: const Text('Check again'),
               ),
             ],

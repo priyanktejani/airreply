@@ -4,6 +4,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -99,7 +100,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         body: loading
             ? Padding(padding: AppInsets.page(context), child: const SkeletonList(rows: 3))
             : EmptyState(
-                icon: Icons.forum_outlined,
+                icon: AppIcons.forum,
                 title: 'Nothing here now',
                 description:
                     'These notifications were hidden, removed, or came from a device that is no longer paired.',
@@ -404,7 +405,7 @@ class _TimelineState extends State<_Timeline> {
   };
 }
 
-/// The opened message, pointed out: a soft green glow behind it that fades away.
+/// The opened message, pointed out: a soft accent glow behind it that fades away.
 class _Pointed extends StatelessWidget {
   const _Pointed({required this.child, super.key});
 
@@ -451,7 +452,7 @@ class _MessageBubble extends ConsumerWidget {
   final FeedEntry entry;
   final String? sender;
 
-  /// The user's own message, written on the phone: on the right, soft green, marked as sent from the phone.
+  /// The user's own message, written on the phone: on the right, soft accent, marked as sent from the phone.
   final bool mine;
 
   /// A notification that is not a chat message keeps its own title (an email subject, an app's headline).
@@ -524,10 +525,10 @@ class _MessageBubble extends ConsumerWidget {
                   children: [
                     Text(formatClock(entry.postedAt), style: AppType.label.copyWith(color: c.muted)),
                     if (mine)
-                      const StatusBadge(label: 'Sent from your phone', icon: Icons.smartphone_rounded)
+                      const StatusBadge(label: 'Sent from your phone', icon: AppIcons.smartphone)
                     // only messages to you can be answered, so only theirs say they can no longer be
                     else if (entry.notification.dismissedOnSender)
-                      const StatusBadge(label: 'Cleared on phone', icon: Icons.phonelink_erase_rounded),
+                      const StatusBadge(label: 'Cleared on phone', icon: AppIcons.phonelinkErase),
                   ],
                 ),
               ),
@@ -555,7 +556,7 @@ class _Footnote extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
         child: Row(
           children: [
-            Icon(Icons.info_outline_rounded, size: 18, color: c.muted),
+            Icon(AppIcons.infoOutline, size: 18, color: c.muted),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(text, style: AppType.supporting.copyWith(color: c.muted)),

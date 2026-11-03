@@ -1,3 +1,4 @@
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -70,7 +71,7 @@ class FirebaseSetupRequiredApp extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: OutlinedButton.icon(
                         onPressed: () => Clipboard.setData(const ClipboardData(text: command)),
-                        icon: const Icon(Icons.content_copy_rounded, size: 18),
+                        icon: const Icon(AppIcons.contentCopy, size: 18),
                         label: const Text('Copy command'),
                       ),
                     ),

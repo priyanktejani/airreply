@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#0F172A</color>
+    <!-- The app's accent (AppPalette.light.accent, Ocean): tints the status-bar icon and app name of its notifications. -->
+    <color name="accent">#0B6BCB</color>
 </resources>

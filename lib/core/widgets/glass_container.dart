@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 /// shadow ([AppGlass] tokens). For things that float over content (the navigation bar, floating actions, sheets) and
 /// for selected cards. Use sparingly: regular content sits on plain cards.
 ///
-/// [selected] tints it with the brand's soft green; [strong] makes the fill more opaque for text-heavy surfaces;
+/// [selected] tints it with the brand's soft accent; [strong] makes the fill more opaque for text-heavy surfaces;
 /// [floating] uses the floating shadow instead of the card one. With [onTap] it becomes a tappable surface. Its content
 /// sits on a transparent Material, so ListTiles and InkWells inside show their ink on the glass.
 class GlassContainer extends StatelessWidget {

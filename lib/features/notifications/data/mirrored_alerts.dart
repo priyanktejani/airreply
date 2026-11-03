@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/notifications/domain/grouping.dart';
@@ -105,6 +106,8 @@ final class MirroredAlerts {
           _channelId,
           _channelName,
           channelDescription: 'Notifications mirrored from your paired phone',
+          // the app's accent on the status-bar icon and app name, as on the launcher icon
+          color: AppPalette.light.accent,
           importance: Importance.high,
           priority: Priority.high,
           // The running app and a push can both raise the same notification: alert once.

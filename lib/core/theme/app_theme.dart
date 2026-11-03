@@ -1,3 +1,4 @@
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -5,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 /// The light and dark themes, built from [AppPalette] and [AppType] in the iFixxer design: pill buttons, soft 16
-/// fields, 20 cards with a hairline and a soft shadow, frosted sheets and dialogs, and the brand green for what is
+/// fields, 20 cards with a hairline and a soft shadow, frosted sheets and dialogs, and the brand accent for what is
 /// selected. Screens use plain Material widgets and they already look right.
 abstract final class AppTheme {
   static ThemeData light() => _build(Brightness.light);
@@ -23,7 +24,7 @@ abstract final class AppTheme {
       onPrimaryContainer: c.ink,
       secondary: c.ink,
       onSecondary: c.surface,
-      // selected chips, segments and tonal buttons: soft green with the brand green edge
+      // selected chips, segments and tonal buttons: soft accent with the brand accent edge
       secondaryContainer: c.accentSoft,
       onSecondaryContainer: c.ink,
       error: c.danger,
@@ -62,6 +63,11 @@ abstract final class AppTheme {
       extensions: [c],
       textTheme: text,
       splashFactory: InkRipple.splashFactory,
+      // back and close buttons draw the app's icons rather than Material's
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (_) => const Icon(AppIcons.back),
+        closeButtonIconBuilder: (_) => const Icon(AppIcons.close),
+      ),
       // a light touch on every tap: the default grey wash reads heavy on white cards and murky on dark ones
       splashColor: c.ink.withValues(alpha: dark ? .08 : .06),
       highlightColor: c.ink.withValues(alpha: dark ? .05 : .035),
@@ -226,7 +232,7 @@ abstract final class AppTheme {
             (s) => s.contains(WidgetState.selected) ? c.accentSoft : c.surface,
           ),
           foregroundColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? c.ink : c.muted),
-          // one neutral outline for the whole group; the selected part is shown by its green fill
+          // one neutral outline for the whole group; the selected part is shown by its accent fill
           side: WidgetStatePropertyAll(BorderSide(color: c.line)),
           textStyle: WidgetStatePropertyAll(label.copyWith(fontSize: 14)),
         ),

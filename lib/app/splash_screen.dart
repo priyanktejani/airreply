@@ -1,4 +1,5 @@
 import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/app_logo.dart';
 import 'package:air_reply/core/widgets/empty_state.dart';
@@ -17,7 +18,7 @@ class SplashScreen extends ConsumerWidget {
       body: Center(
         child: switch (ref.watch(deviceSessionProvider)) {
           AsyncError(:final error) => EmptyState(
-            icon: Icons.error_outline,
+            icon: AppIcons.errorOutline,
             tone: Tone.error,
             title: 'AirReply could not start',
             description: describeError(error),

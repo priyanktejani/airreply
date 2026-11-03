@@ -1,4 +1,5 @@
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -36,7 +37,7 @@ class InfoRow extends StatelessWidget {
   static const textInset = AppSpacing.card + tile + AppSpacing.md;
 
   /// An arrow, for rows that open another screen.
-  static const chevron = Icon(Icons.chevron_right_rounded, size: AppDimensions.iconMd);
+  static const chevron = Icon(AppIcons.chevronRight, size: AppDimensions.iconMd);
 
   @override
   Widget build(BuildContext context) {

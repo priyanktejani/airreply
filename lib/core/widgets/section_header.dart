@@ -2,7 +2,7 @@ import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/eyebrow.dart';
 import 'package:flutter/material.dart';
 
-/// A section heading as on the website: the small green mono label ([eyebrow]) above the title, and an optional action
+/// A section heading as on the website: the small accent mono label ([eyebrow]) above the title, and an optional action
 /// on the right ("See all"). Pads to the page margins by default; pass [padding] zero inside cards.
 class SectionHeader extends StatelessWidget {
   const SectionHeader({

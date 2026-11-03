@@ -1,6 +1,7 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/native_models.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/widgets/async_button.dart';
@@ -52,7 +53,7 @@ class AttentionNotices extends ConsumerWidget {
       if (!permissions.notificationAccess)
         Notice(
           tone: Tone.error,
-          icon: Icons.notifications_off_outlined,
+          icon: AppIcons.notificationsOff,
           title: 'Notification access is off',
           message: 'AirReply cannot see new notifications until you turn it back on.',
           actions: [
@@ -64,7 +65,7 @@ class AttentionNotices extends ConsumerWidget {
         )
       else if (!status.enabled)
         Notice(
-          icon: Icons.pause_circle_outline,
+          icon: AppIcons.pauseCircleOutline,
           title: 'Sharing is paused',
           message: 'Notifications on this phone are not being sent to your devices.',
           actions: [
@@ -73,7 +74,7 @@ class AttentionNotices extends ConsumerWidget {
         )
       else if (status.running && !status.listenerConnected)
         Notice(
-          icon: Icons.sensors_off_outlined,
+          icon: AppIcons.sensorsOff,
           title: 'Not receiving notifications',
           message: restrictions.hasAutostartScreen
               ? 'Android stopped AirReply\'s listener. Reconnect, and turn on Autostart for AirReply on '
@@ -91,7 +92,7 @@ class AttentionNotices extends ConsumerWidget {
       if (permissions.notificationAccess && !restrictions.ignoringBatteryOptimizations && connection)
         Notice(
           tone: Tone.neutral,
-          icon: Icons.battery_alert_outlined,
+          icon: AppIcons.batteryAlert,
           title: 'Battery optimisation is on',
           message: 'Android may pause sharing to save battery. Set AirReply to "Unrestricted".',
           actions: [
@@ -110,7 +111,7 @@ class AttentionNotices extends ConsumerWidget {
     return [
       if (alertsAllowed == false)
         Notice(
-          icon: Icons.notifications_paused_outlined,
+          icon: AppIcons.notificationsPaused,
           title: 'Alerts are off on this device',
           message: 'New notifications still appear here, but this device will not alert you.',
           actions: [
@@ -138,7 +139,7 @@ class AttentionNotices extends ConsumerWidget {
     if (offline.isEmpty) return const [];
     return [
       Notice(
-        icon: Icons.cloud_off_outlined,
+        icon: AppIcons.cloudOff,
         title: offline.length == 1 ? '${offline.single.peerName} is offline' : '${offline.length} devices are offline',
         message: 'Showing saved notifications. New ones arrive once this device is back online.',
         actions: [

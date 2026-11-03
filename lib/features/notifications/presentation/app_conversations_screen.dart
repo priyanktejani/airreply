@@ -1,6 +1,7 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -51,7 +52,7 @@ class _AppConversationsScreenState extends ConsumerState<AppConversationsScreen>
         body: loading
             ? Padding(padding: AppInsets.page(context), child: const SkeletonList(rows: 3))
             : EmptyState(
-                icon: Icons.forum_outlined,
+                icon: AppIcons.forum,
                 title: 'Nothing here now',
                 description:
                     'These notifications were hidden, removed, or came from a device that is no longer paired.',

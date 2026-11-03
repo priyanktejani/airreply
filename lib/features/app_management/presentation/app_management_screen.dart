@@ -4,6 +4,7 @@ import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/platform/native_models.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -102,7 +103,7 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
         else
           const SliverToBoxAdapter(
             child: EmptyState(
-              icon: Icons.apps_rounded,
+              icon: AppIcons.apps,
               title: 'Every app is shared',
               description: 'Choose "Only selected" to pick which apps reach your devices.',
             ),
@@ -111,7 +112,7 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
       AsyncError(:final error) => [
         SliverToBoxAdapter(
           child: EmptyState(
-            icon: Icons.error_outline,
+            icon: AppIcons.errorOutline,
             tone: Tone.error,
             title: 'Could not load your choice',
             description: describeError(error),
@@ -147,7 +148,7 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
       if (apps.isEmpty)
         const SliverToBoxAdapter(
           child: EmptyState(
-            icon: Icons.apps_rounded,
+            icon: AppIcons.apps,
             title: 'No apps yet',
             description: 'Apps appear here once your phone has sent a notification from them.',
           ),
@@ -195,7 +196,7 @@ class _InstalledAppList extends ConsumerWidget {
         ];
         if (visible.isEmpty) {
           return const SliverToBoxAdapter(
-            child: EmptyState(icon: Icons.search_off, title: 'No apps match'),
+            child: EmptyState(icon: AppIcons.searchOff, title: 'No apps match'),
           );
         }
         return SliverList.separated(
@@ -218,7 +219,7 @@ class _InstalledAppList extends ConsumerWidget {
       }(),
       AsyncError(:final error) => SliverToBoxAdapter(
         child: EmptyState(
-          icon: Icons.error_outline,
+          icon: AppIcons.errorOutline,
           tone: Tone.error,
           title: 'Could not list apps',
           description: describeError(error),

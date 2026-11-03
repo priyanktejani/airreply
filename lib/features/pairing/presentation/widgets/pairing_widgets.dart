@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -320,7 +321,7 @@ class PairingSteps extends StatelessWidget {
                 border: i <= current ? null : Border.all(color: c.line),
               ),
               child: i < current
-                  ? Icon(Icons.check, size: 13, color: c.bg)
+                  ? Icon(AppIcons.check, size: 13, color: c.bg)
                   : Text(
                       '${i + 1}',
                       style: AppType.label.copyWith(color: i <= current ? c.bg : c.muted, letterSpacing: 0),

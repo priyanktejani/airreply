@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -157,12 +158,12 @@ class NotificationRow extends ConsumerWidget {
         if (own != null) OwnMessageBadge(own: own, appName: content.appName),
         if (latest != null) ReplyStatusBadge(reply: latest, prefix: true),
         if (entry.notification.dismissedOnSender)
-          const StatusBadge(label: 'Dismissed on phone', icon: Icons.phonelink_erase_rounded),
+          const StatusBadge(label: 'Dismissed on phone', icon: AppIcons.phonelinkErase),
       ],
       trailing: wide
           ? PopupMenuButton<_RowAction>(
               tooltip: 'More actions',
-              icon: Icon(Icons.more_horiz_rounded, color: c.muted, size: AppDimensions.iconMd),
+              icon: Icon(AppIcons.moreHoriz, color: c.muted, size: AppDimensions.iconMd),
               onSelected: (a) => _perform(context, ref, a, isRead: isRead, hideTargets: hideTargets),
               itemBuilder: (_) => _RowAction.menu(isRead: isRead, count: hideTargets.length),
             )
@@ -214,17 +215,13 @@ class _ActionSheet extends StatelessWidget {
   Widget build(BuildContext context) => CardGroup(
     children: [
       InfoRow(
-        icon: isRead ? Icons.mark_email_unread_rounded : Icons.mark_email_read_rounded,
+        icon: isRead ? AppIcons.markEmailUnread : AppIcons.markEmailRead,
         title: isRead ? 'Mark as unread' : 'Mark as read',
         onTap: () => Navigator.pop(context, _RowAction.toggleRead),
       ),
+      InfoRow(icon: AppIcons.contentCopy, title: 'Copy text', onTap: () => Navigator.pop(context, _RowAction.copy)),
       InfoRow(
-        icon: Icons.content_copy_rounded,
-        title: 'Copy text',
-        onTap: () => Navigator.pop(context, _RowAction.copy),
-      ),
-      InfoRow(
-        icon: Icons.visibility_off_rounded,
+        icon: AppIcons.visibilityOff,
         destructive: true,
         title: count > 1 ? 'Hide $count notifications' : 'Hide from this device',
         onTap: () => Navigator.pop(context, _RowAction.hide),
@@ -248,11 +245,11 @@ class ReplyStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, icon, tone) = switch (reply.status) {
-      ReplyStatus.pending => ('Sending', Icons.schedule_rounded, Tone.neutral),
-      ReplyStatus.sent when delivered => ('Delivered', Icons.done_all_rounded, Tone.success),
-      ReplyStatus.sent => ('Sent', Icons.done_rounded, Tone.success),
-      ReplyStatus.expired => ('Expired on phone', Icons.timer_off_outlined, Tone.warning),
-      ReplyStatus.failed => ('Not delivered', Icons.error_outline, Tone.error),
+      ReplyStatus.pending => ('Sending', AppIcons.schedule, Tone.neutral),
+      ReplyStatus.sent when delivered => ('Delivered', AppIcons.doneAll, Tone.success),
+      ReplyStatus.sent => ('Sent', AppIcons.done, Tone.success),
+      ReplyStatus.expired => ('Expired on phone', AppIcons.timerOff, Tone.warning),
+      ReplyStatus.failed => ('Not delivered', AppIcons.errorOutline, Tone.error),
     };
     return StatusBadge(
       label: prefix ? 'Reply ${label.toLowerCase()}' : label,
@@ -263,7 +260,7 @@ class ReplyStatusBadge extends StatelessWidget {
   }
 }
 
-/// A reply sent from a receiver, with when and whether it was delivered: brand green on the right, with a small corner
+/// A reply sent from a receiver, with when and whether it was delivered: brand accent on the right, with a small corner
 /// towards the sender. One tick once the phone sent it; two once the messaging app shows it there ([echo], its copy
 /// of the reply, which is never shown as a message of its own).
 class ReplyBubble extends StatelessWidget {
@@ -335,9 +332,9 @@ class OwnMessageBadge extends StatelessWidget {
   Widget build(BuildContext context) => switch (own) {
     OwnMessage.reply => StatusBadge(
       label: 'Your reply, as $appName shows it',
-      icon: Icons.reply_rounded,
+      icon: AppIcons.reply,
       tone: Tone.success,
     ),
-    OwnMessage.phone => const StatusBadge(label: 'Sent from your phone', icon: Icons.smartphone_rounded),
+    OwnMessage.phone => const StatusBadge(label: 'Sent from your phone', icon: AppIcons.smartphone),
   };
 }

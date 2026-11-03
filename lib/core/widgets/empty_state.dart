@@ -27,7 +27,7 @@ class EmptyState extends StatelessWidget {
   final Widget? action;
   final Widget? secondaryAction;
 
-  /// [Tone.error] for failures; otherwise the brand green.
+  /// [Tone.error] for failures; otherwise the brand accent.
   final Tone tone;
 
   static const double _tile = 64;

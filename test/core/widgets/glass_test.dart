@@ -47,7 +47,7 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('turns to green glass when selected', (tester) async {
+    testWidgets('turns to accent glass when selected', (tester) async {
       await tester.pumpWidget(wrap(const AppCard(selected: true, child: Text('Chosen'))));
       await tester.pumpAndSettle();
       expect(find.byType(GlassContainer), findsOneWidget);

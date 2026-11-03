@@ -4,7 +4,7 @@ import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
-/// How many notifications are unread: a green count when there are some, nothing otherwise. It pops in.
+/// How many notifications are unread: an accent count when there are some, nothing otherwise. It pops in.
 class UnreadCount extends StatelessWidget {
   const UnreadCount(this.count, {super.key});
 

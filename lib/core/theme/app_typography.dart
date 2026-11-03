@@ -2,7 +2,7 @@ import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 
 /// The type scale (Geist, as in the iFixxer app): tight, heavy headlines, calm body text, firm labels, and the small
-/// green mono label above headings ([eyebrow]). [AppTheme] maps it onto Material's text roles, so plain widgets use it.
+/// accent mono label above headings ([eyebrow]). [AppTheme] maps it onto Material's text roles, so plain widgets use it.
 abstract final class AppType {
   static const _fallback = ['Roboto', 'Helvetica Neue', 'Segoe UI', 'Noto Sans', 'sans-serif'];
 
@@ -55,13 +55,13 @@ abstract final class AppType {
   /// 11 semibold — counts in badges and the nav bar's labels.
   static final caption = _geist(11, 1.2, FontWeight.w600);
 
-  /// 13 semibold — inline green actions and summaries ("Open", "3 notifications").
+  /// 13 semibold — inline accent actions and summaries ("Open", "3 notifications").
   static final link = _geist(13, 1.3, FontWeight.w600);
 
   /// 15 semibold — buttons.
   static final button = _geist(15, 1.3, FontWeight.w600);
 
-  /// 13 mono — the small green label above headings.
+  /// 13 mono — the small accent label above headings.
   static final eyebrow = _geist(13, 1.3, FontWeight.w500, tracking: .3, family: mono);
 
   /// The scale as Material's text roles.

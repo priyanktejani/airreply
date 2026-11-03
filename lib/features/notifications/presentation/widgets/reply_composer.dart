@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -157,7 +158,7 @@ class _ReplyComposerState extends ConsumerState<ReplyComposer> {
                       disabledForegroundColor: c.accentInk,
                       minimumSize: const Size(AppDimensions.touchTarget, AppDimensions.touchTarget),
                     ),
-                    icon: const Icon(Icons.send_rounded, size: AppDimensions.iconMd),
+                    icon: const Icon(AppIcons.send, size: AppDimensions.iconMd),
                   ),
                 ),
               ),

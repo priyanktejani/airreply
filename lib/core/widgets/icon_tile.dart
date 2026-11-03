@@ -3,7 +3,7 @@ import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:flutter/material.dart';
 
-/// A small tile with an icon on the soft green ground. Sizes: [AppDimensions.iconTileSm], [AppDimensions.iconTile]
+/// A small tile with an icon on the soft accent ground. Sizes: [AppDimensions.iconTileSm], [AppDimensions.iconTile]
 /// (the default) and [AppDimensions.iconTileLg]. [danger] uses the soft red ground, for deleting and removing.
 class IconTile extends StatelessWidget {
   const IconTile(this.icon, {super.key, this.size = AppDimensions.iconTile, this.danger = false, this.enabled = true});

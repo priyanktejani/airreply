@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
-/// An app's icon, or its initial in green on the soft green tile when the icon is not known (yet).
+/// An app's icon, or its initial in the accent colour on the soft accent tile when the icon is not known (yet).
 class AppIconView extends StatelessWidget {
   const AppIconView({required this.appName, this.png, this.size = 40, super.key});
 
@@ -51,13 +52,13 @@ class AppIconView extends StatelessWidget {
 /// An icon for a paired device, guessed from its name ("MacBook Pro", "iPad Air", "Chrome on Windows"...).
 IconData deviceIcon(String name, {required bool isPhone}) {
   final n = name.toLowerCase();
-  if (n.contains('ipad') || n.contains('tab')) return Icons.tablet_mac_outlined;
-  if (n.contains('iphone')) return Icons.phone_iphone_outlined;
-  if (n.contains('mac') || n.contains('book')) return Icons.laptop_mac_outlined;
-  if (n.contains('windows') || n.contains('pc') || n.contains('desktop')) return Icons.desktop_windows_outlined;
+  if (n.contains('ipad') || n.contains('tab')) return AppIcons.tabletMac;
+  if (n.contains('iphone')) return AppIcons.phoneIphone;
+  if (n.contains('mac') || n.contains('book')) return AppIcons.laptopMac;
+  if (n.contains('windows') || n.contains('pc') || n.contains('desktop')) return AppIcons.desktopWindows;
   if (n.contains('chrome') || n.contains('browser') || n.contains('firefox') || n.contains('safari')) {
-    return Icons.language_outlined;
+    return AppIcons.language;
   }
-  if (n.contains('linux') || n.contains('ubuntu')) return Icons.computer_outlined;
-  return isPhone ? Icons.smartphone_outlined : Icons.devices_outlined;
+  if (n.contains('linux') || n.contains('ubuntu')) return AppIcons.computer;
+  return isPhone ? AppIcons.smartphone : AppIcons.devices;
 }

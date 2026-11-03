@@ -1,7 +1,8 @@
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 
-/// The AirReply logo: the reply mark (a reply arrow on a glowing brand-green circle, as on the app icon) and the
+/// The AirReply logo: the reply mark (a reply arrow on a glowing accent circle, as on the app icon) and the
 /// "AirReply" wordmark beside it, sized by [height]. [wordmark] false shows the mark alone (the rail, small spaces).
 class AppLogo extends StatelessWidget {
   const AppLogo({this.height = 26, this.wordmark = true, super.key});
@@ -20,7 +21,7 @@ class AppLogo extends StatelessWidget {
         color: c.accent,
         boxShadow: [BoxShadow(color: c.accent.withValues(alpha: .35), blurRadius: height * .5)],
       ),
-      child: Icon(Icons.reply_rounded, size: height * .62, color: c.accentInk),
+      child: Icon(AppIcons.reply, size: height * .62, color: c.accentInk),
     );
     return Semantics(
       label: 'AirReply',

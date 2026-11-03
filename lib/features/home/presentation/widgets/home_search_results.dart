@@ -1,4 +1,5 @@
 import 'package:air_reply/core/animations/fade_slide_in.dart';
+import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/empty_state.dart';
 import 'package:air_reply/core/widgets/section_header.dart';
@@ -22,7 +23,7 @@ class HomeSearchResults extends ConsumerWidget {
     final devices = ref.watch(pairedDevicesProvider).length;
     if (found.isEmpty) {
       return EmptyState(
-        icon: Icons.search_off_rounded,
+        icon: AppIcons.searchOff,
         title: 'No matches',
         description: 'No notification mentions “${query.trim()}”.',
       );

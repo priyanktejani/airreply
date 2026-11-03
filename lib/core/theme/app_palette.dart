@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// The colours, from the iFixxer design (its website's tokens): a calm page and surface, ink and muted text, hairline
-/// lines, one brand green for what matters, a warm glow, and soft fills for states. Read with `context.palette`.
+/// lines, one brand accent for what matters, a warm glow, and soft fills for states. Read with `context.palette`.
 @immutable
 class AppPalette extends ThemeExtension<AppPalette> {
   const AppPalette({
@@ -57,9 +57,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     muted: Color(0xFF56657A),
     line: Color(0xFFE6E9EE),
     soft: Color(0xFFF0F2F5),
-    accent: Color(0xFF0A7D55),
+    accent: Color(0xFF0B6BCB),
     accentInk: Color(0xFFFFFFFF),
-    accentSoft: Color(0xFFE4F5EC),
+    accentSoft: Color(0xFFE3EFFB),
     glow: Color(0xFFFFE7A3),
     deep: Color(0xFF0F172A),
     deepInk: Color(0xFFEEF2F7),
@@ -79,9 +79,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     muted: Color(0xFF8B99AD),
     line: Color(0xFF1D2633),
     soft: Color(0xFF151C27),
-    accent: Color(0xFF3DDC97),
-    accentInk: Color(0xFF04261A),
-    accentSoft: Color(0xFF12302A),
+    accent: Color(0xFF5CB2FF),
+    accentInk: Color(0xFF03203A),
+    accentSoft: Color(0xFF10283F),
     glow: Color(0xFFFFD36B),
     deep: Color(0xFF10161F),
     deepInk: Color(0xFFEEF2F7),
@@ -106,6 +106,6 @@ extension AppPaletteX on BuildContext {
   AppPalette get palette => Theme.of(this).extension<AppPalette>() ?? AppPalette.light;
 }
 
-/// The typefaces: Geist for everything, Geist Mono for the small green labels.
+/// The typefaces: Geist for everything, Geist Mono for the small accent labels.
 const font = 'Geist';
 const mono = 'GeistMono';

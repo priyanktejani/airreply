@@ -29,7 +29,7 @@ class FloatingNavItem {
   final int badge;
 }
 
-/// The app's navigation: a frosted-glass pill floating above the content, with a soft green highlight that slides to
+/// The app's navigation: a frosted-glass pill floating above the content, with a soft accent highlight that slides to
 /// the selected tab. It sits clear of the screen edges and the phone's home indicator; put it in a Scaffold's
 /// `bottomNavigationBar` with `extendBody: true` so content scrolls underneath and lists can pad for it (AppInsets).
 ///

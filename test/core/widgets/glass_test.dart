@@ -9,11 +9,14 @@ import 'package:air_reply/core/widgets/glass_app_bar.dart';
 import 'package:air_reply/core/widgets/glass_container.dart';
 import 'package:air_reply/core/widgets/glass_scroll_page.dart';
 import 'package:air_reply/core/widgets/search_field.dart';
+import 'package:air_reply/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   Widget wrap(Widget child, {ThemeData? theme}) => MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     theme: theme ?? AppTheme.light(),
     home: Scaffold(body: Center(child: child)),
   );
@@ -59,6 +62,8 @@ void main() {
       var selected = 0;
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.dark(),
           home: Scaffold(
             bottomNavigationBar: FloatingNavBar(
@@ -88,6 +93,8 @@ void main() {
     testWidgets('pins a glass app bar and a search box that turns to glass over content', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.light(),
           home: Scaffold(
             body: GlassScrollPage(
@@ -115,6 +122,8 @@ void main() {
     testWidgets('opens on frosted glass with a handle', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.light(),
           home: Builder(
             builder: (context) => TextButton(

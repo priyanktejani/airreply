@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -63,7 +64,7 @@ class _WithActions extends ConsumerWidget {
         children: [
           Positioned.fill(
             child: GlassScrollPage(
-              title: const Text('Set up'),
+              title: Text(context.l10n.setupTitle),
               leading: BackButton(onPressed: back),
               slivers: [
                 SliverToBoxAdapter(child: header),
@@ -104,53 +105,37 @@ class _Disclosure extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(deviceSessionProvider.notifier);
     return _WithActions(
-      header: const PageIntro(
-        eyebrow: 'Before you start',
-        title: 'AirReply needs access to your notifications',
-        subtitle:
-            'To share this phone\'s notifications with your paired devices, AirReply uses Android\'s Notification '
-            'Access permission.',
+      header: PageIntro(
+        eyebrow: context.l10n.disclosureEyebrow,
+        title: context.l10n.disclosureTitle,
+        subtitle: context.l10n.disclosureIntro,
       ),
-      content: const [
+      content: [
         CardGroup(
           children: [
             _Point(
               icon: AppIcons.visibility,
-              title: 'What is accessed',
-              body:
-                  'The notifications shown on this phone: app name, title, text, time, and the reply action of '
-                  'messaging apps. This works in the background, even when AirReply is closed.',
+              title: context.l10n.disclosureWhatTitle,
+              body: context.l10n.disclosureWhatBody,
             ),
-            _Point(
-              icon: AppIcons.sync,
-              title: 'Why',
-              body:
-                  'Only to show those notifications on the devices you pair, and to send the replies you type there '
-                  'through the original app on this phone.',
-            ),
+            _Point(icon: AppIcons.sync, title: context.l10n.disclosureWhyTitle, body: context.l10n.disclosureWhyBody),
             _Point(
               icon: AppIcons.lockOutline,
-              title: 'How it is protected',
-              body:
-                  'Each notification is encrypted on this phone with AES-256-GCM, using a key that only this phone '
-                  'and the paired device hold. Our servers relay ciphertext they cannot read, and delete it once '
-                  'delivered: history is kept only on your devices.',
+              title: context.l10n.disclosureHowTitle,
+              body: context.l10n.disclosureHowBody,
             ),
             _Point(
               icon: AppIcons.tune,
-              title: 'You stay in control',
-              body:
-                  'Choose which apps are shared, pause from the status notification at any time, or remove a device '
-                  'to stop sharing and delete the synced history. Notification content is never sold, shared with '
-                  'third parties, or used for ads or analytics.',
+              title: context.l10n.disclosureControlTitle,
+              body: context.l10n.disclosureControlBody,
             ),
           ],
         ),
       ],
       actions: [
-        FilledButton(onPressed: controller.acceptDisclosure, child: const Text('Agree and continue')),
+        FilledButton(onPressed: controller.acceptDisclosure, child: Text(context.l10n.actionAgreeAndContinue)),
         const SizedBox(height: AppSpacing.sm),
-        TextButton(onPressed: controller.clearRole, child: const Text('No thanks')),
+        TextButton(onPressed: controller.clearRole, child: Text(context.l10n.actionNoThanks)),
       ],
     );
   }
@@ -224,9 +209,9 @@ class _ChecklistState extends ConsumerState<_Checklist> {
 
     return _WithActions(
       header: PageIntro(
-        eyebrow: '$done of 2 required steps done',
-        title: 'Set up this phone',
-        subtitle: 'Two permissions let AirReply share notifications and keep running in the background.',
+        eyebrow: context.l10n.setupProgress(done, 2),
+        title: context.l10n.setupPhoneTitle,
+        subtitle: context.l10n.setupPhoneSubtitle,
       ),
       content: [
         LinearProgressIndicator(value: done / 2),
@@ -235,36 +220,34 @@ class _ChecklistState extends ConsumerState<_Checklist> {
           children: [
             _Step(
               index: 1,
-              title: 'Notification access',
-              subtitle: 'Required. Find AirReply in the list and switch it on.',
+              title: context.l10n.permissionAccessTitle,
+              subtitle: context.l10n.setupAccessSubtitle,
               done: granted?.notificationAccess,
-              actionLabel: 'Open settings',
+              actionLabel: context.l10n.actionOpenSettings,
               onAction: guarded(context, controller.openNotificationAccess),
             ),
             _Step(
               index: 2,
-              title: 'Status notification',
-              subtitle: 'Shows "Notification Sync Active" with a Pause button while sharing is on.',
+              title: context.l10n.permissionStatusTitle,
+              subtitle: context.l10n.setupStatusSubtitle,
               done: granted?.postNotifications,
-              actionLabel: 'Allow',
+              actionLabel: context.l10n.actionAllow,
               onAction: guarded(context, controller.requestPostNotifications),
             ),
             if (autostart)
               _Step(
                 index: 3,
-                title: 'Autostart',
-                subtitle:
-                    'Required on ${granted!.restrictions.vendorName}. Without it the phone stops AirReply from '
-                    'listening once the app is closed. Find AirReply and switch Autostart on.',
-                actionLabel: 'Open settings',
+                title: context.l10n.permissionAutostartTitle,
+                subtitle: context.l10n.setupAutostartSubtitle(granted!.restrictions.vendorName),
+                actionLabel: context.l10n.actionOpenSettings,
                 onAction: guarded(context, controller.openAutostartSettings),
               ),
             _Step(
               index: autostart ? 4 : 3,
-              title: 'Battery optimisation',
-              subtitle: 'Recommended. Set AirReply to "Unrestricted" so Android never pauses sharing.',
+              title: context.l10n.permissionBatteryTitle,
+              subtitle: context.l10n.setupBatterySubtitle,
               done: granted?.restrictions.ignoringBatteryOptimizations,
-              actionLabel: 'Open settings',
+              actionLabel: context.l10n.actionOpenSettings,
               onAction: guarded(context, controller.openBatterySettings),
             ),
           ],
@@ -273,7 +256,7 @@ class _ChecklistState extends ConsumerState<_Checklist> {
       actions: [
         FilledButton(
           onPressed: ready ? () => context.go(widget.isPaired ? AppRoutes.home : AppRoutes.pair) : null,
-          child: Text(ready ? 'Continue' : 'Turn on notification access to continue'),
+          child: Text(ready ? context.l10n.actionContinue : context.l10n.setupNeedsAccess),
         ),
       ],
     );
@@ -336,7 +319,7 @@ class _Step extends StatelessWidget {
                 const SizedBox(height: AppSpacing.sm),
                 if (isDone)
                   Text(
-                    'Done',
+                    context.l10n.stepDone,
                     style: AppType.supporting.copyWith(color: c.accent, fontWeight: FontWeight.w600),
                   )
                 else

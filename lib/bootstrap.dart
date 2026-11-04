@@ -6,6 +6,7 @@ import 'package:air_reply/app/router/app_router.dart';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/background/push_entrypoints.dart';
 import 'package:air_reply/core/firebase/firebase_start.dart';
+import 'package:air_reply/core/l10n/app_language.dart';
 import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/platform/sync_wake_port.dart';
@@ -29,10 +30,11 @@ Future<void> bootstrap() async {
   _installErrorLogging();
   _registerFontLicenses();
 
-  // Independent, so started together: the backend, and the theme (read before the first frame so the app opens
-  // straight into it).
+  // Independent, so started together: the backend, and the theme and language (read before the first frame so the
+  // app opens straight into them).
   final backend = AppPlatform.isDemo ? Future<void>.value() : _startBackend();
   final theme = ThemeModeStore(SharedPreferencesAsync()).read().catchError((Object _) => ThemeMode.system);
+  final language = AppLanguageStore(SharedPreferencesAsync()).read().catchError((Object _) => null);
   try {
     await backend;
   } on Object catch (e) {
@@ -40,9 +42,11 @@ Future<void> bootstrap() async {
     return;
   }
   final themeMode = await theme;
+  final locale = await language;
   final container = ProviderContainer(
     overrides: [
       initialThemeModeProvider.overrideWithValue(themeMode),
+      initialAppLocaleProvider.overrideWithValue(locale),
       if (AppPlatform.isDemo) ...demoOverrides(AppPlatform.demo),
     ],
   );

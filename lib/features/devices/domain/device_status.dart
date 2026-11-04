@@ -4,17 +4,16 @@ import 'package:air_reply/features/mirror/domain/entities/sync_state.dart';
 /// The four states a paired device can be shown in. Never "connected" before the server has confirmed it.
 enum DeviceState { connected, connecting, disconnected, permissionRequired }
 
-/// What the UI says about one paired device, and what can fix it.
+/// What exactly a device's state is, for the words the UI shows: a label ("Connected") and what it means.
+enum DeviceCondition { receiving, sharing, offline, connecting, needsAccess, paused, notReceiving }
+
+/// What the UI says about one paired device, and what can fix it. The words are the screen's, in the person's
+/// language, from [condition].
 final class DeviceStatus {
-  const DeviceStatus(this.state, this.label, this.detail, {this.fix, this.lastSyncedAt});
+  const DeviceStatus(this.state, this.condition, {this.fix, this.lastSyncedAt});
 
   final DeviceState state;
-
-  /// One or two words: "Connected", "Offline".
-  final String label;
-
-  /// A sentence: what it means for the person.
-  final String detail;
+  final DeviceCondition condition;
 
   /// What would resolve it, when something can.
   final DeviceFix? fix;
@@ -25,20 +24,14 @@ enum DeviceFix { grantNotificationAccess, resumeSharing, reconnectListener, retr
 
 /// Receiver's view of a phone: only the sync connection decides it (the phone itself reports nothing live).
 DeviceStatus phoneStatus(SyncState? sync) => switch (sync?.health) {
-  SyncHealth.live => DeviceStatus(
-    DeviceState.connected,
-    'Connected',
-    'New notifications arrive as they happen.',
-    lastSyncedAt: sync!.lastSyncedAt,
-  ),
+  SyncHealth.live => DeviceStatus(DeviceState.connected, DeviceCondition.receiving, lastSyncedAt: sync!.lastSyncedAt),
   SyncHealth.offline => DeviceStatus(
     DeviceState.disconnected,
-    'Offline',
-    'Showing saved notifications until this device is back online.',
+    DeviceCondition.offline,
     fix: DeviceFix.retrySync,
     lastSyncedAt: sync!.lastSyncedAt,
   ),
-  _ => const DeviceStatus(DeviceState.connecting, 'Connecting', 'Reaching the server…'),
+  _ => const DeviceStatus(DeviceState.connecting, DeviceCondition.connecting),
 };
 
 /// Sender's view of one receiver: sharing must be on, the notification listener bound and the server reachable.
@@ -46,33 +39,17 @@ DeviceStatus receiverStatus({required SyncStatus sharing, required bool accessGr
   if (!accessGranted) {
     return const DeviceStatus(
       DeviceState.permissionRequired,
-      'Needs access',
-      'Notification access is off, so nothing can be shared.',
+      DeviceCondition.needsAccess,
       fix: DeviceFix.grantNotificationAccess,
     );
   }
   if (!sharing.enabled) {
-    return const DeviceStatus(
-      DeviceState.disconnected,
-      'Paused',
-      'Sharing is off. Turn it on to send notifications.',
-      fix: DeviceFix.resumeSharing,
-    );
+    return const DeviceStatus(DeviceState.disconnected, DeviceCondition.paused, fix: DeviceFix.resumeSharing);
   }
   if (!sharing.listenerConnected) {
-    return const DeviceStatus(
-      DeviceState.disconnected,
-      'Not receiving',
-      'Android stopped AirReply\'s notification listener.',
-      fix: DeviceFix.reconnectListener,
-    );
+    return const DeviceStatus(DeviceState.disconnected, DeviceCondition.notReceiving, fix: DeviceFix.reconnectListener);
   }
   final phone = phoneStatus(sync);
   if (phone.state != DeviceState.connected) return phone;
-  return DeviceStatus(
-    DeviceState.connected,
-    'Connected',
-    'New notifications are shared as they arrive.',
-    lastSyncedAt: phone.lastSyncedAt,
-  );
+  return DeviceStatus(DeviceState.connected, DeviceCondition.sharing, lastSyncedAt: phone.lastSyncedAt);
 }

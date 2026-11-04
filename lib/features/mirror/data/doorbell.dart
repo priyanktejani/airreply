@@ -60,13 +60,13 @@ final class Doorbell {
     );
     var response = await put();
     if (response.statusCode == 401) response = await put(forceRefresh: true);
-    if (response.statusCode != 200) throw SyncException('Doorbell refused (${response.statusCode}).');
+    if (response.statusCode != 200) throw SyncException(AppError.syncFailed, detail: 'doorbell ${response.statusCode}');
   }
 
   /// Takes the doorbell away: the pair has ended.
   Future<void> remove() async {
     final response = await _client.delete(_config.database(await _path(), auth: await _idToken()));
-    if (response.statusCode != 200) throw SyncException('Doorbell not removed (${response.statusCode}).');
+    if (response.statusCode != 200) throw SyncException(AppError.syncFailed, detail: 'doorbell ${response.statusCode}');
   }
 
   /// The doorbell's name for a pair: a blind index of its key, so only its two devices can find it.
@@ -104,9 +104,11 @@ final class Doorbell {
         final response = await client.send(request);
         if (response.statusCode == 401) {
           refresh = true;
-          throw const SyncException('Doorbell sign-in expired.');
+          throw const SyncException(AppError.syncFailed, detail: 'doorbell sign-in expired');
         }
-        if (response.statusCode != 200) throw SyncException('Doorbell unavailable (${response.statusCode}).');
+        if (response.statusCode != 200) {
+          throw SyncException(AppError.syncFailed, detail: 'doorbell ${response.statusCode}');
+        }
         String? event;
         await for (final line
             in response.stream.transform(utf8.decoder).transform(const LineSplitter()).timeout(silence)) {
@@ -124,13 +126,13 @@ final class Doorbell {
                 refresh = true;
                 break;
               case 'cancel':
-                throw const SyncException('Doorbell refused.');
+                throw const SyncException(AppError.syncFailed, detail: 'doorbell refused');
             }
             if (refresh) break;
           }
         }
         // the server closed it: connect again, waiting longer each time it keeps happening
-        if (!refresh) throw const SyncException('Doorbell closed.');
+        if (!refresh) throw const SyncException(AppError.syncFailed, detail: 'doorbell closed');
       } on Object catch (e) {
         if (_listening && !refresh) {
           if (_failures++ == 0) appLog('Doorbell disconnected: $e', name: 'air_reply.sync');

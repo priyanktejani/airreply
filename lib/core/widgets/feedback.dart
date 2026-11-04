@@ -1,4 +1,5 @@
-import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/l10n/describe_error.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -14,7 +15,7 @@ extension FeedbackContext on BuildContext {
   /// A message with an Undo action, for reversible actions (hide, mark all as read).
   void showUndo(String message, VoidCallback onUndo) => _snack(
     message,
-    action: SnackBarAction(label: 'Undo', onPressed: onUndo),
+    action: SnackBarAction(label: l10n.actionUndo, onPressed: onUndo),
     duration: const Duration(seconds: 5),
   );
 
@@ -58,7 +59,7 @@ extension FeedbackContext on BuildContext {
           content: Text(message),
           actionsPadding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.lg),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(context.l10n.actionCancel)),
             FilledButton(
               style: destructive ? FilledButton.styleFrom(backgroundColor: c.danger, foregroundColor: c.surface) : null,
               onPressed: () => Navigator.of(context).pop(true),

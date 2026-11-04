@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -65,13 +66,13 @@ class _SwipeActionsState extends State<SwipeActions> {
               child: read
                   ? _SwipeBackground(
                       icon: widget.isRead ? AppIcons.markEmailUnread : AppIcons.markEmailRead,
-                      label: widget.isRead ? 'Unread' : 'Read',
+                      label: widget.isRead ? context.l10n.swipeUnread : context.l10n.swipeRead,
                       alignment: Alignment.centerLeft,
                       radius: widget.radius,
                     )
                   : _SwipeBackground(
                       icon: AppIcons.visibilityOff,
-                      label: 'Hide',
+                      label: context.l10n.actionHide,
                       alignment: Alignment.centerRight,
                       radius: widget.radius,
                       danger: true,
@@ -93,9 +94,9 @@ class _SwipeActionsState extends State<SwipeActions> {
             onDismissed: (_) => unawaited(widget.onHide()),
             child: Semantics(
               customSemanticsActions: {
-                CustomSemanticsAction(label: widget.isRead ? 'Mark as unread' : 'Mark as read'): () =>
+                CustomSemanticsAction(label: widget.isRead ? context.l10n.markAsUnread : context.l10n.markAsRead): () =>
                     unawaited(widget.onToggleRead()),
-                const CustomSemanticsAction(label: 'Hide'): () => unawaited(widget.onHide()),
+                CustomSemanticsAction(label: context.l10n.actionHide): () => unawaited(widget.onHide()),
               },
               child: widget.child,
             ),

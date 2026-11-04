@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
@@ -122,7 +123,7 @@ class _ExpiryCountdownState extends State<ExpiryCountdown> {
         LinearProgressIndicator(value: fraction, color: urgent ? c.warnInk : c.ink),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          left == Duration.zero ? 'Code expired, making a new one' : 'Expires in ${left.inMinutes}:$seconds',
+          left == Duration.zero ? context.l10n.pairCodeExpired : context.l10n.pairExpiresIn(left.inMinutes, seconds),
           textAlign: TextAlign.center,
           style: AppType.supporting.copyWith(color: urgent ? c.warnInk : c.muted),
         ),
@@ -298,7 +299,7 @@ class PairingSteps extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.palette;
     return Semantics(
-      label: 'Step ${current + 1} of ${steps.length}: ${steps[current]}',
+      label: context.l10n.pairStepNamed(current + 1, steps.length, steps[current]),
       excludeSemantics: true,
       child: Row(
         children: [

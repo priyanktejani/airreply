@@ -2,6 +2,7 @@ import 'package:air_reply/core/theme/app_theme.dart';
 import 'package:air_reply/demo/demo_mode.dart';
 import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/group_widgets.dart';
+import 'package:air_reply/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +20,8 @@ void main() {
       ProviderScope(
         overrides: demoOverrides('receiver'),
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.light(),
           home: Scaffold(
             // in a list, as on the inbox

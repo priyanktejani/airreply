@@ -1,4 +1,5 @@
 import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
@@ -29,7 +30,7 @@ class UnreadCount extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(color: c.accent, borderRadius: AppRadius.fullBorder),
               child: Semantics(
-                label: '$count unread',
+                label: context.l10n.unreadCount(count),
                 excludeSemantics: true,
                 child: Text(count > 99 ? '99+' : '$count', style: AppType.caption.copyWith(color: c.accentInk)),
               ),

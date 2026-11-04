@@ -1,3 +1,4 @@
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
@@ -23,6 +24,8 @@ class FirebaseSetupRequiredApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       home: Builder(
@@ -37,18 +40,14 @@ class FirebaseSetupRequiredApp extends StatelessWidget {
                 SliverList.list(
                   children: [
                     const SizedBox(height: AppSpacing.lg),
-                    const SectionHeader(
-                      eyebrow: 'Setup required',
-                      title: 'Connect Firebase',
+                    SectionHeader(
+                      eyebrow: context.l10n.firebaseSetupEyebrow,
+                      title: context.l10n.firebaseSetupTitle,
                       large: true,
                       padding: EdgeInsets.zero,
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      'AirReply syncs your devices through your own Firebase project. Run this in the project folder, '
-                      'then rebuild the app.',
-                      style: AppType.bodyLarge.copyWith(color: c.muted),
-                    ),
+                    Text(context.l10n.firebaseSetupBody, style: AppType.bodyLarge.copyWith(color: c.muted)),
                     const SizedBox(height: AppSpacing.lg),
                     Container(
                       padding: const EdgeInsets.all(AppSpacing.base),
@@ -72,11 +71,11 @@ class FirebaseSetupRequiredApp extends StatelessWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => Clipboard.setData(const ClipboardData(text: command)),
                         icon: const Icon(AppIcons.contentCopy, size: 18),
-                        label: const Text('Copy command'),
+                        label: Text(context.l10n.actionCopyCommand),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.section),
-                    const Eyebrow('Details'),
+                    Eyebrow(context.l10n.firebaseSetupDetails),
                     const SizedBox(height: AppSpacing.sm),
                     SelectableText('$error', style: AppType.supporting.copyWith(color: c.muted)),
                   ],

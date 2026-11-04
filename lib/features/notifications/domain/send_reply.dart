@@ -12,13 +12,11 @@ final class SendReply {
 
   Future<void> call(MirroredNotification notification, String text) {
     final reply = text.trim();
-    if (reply.isEmpty) throw const ValidationException('Type a reply first.');
-    if (reply.length > maxLength) throw const ValidationException('That reply is too long.');
-    if (!notification.canReply) throw const ValidationException('This notification cannot be answered.');
+    if (reply.isEmpty) throw const ValidationException(AppError.replyEmpty);
+    if (reply.length > maxLength) throw const ValidationException(AppError.replyTooLong);
+    if (!notification.canReply) throw const ValidationException(AppError.replyNotPossible);
     if (notification.dismissedOnSender) {
-      throw const ValidationException(
-        'This notification was dismissed on your phone, so it can no longer be answered.',
-      );
+      throw const ValidationException(AppError.replyDismissed);
     }
     return _outbox.send(notificationId: notification.id, notificationKey: notification.content.key, text: reply);
   }

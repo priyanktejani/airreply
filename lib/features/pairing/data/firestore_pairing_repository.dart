@@ -52,7 +52,7 @@ final class FirestorePairingRepository implements PairingRepository {
       );
       if (created) return PairingDocuments.session(code, data)!;
     }
-    throw const PairingException('Could not create a pairing code. Please try again.');
+    throw const PairingException(AppError.pairingCodeNotCreated);
   }
 
   @override
@@ -99,7 +99,7 @@ final class FirestorePairingRepository implements PairingRepository {
   Future<String> confirmSession(PairingSession session) async {
     final uid = await _auth.ensureSignedIn();
     if (session.receiverUid == null || session.senderUid != uid) {
-      throw const PairingException('This session cannot be confirmed.');
+      throw const PairingException(AppError.sessionNotConfirmable);
     }
     final pair = _pairs.doc();
     final batch = _db.batch()
@@ -165,9 +165,9 @@ final class FirestorePairingRepository implements PairingRepository {
 
   void _ensureJoinable(PairingSession? session, String uid) {
     if (session == null || session.status != PairingStatus.waiting || session.isExpiredAt(_clock())) {
-      throw const PairingException('This code is no longer available. Make a new one on the other phone.');
+      throw const PairingException(AppError.codeUnavailable);
     }
-    if (session.senderUid == uid) throw const PairingException('A device cannot pair with itself.');
+    if (session.senderUid == uid) throw const PairingException(AppError.cannotPairWithItself);
   }
 
   Future<T> _guard<T>(Future<T> Function() body) async {
@@ -176,11 +176,11 @@ final class FirestorePairingRepository implements PairingRepository {
     } on AppException {
       rethrow;
     } on FirebaseException catch (e) {
-      throw SyncException(switch (e.code) {
-        'unavailable' => 'You appear to be offline. Check your connection and try again.',
-        'permission-denied' => 'This pairing session is not available to this device.',
-        _ => 'The server could not complete pairing (${e.code}).',
-      }, cause: e);
+      throw switch (e.code) {
+        'unavailable' => SyncException(AppError.offline, cause: e),
+        'permission-denied' => SyncException(AppError.pairingNotAvailable, cause: e),
+        _ => SyncException(AppError.pairingServerFailed, detail: e.code, cause: e),
+      };
     }
   }
 }

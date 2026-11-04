@@ -1,5 +1,6 @@
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
@@ -26,6 +27,7 @@ class WelcomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.palette;
+    final l10n = context.l10n;
     final canShare = AppPlatform.canShareNotifications;
 
     void choose(DeviceRole role) {
@@ -35,28 +37,23 @@ class WelcomeScreen extends ConsumerWidget {
 
     final sender = _RoleOption(
       icon: AppIcons.smartphone,
-      title: 'Share my notifications',
-      description: canShare
-          ? 'This phone sends its notifications to your other devices, and sends the replies you write there.'
-          : 'Only Android lets apps read notifications. Use an Android phone to share.',
+      title: l10n.roleShareTitle,
+      description: canShare ? l10n.roleShareDescription : l10n.roleShareUnavailable,
       onTap: canShare ? () => choose(DeviceRole.sender) : null,
     );
     final receiver = _RoleOption(
       icon: AppIcons.devices,
-      title: 'View and reply here',
-      description: 'See your phone\'s notifications on this device and answer messages without picking it up.',
+      title: l10n.roleReceiveTitle,
+      description: l10n.roleReceiveDescription,
       onTap: () => choose(DeviceRole.receiver),
     );
     // the option this platform can use goes first
     final options = canShare ? [sender, receiver] : [receiver, sender];
 
     final sections = <Widget>[
-      const UnderlinedHeadline(first: 'Your phone,', second: 'Everywhere.'),
-      Text(
-        'Read your phone\'s notifications on your iPhone, iPad, Mac, PC or browser, and reply to messages from there.',
-        style: AppType.bodyLarge.copyWith(color: c.muted),
-      ),
-      const SectionHeader(eyebrow: 'Get started', title: 'How will you use this device?', padding: EdgeInsets.zero),
+      UnderlinedHeadline(first: l10n.welcomeHeadlineFirst, second: l10n.welcomeHeadlineSecond),
+      Text(l10n.welcomeIntro, style: AppType.bodyLarge.copyWith(color: c.muted)),
+      SectionHeader(eyebrow: l10n.welcomeEyebrow, title: l10n.welcomeQuestion, padding: EdgeInsets.zero),
       for (final option in options) option,
       DecoratedBox(
         decoration: BoxDecoration(color: c.soft, borderRadius: AppRadius.lgBorder),
@@ -68,11 +65,7 @@ class WelcomeScreen extends ConsumerWidget {
               Icon(AppIcons.lock, size: AppDimensions.iconMd, color: c.accent),
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: Text(
-                  'End-to-end encrypted with a key only your devices hold. The server relays ciphertext it '
-                  'cannot read.',
-                  style: AppType.supporting.copyWith(color: c.muted),
-                ),
+                child: Text(context.l10n.welcomeEncryption, style: AppType.supporting.copyWith(color: c.muted)),
               ),
             ],
           ),

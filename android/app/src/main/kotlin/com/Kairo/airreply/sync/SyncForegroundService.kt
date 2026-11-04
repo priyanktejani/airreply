@@ -62,8 +62,8 @@ class SyncForegroundService : Service() {
         return Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_air_reply)
             .setColor(getColor(R.color.accent))
-            .setContentTitle("Notification Sync Active")
-            .setContentText("Mirroring alerts to your paired device")
+            .setContentTitle(getString(R.string.sync_notification_title))
+            .setContentText(getString(R.string.sync_notification_text))
             .setCategory(Notification.CATEGORY_SERVICE)
             .setOngoing(true)
             .setShowWhen(false)
@@ -71,7 +71,7 @@ class SyncForegroundService : Service() {
             .addAction(
                 Notification.Action.Builder(
                     Icon.createWithResource(this, android.R.drawable.ic_media_pause),
-                    "Pause",
+                    getString(R.string.sync_pause),
                     pause,
                 ).build(),
             )
@@ -85,10 +85,11 @@ class SyncForegroundService : Service() {
 
     private fun ensureChannel() {
         val manager = getSystemService(NotificationManager::class.java)
-        if (manager.getNotificationChannel(CHANNEL_ID) != null) return
+        // Created every time: Android keeps the user's settings and only updates the name and description, so they
+        // follow the phone's language.
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Sync status", NotificationManager.IMPORTANCE_LOW).apply {
-                description = "Shown while this phone shares its notifications"
+            NotificationChannel(CHANNEL_ID, getString(R.string.sync_channel_name), NotificationManager.IMPORTANCE_LOW).apply {
+                description = getString(R.string.sync_channel_description)
                 setShowBadge(false)
             },
         )

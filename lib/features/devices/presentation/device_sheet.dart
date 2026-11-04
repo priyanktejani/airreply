@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -17,6 +18,7 @@ import 'package:air_reply/core/widgets/feedback.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/devices/presentation/device_status_badge.dart';
+import 'package:air_reply/features/devices/presentation/device_status_text.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
@@ -39,15 +41,15 @@ class _DeviceSheet extends ConsumerWidget {
   /// Asks, then ends the pair on both devices. True once removed.
   static Future<bool> remove(BuildContext context, WidgetRef ref, PairingCredentials device) async {
     final confirmed = await context.confirm(
-      title: 'Remove ${device.peerName}?',
-      message:
-          'Syncing with ${device.peerName} stops on both devices, its encryption key is deleted, and the history '
-          'you share with it is removed. Other devices are not affected.',
-      confirmLabel: 'Remove',
+      title: context.l10n.removeDeviceTitle(device.peerName),
+      message: context.l10n.removeDeviceMessage(device.peerName),
+      confirmLabel: context.l10n.actionRemove,
       destructive: true,
     );
     if (!confirmed || !context.mounted) return false;
     final messenger = ScaffoldMessenger.of(context);
+    // read before the wait: the sheet may close while the device is removed
+    final removed = context.l10n.deviceRemoved(device.peerName);
     try {
       await ref.read(deviceSessionProvider.notifier).unpair(device.pairId);
     } on Object catch (e) {
@@ -55,7 +57,7 @@ class _DeviceSheet extends ConsumerWidget {
       return false;
     }
     ref.success();
-    messenger.showSnackBar(SnackBar(content: Text('${device.peerName} removed')));
+    messenger.showSnackBar(SnackBar(content: Text(removed)));
     return true;
   }
 
@@ -70,13 +72,19 @@ class _DeviceSheet extends ConsumerWidget {
 
     final fix = switch (status.fix) {
       DeviceFix.grantNotificationAccess => (
-        'Turn on notification access',
+        context.l10n.actionTurnOnAccess,
         ref.read(senderPermissionsProvider.notifier).openNotificationAccess,
       ),
-      DeviceFix.resumeSharing => ('Resume sharing', () => ref.read(syncStatusProvider.notifier).setEnabled(true)),
-      DeviceFix.reconnectListener => ('Reconnect', ref.read(syncStatusProvider.notifier).reconnectListener),
+      DeviceFix.resumeSharing => (
+        context.l10n.actionResumeSharing,
+        () => ref.read(syncStatusProvider.notifier).setEnabled(true),
+      ),
+      DeviceFix.reconnectListener => (
+        context.l10n.actionReconnect,
+        ref.read(syncStatusProvider.notifier).reconnectListener,
+      ),
       DeviceFix.retrySync => (
-        'Retry',
+        context.l10n.actionRetry,
         () async {
           refreshPair(ref, device.pairId);
           await Future<void>.delayed(const Duration(milliseconds: 600));
@@ -85,7 +93,7 @@ class _DeviceSheet extends ConsumerWidget {
       null => null,
     };
 
-    String when(DateTime? t) => t == null ? 'Not yet' : formatAgo(t);
+    String when(DateTime? t) => t == null ? context.l10n.notYet : formatAgo(context.l10n, t);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -102,7 +110,7 @@ class _DeviceSheet extends ConsumerWidget {
         const SizedBox(height: AppSpacing.md),
         DeviceStatusBadge(status: status),
         const SizedBox(height: AppSpacing.xs),
-        Text(status.detail, style: AppType.body.copyWith(color: c.muted)),
+        Text(status.detail(context.l10n), style: AppType.body.copyWith(color: c.muted)),
         if (fix case (final label, final action)) ...[
           const SizedBox(height: AppSpacing.base),
           AsyncButton(label: label, onPressed: action, expand: true),
@@ -111,11 +119,17 @@ class _DeviceSheet extends ConsumerWidget {
         CardGroup(
           inset: AppSpacing.card,
           children: [
-            _Fact('Status', status.state == DeviceState.connected ? 'Live' : status.label),
-            _Fact('Last synced', status.state == DeviceState.connected ? 'Now' : when(status.lastSyncedAt)),
-            _Fact(isSender ? 'Last shared' : 'Last notification', when(last)),
-            _Fact('Paired', formatLongDate(device.pairedAt)),
-            const _Fact('Encryption', 'End-to-end, AES-256-GCM'),
+            _Fact(
+              context.l10n.factStatus,
+              status.state == DeviceState.connected ? context.l10n.factLive : status.label(context.l10n),
+            ),
+            _Fact(
+              context.l10n.factLastSynced,
+              status.state == DeviceState.connected ? context.l10n.factNow : when(status.lastSyncedAt),
+            ),
+            _Fact(isSender ? context.l10n.lastShared : context.l10n.lastNotification, when(last)),
+            _Fact(context.l10n.factPaired, formatLongDate(context.l10n, device.pairedAt)),
+            _Fact(context.l10n.factEncryption, context.l10n.factEncryptionValue),
           ],
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -126,7 +140,7 @@ class _DeviceSheet extends ConsumerWidget {
             unawaited(router.push(AppRoutes.deviceHistory(device.pairId)));
           },
           icon: const Icon(AppIcons.notificationsNone, size: 18),
-          label: Text(isSender ? 'Browse what you shared' : 'Browse notification history'),
+          label: Text(isSender ? context.l10n.browseShared : context.l10n.browseHistory),
         ),
         const SizedBox(height: AppSpacing.sm),
         TextButton.icon(
@@ -135,7 +149,7 @@ class _DeviceSheet extends ConsumerWidget {
           },
           style: TextButton.styleFrom(foregroundColor: c.danger),
           icon: const Icon(AppIcons.linkOff, size: 18),
-          label: const Text('Remove device'),
+          label: Text(context.l10n.actionRemoveDevice),
         ),
       ],
     );

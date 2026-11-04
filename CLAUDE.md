@@ -25,7 +25,7 @@ Feature-first. Feature code lives in `lib/features/<feature>/` (`data/`, `domain
 shell, nav bar) in `lib/app/`; demo data in `lib/demo/`.
 
 - State: Riverpod 3 (`Provider`, `Notifier`, families keyed by records). No code generation, except drift's
-  `history_database.g.dart` (approved; `build.yaml` limits the generator to that file).
+  `history_database.g.dart` (approved; `build.yaml` limits the generator to that file) and gen-l10n's strings.
 - Navigation: go_router with a `StatefulShellRoute`; routes in `lib/app/router/`, paths built by `AppRoutes`.
 - Backend: Firebase (Auth, Firestore, Messaging); a REST client in `lib/core/firebase/rest/` for Windows and Linux.
 - Crypto: `cryptography` package, in `lib/core/crypto/`.
@@ -84,6 +84,29 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
 - Every mailbox document has `expireAt` (30 days) for a Firestore TTL policy. Dismissals are their own documents,
   written only for notifications that were mirrored.
 - `firestore.rules` must be deployed before an app with this change runs, or publishing is refused.
+
+## Localization
+
+Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configured in `l10n.yaml`.
+
+- User-facing strings live in `lib/l10n/app_en.arb` (the template), each with an `@key` description; read them with
+  `context.l10n.key` (`lib/core/l10n/l10n.dart`). Counts use ARB plurals, values use placeholders, never string
+  concatenation. New screens and strings go there, not as literals.
+- `lib/l10n/app_localizations*.dart` are generated on `flutter pub get` / `flutter run` (or `flutter gen-l10n`):
+  never edit them (the second approved code generator, beside drift's).
+- Languages: English (template), Hindi, Chinese (Simplified, `zh`), Spanish, French and German. A new language is a
+  new `lib/l10n/app_<code>.arb` with every key (the same placeholders; plurals keep an `other` case), plus its code
+  in `CFBundleLocalizations` (`ios/Runner/Info.plist`, `macos/Runner/Info.plist`) and `knownRegions` in both Xcode
+  projects, and `android/app/src/main/res/values-<code>/strings.xml` for the sharing service's status notification.
+- Every user-facing string is in the ARB files. Code with no `BuildContext` (alerts raised in the background) uses
+  `appL10n()` (the language chosen in Settings, `appLocaleProvider`, else the device's). Errors are `AppError` reasons that screens describe (`context.describeError`); device states are
+  `DeviceCondition`s (`DeviceStatusText`); feed periods are described by `FeedPeriodLabel`.
+- Times (`lib/core/utils/time_format.dart`) take the strings first: words from the ARB files, month and weekday names
+  from intl in the same language.
+- Left in English on purpose: the diagnostics report (for whoever helps; the screen says so in other languages),
+  device names sent at pairing, demo data, and log messages.
+- `test/app/screen_sizes_test.dart` opens every tab in each language on a small phone, so a long translation that
+  overflows fails a test.
 
 ## Design system
 

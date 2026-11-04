@@ -3,6 +3,7 @@ import 'package:air_reply/app/widgets/floating_nav_bar.dart';
 import 'package:air_reply/demo/demo_mode.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/group_widgets.dart';
 import 'package:air_reply/features/push/push_registration.dart';
+import 'package:air_reply/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -108,6 +109,26 @@ void main() {
             await tester.tap(find.byType(BackButton).first);
             await tester.pumpAndSettle();
           }
+        }
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump(const Duration(seconds: 2));
+      });
+    }
+  }
+
+  // Translations run longer than English (German most of all): every screen still fits a small phone.
+  for (final code in ['de', 'fr', 'es', 'hi', 'zh']) {
+    for (final role in ['receiver', 'sender']) {
+      testWidgets('nothing overflows in "$code" for a $role on a small phone', (tester) async {
+        tester.platformDispatcher.localesTestValue = [Locale(code)];
+        addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+        final l10n = lookupAppLocalizations(Locale(code));
+        await open(tester, role, const Size(360, 740));
+        expect(find.text(l10n.tabHome), findsWidgets);
+        await scrollAll(tester);
+        for (final t in [l10n.tabNotifications, l10n.tabDevices, l10n.tabSettings]) {
+          await tab(tester, t);
+          await scrollAll(tester);
         }
         await tester.pumpWidget(const SizedBox());
         await tester.pump(const Duration(seconds: 2));

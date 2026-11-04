@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -94,14 +95,14 @@ class AppGroupTile extends ConsumerWidget {
       time: group.lastActivity,
       unread: unread,
       title: _heading(group.threads.first, latest),
-      text: _previewText(ref, latest),
+      text: _previewText(ref, context.l10n, latest),
       summary: [
-        group.count == 1 ? '1 notification' : '${group.count} notifications',
-        if (conversations > 1) '$conversations conversations',
+        context.l10n.notificationsCount(group.count),
+        if (conversations > 1) context.l10n.conversationsCount(conversations),
       ].join(' · '),
       action: group.hasThreads
           ? IconButton(
-              tooltip: expanded ? 'Hide conversations' : 'Show conversations',
+              tooltip: expanded ? context.l10n.hideConversations : context.l10n.showConversations,
               onPressed: () {
                 ref.tick();
                 onToggleExpanded();
@@ -128,7 +129,11 @@ class AppGroupTile extends ConsumerWidget {
         onToggleRead: () => ref.toggleReadAll(context, group.entries, allRead: allRead),
         onHide: () => ref.hide(context, group.entries),
       ),
-      semanticLabel: '${group.appName}, ${group.count} notifications${unread > 0 ? ', $unread unread' : ''}',
+      semanticLabel: _withUnread(
+        context.l10n,
+        '${group.appName}, ${context.l10n.notificationsCount(group.count)}',
+        unread,
+      ),
       expansion: open
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -172,7 +177,7 @@ class GroupActionsMenu extends ConsumerWidget {
     final muted = ref.watch(appPreferencesProvider.select((p) => p.value?.mutedApps.contains(packageName) ?? false));
     final allRead = entries.every(isRead);
     return PopupMenuButton<String>(
-      tooltip: 'More actions',
+      tooltip: context.l10n.moreActions,
       icon: const Icon(AppIcons.moreVert),
       onSelected: (action) {
         switch (action) {
@@ -188,15 +193,15 @@ class GroupActionsMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (_) => [
-        const PopupMenuItem(value: 'unread', child: Text('Mark as unread')),
+        PopupMenuItem(value: 'unread', child: Text(context.l10n.markAsUnread)),
         PopupMenuItem(
           value: 'hide',
-          child: Text(entries.length == 1 ? 'Hide from this device' : 'Hide ${entries.length} notifications'),
+          child: Text(entries.length == 1 ? context.l10n.hideFromDevice : context.l10n.hideCount(entries.length)),
         ),
         if (isReceiver)
           PopupMenuItem(
             value: 'mute',
-            child: Text(muted ? 'Unmute alerts from $appName' : 'Mute alerts from $appName'),
+            child: Text(muted ? context.l10n.unmuteApp(appName) : context.l10n.muteApp(appName)),
           ),
       ],
     );
@@ -219,23 +224,24 @@ class ThreadTile extends ConsumerWidget {
     final unread = thread.entries.where((e) => !isRead(e)).length;
     final allRead = unread == 0;
     final latest = thread.latest;
-    final noun = thread.kind == ThreadKind.single ? 'notification' : 'message';
     // the conversation's name leads; in a group, who wrote last goes on the line above it
     final source = switch (thread.kind) {
-      ThreadKind.person => 'Chat',
-      ThreadKind.group => ['Group', ?messageSender(latest, thread.kind)].join(' · '),
-      ThreadKind.single => 'Notification',
+      ThreadKind.person => context.l10n.threadChat,
+      ThreadKind.group => [context.l10n.threadGroup, ?messageSender(latest, thread.kind)].join(' · '),
+      ThreadKind.single => context.l10n.threadNotification,
     };
     final title = thread.kind == ThreadKind.single ? latest.notification.content.title : thread.title;
     final count = thread.kind == ThreadKind.single ? thread.count : thread.messageCount;
-    final summary = count == 1 ? '1 $noun' : '$count ${noun}s';
+    final summary = thread.kind == ThreadKind.single
+        ? context.l10n.notificationsCount(count)
+        : context.l10n.messagesCount(count);
     final swipe = CardSwipe(
       id: 'thread/${thread.source}/${thread.packageName}/${thread.key}',
       isRead: allRead,
       onToggleRead: () => ref.toggleReadAll(context, thread.entries, allRead: allRead),
       onHide: () => ref.hide(context, thread.entries),
     );
-    final label = '${thread.title}, $summary${unread > 0 ? ', $unread unread' : ''}';
+    final label = _withUnread(context.l10n, '${thread.title}, $summary', unread);
     Widget avatar(double size) => ConversationAvatar(title: thread.title, kind: thread.kind, size: size);
     void onTap() => ref.openThread(context, thread);
 
@@ -246,7 +252,7 @@ class ThreadTile extends ConsumerWidget {
             time: thread.lastActivity,
             unread: unread,
             title: title,
-            text: _previewText(ref, latest),
+            text: _previewText(ref, context.l10n, latest),
             summary: summary,
             onTap: onTap,
             swipe: swipe,
@@ -258,7 +264,7 @@ class ThreadTile extends ConsumerWidget {
             time: thread.lastActivity,
             unread: unread,
             title: title,
-            text: _previewText(ref, latest),
+            text: _previewText(ref, context.l10n, latest),
             summary: summary,
             onTap: onTap,
             swipe: swipe,
@@ -276,10 +282,14 @@ String _heading(ConversationThread thread, FeedEntry latest) => switch (thread.k
 
 /// The latest notification's text as a card shows it: your reply, or the app's copy of a message you sent, reads as
 /// yours rather than as a message from someone else.
-String _previewText(WidgetRef ref, FeedEntry entry) {
+String _previewText(WidgetRef ref, AppLocalizations l10n, FeedEntry entry) {
   final text = messageText(entry.notification.content);
   final reply = entry.latestReply;
-  if (reply != null && ref.watch(deviceRoleProvider) == DeviceRole.receiver) return 'You: ${reply.text}';
+  if (reply != null && ref.watch(deviceRoleProvider) == DeviceRole.receiver) return l10n.youSaid(reply.text);
   final own = ref.watch(ownMessageProvider((pairId: entry.pairId, id: entry.notification.id))) != null;
-  return own && text.isNotEmpty ? 'You: $text' : text;
+  return own && text.isNotEmpty ? l10n.youSaid(text) : text;
 }
+
+/// [label] and, when there are any, how many of it are unread: for screen readers.
+String _withUnread(AppLocalizations l10n, String label, int unread) =>
+    unread > 0 ? l10n.withUnread(label, unread) : label;

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/app/widgets/floating_nav_bar.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -72,17 +73,18 @@ class _AppShellState extends ConsumerState<AppShell> {
       shell.goBranch(index, initialLocation: index == shell.currentIndex);
     }
 
+    final l10n = context.l10n;
     final items = [
-      const FloatingNavItem(icon: AppIcons.home, selectedIcon: AppIcons.homeSelected, label: 'Home'),
+      FloatingNavItem(icon: AppIcons.home, selectedIcon: AppIcons.homeSelected, label: l10n.tabHome),
       FloatingNavItem(
         icon: AppIcons.notificationsNone,
         selectedIcon: AppIcons.notificationsSelected,
-        label: 'Notifications',
-        semanticLabel: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
+        label: l10n.tabNotifications,
+        semanticLabel: l10n.tabNotificationsUnread(unread),
         badge: unread,
       ),
-      const FloatingNavItem(icon: AppIcons.devices, selectedIcon: AppIcons.devicesSelected, label: 'Devices'),
-      const FloatingNavItem(icon: AppIcons.settings, selectedIcon: AppIcons.settingsSelected, label: 'Settings'),
+      FloatingNavItem(icon: AppIcons.devices, selectedIcon: AppIcons.devicesSelected, label: l10n.tabDevices),
+      FloatingNavItem(icon: AppIcons.settings, selectedIcon: AppIcons.settingsSelected, label: l10n.tabSettings),
     ];
     final body = PopScope(
       canPop: shell.currentIndex == 0,

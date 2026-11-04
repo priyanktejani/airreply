@@ -117,7 +117,7 @@ final class _DemoPairs implements PairingCredentialsStore {
 }
 
 final class _DemoPairing implements PairingRepository {
-  static const _unavailable = PairingException('Pairing is turned off in demo mode.');
+  static const _unavailable = PairingException(AppError.pairingOffInDemo);
 
   @override
   Stream<bool> watchPairActive(String pairId) => Stream.value(true);

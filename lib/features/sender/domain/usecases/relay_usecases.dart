@@ -114,7 +114,7 @@ Future<void> _toAll<T>(List<T> targets, Future<void> Function(T target) action) 
       }),
   ]);
   if (failed > 0) {
-    throw SyncException('Could not reach $failed of ${targets.length} paired devices.', cause: firstError);
+    throw SyncException(AppError.devicesUnreachable, count: failed, total: targets.length, cause: firstError);
   }
 }
 

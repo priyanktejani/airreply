@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/describe_error.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -61,11 +63,11 @@ class _PairingPage extends ConsumerWidget {
       child: Scaffold(
         body: GlassScrollPage(
           maxWidth: 520,
-          title: Text(paired ? 'Pair a device' : 'Pair'),
+          title: Text(paired ? context.l10n.pairADevice : context.l10n.pairTitle),
           leading: BackButton(onPressed: back),
           slivers: [
             SliverToBoxAdapter(
-              child: PageIntro(eyebrow: 'Step ${step + 1} of ${steps.length}', title: title),
+              child: PageIntro(eyebrow: context.l10n.pairStep(step + 1, steps.length), title: title),
             ),
             SliverToBoxAdapter(
               child: PairingSteps(steps: steps, current: step),
@@ -108,7 +110,7 @@ class _SenderPairing extends ConsumerWidget {
       if (next is SenderPairingDone) {
         ref.success();
         context
-          ..showMessage('Paired with ${next.peerName}')
+          ..showMessage(context.l10n.pairPairedWith(next.peerName))
           ..go(AppRoutes.home);
       } else if (next is SenderPairingFailed) {
         ref.failure();
@@ -116,8 +118,8 @@ class _SenderPairing extends ConsumerWidget {
     });
 
     return _PairingPage(
-      title: paired ? 'Add a device' : 'Pair a device',
-      steps: const ['Show code', 'Verify', 'Done'],
+      title: paired ? context.l10n.pairAddADevice : context.l10n.pairADevice,
+      steps: [context.l10n.stepShowCode, context.l10n.stepVerify, context.l10n.stepDone],
       step: switch (state) {
         SenderPairingVerifying() => 1,
         SenderPairingDone() => 2,
@@ -137,12 +139,12 @@ class _SenderPairing extends ConsumerWidget {
           onConfirm: controller.confirm,
           onReject: controller.reject,
         ),
-        SenderPairingFailed(:final message) => EmptyState(
+        SenderPairingFailed(:final error) => EmptyState(
           icon: AppIcons.linkOff,
           tone: Tone.error,
-          title: 'Pairing stopped',
-          description: message,
-          action: FilledButton(onPressed: controller.newCode, child: const Text('Make a new code')),
+          title: context.l10n.pairStopped,
+          description: context.describeError(error),
+          action: FilledButton(onPressed: controller.newCode, child: Text(context.l10n.actionMakeNewCode)),
         ),
       },
     );
@@ -179,11 +181,7 @@ class _ShowCode extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'On your iPhone, iPad, Mac, PC, browser or other Android, open AirReply, choose "View and reply here", then '
-          'scan this code or type the digits.',
-          style: AppType.body.copyWith(color: c.muted),
-        ),
+        Text(context.l10n.pairShowCodeIntro, style: AppType.body.copyWith(color: c.muted)),
         const SizedBox(height: AppSpacing.xxl),
         Center(
           child: CornerFrame(
@@ -193,7 +191,7 @@ class _ShowCode extends StatelessWidget {
               // QR codes scan best dark on light, whatever the theme.
               color: Colors.white,
               child: Semantics(
-                label: 'Pairing QR code',
+                label: context.l10n.pairQrLabel,
                 child: QrImageView(data: qrData, size: 220, backgroundColor: Colors.white),
               ),
             ),
@@ -201,7 +199,7 @@ class _ShowCode extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xxl),
         Text(
-          'OR TYPE THIS CODE',
+          context.l10n.pairOrTypeCode,
           textAlign: TextAlign.center,
           style: AppType.label.copyWith(color: c.muted),
         ),
@@ -214,10 +212,10 @@ class _ShowCode extends StatelessWidget {
           child: TextButton.icon(
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: code));
-              if (context.mounted) context.showMessage('Code ${formatSixDigits(code)} copied');
+              if (context.mounted) context.showMessage(context.l10n.pairCodeCopied(formatSixDigits(code)));
             },
             icon: const Icon(AppIcons.contentCopy, size: 16),
-            label: const Text('Copy code'),
+            label: Text(context.l10n.actionCopyCode),
           ),
         ),
         const SizedBox(height: AppSpacing.base),
@@ -226,7 +224,7 @@ class _ShowCode extends StatelessWidget {
         OutlinedButton.icon(
           onPressed: onNewCode,
           icon: const Icon(AppIcons.refresh, size: 18),
-          label: const Text('New code'),
+          label: Text(context.l10n.actionNewCode),
         ),
       ],
     );
@@ -246,11 +244,10 @@ class _ConfirmCodes extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Do the codes match?', style: AppType.pageTitle.copyWith(color: c.ink)),
+        Text(context.l10n.pairCodesMatchQuestion, style: AppType.pageTitle.copyWith(color: c.ink)),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          '${state.receiverName} wants to pair. It must show exactly this code. If it does not, someone else may be '
-          'trying to connect.',
+          context.l10n.pairVerifyWarning(state.receiverName ?? context.l10n.theOtherDevice),
           style: AppType.body.copyWith(color: c.muted),
         ),
         const SizedBox(height: AppSpacing.xxl),
@@ -260,13 +257,13 @@ class _ConfirmCodes extends StatelessWidget {
           onPressed: state.confirming ? null : onConfirm,
           child: state.confirming
               ? SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 1.5, color: c.bg))
-              : const Text('Codes match, pair'),
+              : Text(context.l10n.actionCodesMatch),
         ),
         const SizedBox(height: AppSpacing.sm),
         TextButton(
           onPressed: state.confirming ? null : onReject,
           style: TextButton.styleFrom(foregroundColor: c.danger),
-          child: const Text('They do not match'),
+          child: Text(context.l10n.actionCodesDoNotMatch),
         ),
       ],
     );
@@ -307,7 +304,7 @@ class _ReceiverPairingState extends ConsumerState<_ReceiverPairing> {
       if (next is ReceiverPairingDone) {
         ref.success();
         context
-          ..showMessage('Paired with ${next.peerName}')
+          ..showMessage(context.l10n.pairPairedWith(next.peerName))
           ..go(AppRoutes.home);
       } else if (next is ReceiverPairingIdle && next.error != null && previous is! ReceiverPairingIdle) {
         ref.failure();
@@ -316,8 +313,8 @@ class _ReceiverPairingState extends ConsumerState<_ReceiverPairing> {
     });
 
     return _PairingPage(
-      title: paired ? 'Add another phone' : 'Pair with your phone',
-      steps: const ['Enter code', 'Verify', 'Done'],
+      title: paired ? context.l10n.pairAddAnotherPhone : context.l10n.pairWithYourPhone,
+      steps: [context.l10n.stepEnterCode, context.l10n.stepVerify, context.l10n.stepDone],
       step: switch (state) {
         ReceiverPairingAwaitingConfirmation() => 1,
         ReceiverPairingDone() => 2,
@@ -334,17 +331,21 @@ class _ReceiverPairingState extends ConsumerState<_ReceiverPairing> {
           key: const ValueKey('enter'),
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'On the Android phone you want to see here, open AirReply and choose "Share my notifications" (or '
-              '"Add a device" if it already shares). It shows a QR code and six digits.',
-              style: AppType.body.copyWith(color: c.muted),
-            ),
+            Text(context.l10n.pairEnterCodeIntro, style: AppType.body.copyWith(color: c.muted)),
             const SizedBox(height: AppSpacing.xl),
             if (AppPlatform.canScanQr) ...[
               SegmentedButton<_Method>(
-                segments: const [
-                  ButtonSegment(value: _Method.scan, icon: Icon(AppIcons.qrCodeScanner), label: Text('Scan')),
-                  ButtonSegment(value: _Method.code, icon: Icon(AppIcons.dialpad), label: Text('Type code')),
+                segments: [
+                  ButtonSegment(
+                    value: _Method.scan,
+                    icon: Icon(AppIcons.qrCodeScanner),
+                    label: Text(context.l10n.pairMethodScan),
+                  ),
+                  ButtonSegment(
+                    value: _Method.code,
+                    icon: Icon(AppIcons.dialpad),
+                    label: Text(context.l10n.pairMethodType),
+                  ),
                 ],
                 selected: {_method},
                 showSelectedIcon: false,
@@ -355,7 +356,7 @@ class _ReceiverPairingState extends ConsumerState<_ReceiverPairing> {
             if (_method == _Method.scan && AppPlatform.canScanQr)
               _Scanner(enabled: state is ReceiverPairingIdle, onScan: controller.joinFromQr)
             else ...[
-              Text('PAIRING CODE', style: AppType.label.copyWith(color: c.muted)),
+              Text(context.l10n.pairCodeLabel, style: AppType.label.copyWith(color: c.muted)),
               const SizedBox(height: AppSpacing.md),
               PairingCodeField(
                 controller: _code,
@@ -363,23 +364,20 @@ class _ReceiverPairingState extends ConsumerState<_ReceiverPairing> {
                 onSubmitted: controller.joinWithCode,
               ),
               const SizedBox(height: AppSpacing.sm),
-              Text(
-                'Pairing starts as soon as you type the last digit.',
-                style: AppType.supporting.copyWith(color: c.muted),
-              ),
+              Text(context.l10n.pairStartsOnLastDigit, style: AppType.supporting.copyWith(color: c.muted)),
             ],
             const SizedBox(height: AppSpacing.base),
             if (state is ReceiverPairingJoining) ...[
               const LinearProgressIndicator(),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Connecting…',
+                context.l10n.pairConnecting,
                 textAlign: TextAlign.center,
                 style: AppType.supporting.copyWith(color: c.muted),
               ),
             ],
-            if (state case ReceiverPairingIdle(:final String error))
-              Notice(tone: Tone.error, title: 'Could not pair', message: error),
+            if (state case ReceiverPairingIdle(:final Object error))
+              Notice(tone: Tone.error, title: context.l10n.pairCouldNotPair, message: context.describeError(error)),
           ],
         ),
       },
@@ -487,7 +485,7 @@ class _ScannerState extends State<_Scanner> with WidgetsBindingObserver {
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'Point the camera at the QR code on your phone.',
+          context.l10n.pairPointCamera,
           textAlign: TextAlign.center,
           style: AppType.supporting.copyWith(color: context.palette.muted),
         ),
@@ -518,14 +516,12 @@ class _CameraProblem extends StatelessWidget {
               Icon(denied ? AppIcons.noPhotography : AppIcons.videocamOff, size: 32, color: c.muted),
               const SizedBox(height: AppSpacing.md),
               Text(
-                denied
-                    ? 'AirReply needs the camera to scan. Allow it in your phone\'s settings, or type the code instead.'
-                    : 'The camera did not start.',
+                denied ? context.l10n.cameraDenied : context.l10n.cameraNotStarted,
                 textAlign: TextAlign.center,
                 style: AppType.body.copyWith(color: c.ink),
               ),
               const SizedBox(height: AppSpacing.base),
-              OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+              OutlinedButton(onPressed: onRetry, child: Text(context.l10n.actionTryAgain)),
             ],
           ),
         ),
@@ -548,24 +544,21 @@ class _AwaitingConfirmation extends StatelessWidget {
       key: const ValueKey('verify'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Confirm on $senderName', style: AppType.pageTitle.copyWith(color: c.ink)),
+        Text(context.l10n.pairConfirmOn(senderName), style: AppType.pageTitle.copyWith(color: c.ink)),
         const SizedBox(height: AppSpacing.sm),
-        Text(
-          'Check that your phone shows the same code, then tap "Codes match" there.',
-          style: AppType.body.copyWith(color: c.muted),
-        ),
+        Text(context.l10n.pairConfirmHint, style: AppType.body.copyWith(color: c.muted)),
         const SizedBox(height: AppSpacing.xxl),
         VerificationCodeView(code: code),
         const SizedBox(height: AppSpacing.xxl),
         const LinearProgressIndicator(),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Waiting for your phone…',
+          context.l10n.pairWaitingForPhone,
           textAlign: TextAlign.center,
           style: AppType.supporting.copyWith(color: c.muted),
         ),
         const SizedBox(height: AppSpacing.xl),
-        OutlinedButton(onPressed: onCancel, child: const Text('Cancel')),
+        OutlinedButton(onPressed: onCancel, child: Text(context.l10n.actionCancel)),
       ],
     );
   }

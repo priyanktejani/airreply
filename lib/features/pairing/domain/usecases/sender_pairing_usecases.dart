@@ -45,7 +45,7 @@ final class DeriveSenderSecrets {
   Future<PairingSecrets> call(PendingPairing pending, PairingSession joined) {
     final receiverKey = joined.receiverPublicKey;
     if (joined.status != PairingStatus.joined || receiverKey == null) {
-      throw const PairingException('No device has joined yet.');
+      throw const PairingException(AppError.noDeviceJoined);
     }
     return _keys.deriveSecrets(
       own: pending.keyPair,

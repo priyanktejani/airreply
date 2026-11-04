@@ -2,6 +2,7 @@ import 'package:air_reply/core/theme/app_theme.dart';
 import 'package:air_reply/core/widgets/status_pill.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/devices/presentation/device_status_badge.dart';
+import 'package:air_reply/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,12 +14,14 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: AppTheme.dark(),
         home: const Scaffold(
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DeviceStatusBadge(status: DeviceStatus(DeviceState.connected, 'Connected', '')),
+              DeviceStatusBadge(status: DeviceStatus(DeviceState.connected, DeviceCondition.receiving)),
               StatusPill('Sent', tone: PillTone.good),
             ],
           ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
@@ -26,7 +27,6 @@ final class MirroredAlerts {
 
   static const replyActionId = 'reply';
   static const _channelId = 'mirrored';
-  static const _channelName = 'Mirrored notifications';
   static const _appleReplyCategory = 'mirrored_reply';
 
   /// Windows toast buttons report their own `arguments` instead of the notification payload, so the reply button
@@ -39,6 +39,7 @@ final class MirroredAlerts {
     DidReceiveNotificationResponseCallback? onResponse,
     DidReceiveBackgroundNotificationResponseCallback? onBackgroundResponse,
   }) {
+    final l10n = appL10n();
     final apple = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -46,7 +47,14 @@ final class MirroredAlerts {
       notificationCategories: [
         DarwinNotificationCategory(
           _appleReplyCategory,
-          actions: [DarwinNotificationAction.text(replyActionId, 'Reply', buttonTitle: 'Send', placeholder: 'Reply…')],
+          actions: [
+            DarwinNotificationAction.text(
+              replyActionId,
+              l10n.alertReply,
+              buttonTitle: l10n.actionSend,
+              placeholder: l10n.alertReplyHint,
+            ),
+          ],
         ),
       ],
     );
@@ -55,7 +63,7 @@ final class MirroredAlerts {
         android: const AndroidInitializationSettings('ic_stat_air_reply'),
         iOS: apple,
         macOS: apple,
-        linux: const LinuxInitializationSettings(defaultActionName: 'Open AirReply'),
+        linux: LinuxInitializationSettings(defaultActionName: l10n.alertOpenApp),
         windows: WindowsInitializationSettings(
           appName: 'AirReply',
           appUserModelId: 'com.airreply.AirReply',
@@ -79,6 +87,7 @@ final class MirroredAlerts {
   }) {
     final content = notification.content;
     if (isTitledAsUser(content)) return Future.value();
+    final l10n = appL10n();
     final canReply = notification.acceptsReplies;
     // The icon stays out of the payload: the alert never shows it, and payloads should stay small.
     final payload = jsonEncode({
@@ -89,7 +98,7 @@ final class MirroredAlerts {
     });
     final source = deviceName == null ? content.appName : '${content.appName} · $deviceName';
     final title = !showContent || content.title.isEmpty ? content.appName : content.title;
-    final body = showContent ? content.text : 'New notification';
+    final body = showContent ? content.text : l10n.alertNewNotification;
     final apple = DarwinNotificationDetails(
       subtitle: source,
       threadIdentifier: content.packageName,
@@ -104,8 +113,8 @@ final class MirroredAlerts {
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
-          _channelName,
-          channelDescription: 'Notifications mirrored from your paired phone',
+          l10n.alertChannelName,
+          channelDescription: l10n.alertChannelDescription,
           // the app's accent on the status-bar icon and app name, as on the launcher icon
           color: AppPalette.light.accent,
           importance: Importance.high,
@@ -119,10 +128,10 @@ final class MirroredAlerts {
           visibility: showContent ? NotificationVisibility.private : NotificationVisibility.secret,
           actions: [
             if (canReply)
-              const AndroidNotificationAction(
+              AndroidNotificationAction(
                 replyActionId,
-                'Reply',
-                inputs: [AndroidNotificationActionInput(label: 'Reply…')],
+                l10n.alertReply,
+                inputs: [AndroidNotificationActionInput(label: l10n.alertReplyHint)],
                 semanticAction: SemanticAction.reply,
               ),
           ],
@@ -131,15 +140,19 @@ final class MirroredAlerts {
         macOS: apple,
         windows: WindowsNotificationDetails(
           subtitle: source,
-          inputs: [if (canReply) const WindowsTextInput(id: replyActionId, placeHolderContent: 'Reply…')],
+          inputs: [if (canReply) WindowsTextInput(id: replyActionId, placeHolderContent: l10n.alertReplyHint)],
           actions: [
             if (canReply)
-              WindowsAction(content: 'Send', arguments: '$_windowsReplyPrefix$payload', inputId: replyActionId),
+              WindowsAction(
+                content: l10n.actionSend,
+                arguments: '$_windowsReplyPrefix$payload',
+                inputId: replyActionId,
+              ),
           ],
         ),
-        linux: const LinuxNotificationDetails(
+        linux: LinuxNotificationDetails(
           category: LinuxNotificationCategory.imReceived,
-          defaultActionName: 'Open AirReply',
+          defaultActionName: l10n.alertOpenApp,
         ),
         web: const WebNotificationDetails(),
       ),

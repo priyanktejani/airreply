@@ -1,0 +1,7 @@
+# Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization): lib/l10n/app_*.arb become AppLocalizations,
+# generated on `flutter pub get` / `flutter run`, or with `flutter gen-l10n`.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+# AppLocalizations.of(context) is never null below MaterialApp, so callers need no `!`
+nullable-getter: false

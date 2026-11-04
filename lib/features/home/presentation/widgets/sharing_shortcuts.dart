@@ -1,4 +1,5 @@
 import 'package:air_reply/app/router/route_guard.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
@@ -21,10 +22,10 @@ class SharingShortcuts extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(appFilterProvider).value;
     final apps = switch (filter) {
-      null => 'Loading…',
-      AppFilter(mode: AppFilterMode.all) => 'Every app is shared',
-      AppFilter(:final packages) when packages.isEmpty => 'No apps selected: nothing is shared',
-      AppFilter(:final packages) => '${packages.length} selected ${packages.length == 1 ? 'app' : 'apps'}',
+      null => context.l10n.loading,
+      AppFilter(mode: AppFilterMode.all) => context.l10n.appsAllShared,
+      AppFilter(:final packages) when packages.isEmpty => context.l10n.appsNoneShared,
+      AppFilter(:final packages) => context.l10n.appsSelectedCount(packages.length),
     };
     return IntrinsicHeight(
       child: Row(
@@ -33,9 +34,9 @@ class SharingShortcuts extends ConsumerWidget {
           Expanded(
             child: _Shortcut(
               icon: AppIcons.apps,
-              who: 'Apps to share',
+              who: context.l10n.appsToShareTitle,
               title: apps,
-              action: 'Choose apps →',
+              action: context.l10n.actionChooseApps,
               onTap: () => context.push(AppRoutes.apps),
             ),
           ),
@@ -43,9 +44,9 @@ class SharingShortcuts extends ConsumerWidget {
           Expanded(
             child: _Shortcut(
               icon: AppIcons.addLink,
-              who: 'Add a device',
-              title: 'iPhone, iPad, Mac, PC, browser or Android',
-              action: 'Pair →',
+              who: context.l10n.pairAddADevice,
+              title: context.l10n.pairDeviceKinds,
+              action: context.l10n.actionPairArrow,
               onTap: () => context.push(AppRoutes.pair),
             ),
           ),

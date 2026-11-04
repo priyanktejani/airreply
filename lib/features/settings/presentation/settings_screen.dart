@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/app_language.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/platform/native_models.dart';
+import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -12,6 +15,7 @@ import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/theme/theme_mode.dart';
 import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/utils/time_format.dart';
+import 'package:air_reply/core/widgets/app_sheet.dart';
 import 'package:air_reply/core/widgets/async_button.dart';
 import 'package:air_reply/core/widgets/card_group.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
@@ -20,6 +24,7 @@ import 'package:air_reply/core/widgets/info_row.dart';
 import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
+import 'package:air_reply/features/devices/presentation/device_status_text.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
@@ -38,24 +43,44 @@ class SettingsScreen extends ConsumerWidget {
     final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
     final sections = [
       _Section(
-        eyebrow: 'Access',
-        title: 'Permissions',
+        eyebrow: context.l10n.settingsAccessEyebrow,
+        title: context.l10n.settingsPermissionsTitle,
         child: isSender ? const _SenderPermissions() : const _ReceiverPermissions(),
       ),
-      const _Section(eyebrow: 'Filter', title: 'Apps', child: _AppsRow()),
       _Section(
-        eyebrow: 'Privacy',
-        title: 'Mirroring and privacy',
+        eyebrow: context.l10n.settingsFilterEyebrow,
+        title: context.l10n.settingsAppsTitle,
+        child: const _AppsRow(),
+      ),
+      _Section(
+        eyebrow: context.l10n.settingsPrivacyEyebrow,
+        title: context.l10n.settingsPrivacyTitle,
         child: isSender ? const _SharingSettings() : const _AlertSettings(),
       ),
-      const _Section(eyebrow: 'Connection', title: 'Sync', child: _SyncSettings()),
-      const _Section(eyebrow: 'Appearance', title: 'Appearance and accessibility', child: _AppearanceSettings()),
-      const _Section(eyebrow: 'Data', title: 'Your data', child: _DataSettings()),
-      const _Section(eyebrow: 'Help', title: 'Help and about', child: _HelpSettings()),
+      _Section(
+        eyebrow: context.l10n.settingsConnectionEyebrow,
+        title: context.l10n.settingsSyncTitle,
+        child: const _SyncSettings(),
+      ),
+      _Section(
+        eyebrow: context.l10n.settingsAppearanceEyebrow,
+        title: context.l10n.settingsAppearanceTitle,
+        child: const _AppearanceSettings(),
+      ),
+      _Section(
+        eyebrow: context.l10n.settingsDataEyebrow,
+        title: context.l10n.settingsDataTitle,
+        child: const _DataSettings(),
+      ),
+      _Section(
+        eyebrow: context.l10n.settingsHelpEyebrow,
+        title: context.l10n.settingsHelpTitle,
+        child: const _HelpSettings(),
+      ),
     ];
     return Scaffold(
       body: GlassScrollPage(
-        title: const Text('Settings'),
+        title: Text(context.l10n.tabSettings),
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
@@ -96,12 +121,7 @@ class _Section extends StatelessWidget {
 }
 
 /// A short status word for a permission row, with "Open" / "Allow" when it is not granted.
-Widget _permissionTrailing(
-  BuildContext context, {
-  required bool? granted,
-  required VoidCallback onFix,
-  String fix = 'Open',
-}) {
+Widget _permissionTrailing(BuildContext context, {required bool? granted, required VoidCallback onFix, String? fix}) {
   final c = context.palette;
   return switch (granted) {
     true => Row(
@@ -109,10 +129,10 @@ Widget _permissionTrailing(
       children: [
         Icon(AppIcons.check, size: 16, color: c.accent),
         const SizedBox(width: AppSpacing.xs),
-        Text('On', style: AppType.button.copyWith(color: c.accent)),
+        Text(context.l10n.permissionOn, style: AppType.button.copyWith(color: c.accent)),
       ],
     ),
-    _ => TextButton(onPressed: onFix, child: Text(fix)),
+    _ => TextButton(onPressed: onFix, child: Text(fix ?? context.l10n.actionOpen)),
   };
 }
 
@@ -128,8 +148,8 @@ class _SenderPermissions extends ConsumerWidget {
       children: [
         InfoRow(
           icon: AppIcons.notificationsActive,
-          title: 'Notification access',
-          subtitle: 'Required to read and share notifications',
+          title: context.l10n.permissionAccessTitle,
+          subtitle: context.l10n.permissionAccessSubtitle,
           onTap: guarded(context, controller.openNotificationAccess),
           trailing: _permissionTrailing(
             context,
@@ -139,30 +159,30 @@ class _SenderPermissions extends ConsumerWidget {
         ),
         InfoRow(
           icon: AppIcons.campaign,
-          title: 'Status notification',
-          subtitle: 'Shows "Notification Sync Active" with a Pause button',
+          title: context.l10n.permissionStatusTitle,
+          subtitle: context.l10n.permissionStatusSubtitle,
           onTap: guarded(context, controller.requestPostNotifications),
           trailing: _permissionTrailing(
             context,
             granted: permissions?.postNotifications,
-            fix: 'Allow',
+            fix: context.l10n.actionAllow,
             onFix: guarded(context, controller.requestPostNotifications),
           ),
         ),
         if (restrictions.hasAutostartScreen)
           InfoRow(
             icon: AppIcons.rocketLaunch,
-            title: 'Autostart',
-            subtitle: 'Required on ${restrictions.vendorName} phones. Android cannot report it, so check it there.',
+            title: context.l10n.permissionAutostartTitle,
+            subtitle: context.l10n.permissionAutostartSubtitle(restrictions.vendorName),
             trailing: InfoRow.chevron,
             onTap: guarded(context, controller.openAutostartSettings),
           ),
         InfoRow(
           icon: AppIcons.batteryChargingFull,
-          title: 'Battery optimisation',
+          title: context.l10n.permissionBatteryTitle,
           subtitle: restrictions.ignoringBatteryOptimizations
-              ? 'Unrestricted: Android will not pause sharing'
-              : 'Set to "Unrestricted" so Android never pauses sharing',
+              ? context.l10n.permissionBatteryOk
+              : context.l10n.permissionBatteryFix,
           onTap: guarded(context, controller.openBatterySettings),
           trailing: _permissionTrailing(
             context,
@@ -186,12 +206,15 @@ class _ReceiverPermissions extends ConsumerWidget {
       children: [
         InfoRow(
           icon: AppIcons.notificationsActive,
-          title: 'Alerts',
-          subtitle: AppPlatform.isWeb
-              ? 'Lets this browser show new notifications'
-              : 'Lets this device alert you to new notifications',
+          title: context.l10n.permissionAlertsTitle,
+          subtitle: AppPlatform.isWeb ? context.l10n.permissionAlertsBrowser : context.l10n.permissionAlertsDevice,
           onTap: allowed == true ? null : guarded(context, request),
-          trailing: _permissionTrailing(context, granted: allowed, fix: 'Allow', onFix: guarded(context, request)),
+          trailing: _permissionTrailing(
+            context,
+            granted: allowed,
+            fix: context.l10n.actionAllow,
+            onFix: guarded(context, request),
+          ),
         ),
       ],
     );
@@ -207,20 +230,20 @@ class _AppsRow extends ConsumerWidget {
     final String subtitle;
     if (isSender) {
       subtitle = switch (ref.watch(appFilterProvider).value) {
-        null => 'Loading…',
-        AppFilter(mode: AppFilterMode.all) => 'Every app is shared',
-        AppFilter(:final packages) when packages.isEmpty => 'No apps selected: nothing is shared',
-        AppFilter(:final packages) => 'Only ${packages.length} selected ${packages.length == 1 ? 'app' : 'apps'}',
+        null => context.l10n.loading,
+        AppFilter(mode: AppFilterMode.all) => context.l10n.appsAllShared,
+        AppFilter(:final packages) when packages.isEmpty => context.l10n.appsNoneShared,
+        AppFilter(:final packages) => context.l10n.appsSomeShared(packages.length),
       };
     } else {
       final muted = ref.watch(appPreferencesProvider).value?.mutedApps.length ?? 0;
-      subtitle = muted == 0 ? 'Every app can alert you' : '$muted muted: they arrive silently';
+      subtitle = context.l10n.appsMuted(muted);
     }
     return CardGroup(
       children: [
         InfoRow(
           icon: isSender ? AppIcons.apps : AppIcons.notificationsOff,
-          title: isSender ? 'Apps to share' : 'Muted apps',
+          title: isSender ? context.l10n.appsToShareTitle : context.l10n.appsMutedTitle,
           subtitle: subtitle,
           trailing: InfoRow.chevron,
           onTap: () => context.push(AppRoutes.apps),
@@ -230,14 +253,8 @@ class _AppsRow extends ConsumerWidget {
   }
 }
 
-const _encryption = InfoRow(
-  icon: AppIcons.lockOutline,
-  title: 'End-to-end encrypted',
-  subtitle:
-      'Each pair has its own key, agreed between the two devices (X25519). Notifications and replies are sealed '
-      'with AES-256-GCM. History stays on your devices: the server only relays ciphertext and deletes each '
-      'message once it is delivered.',
-);
+Widget _encryption(BuildContext context) =>
+    InfoRow(icon: AppIcons.lockOutline, title: context.l10n.encryptionTitle, subtitle: context.l10n.encryptionDetail);
 
 class _SharingSettings extends ConsumerWidget {
   const _SharingSettings();
@@ -250,8 +267,8 @@ class _SharingSettings extends ConsumerWidget {
       children: [
         SwitchRow(
           icon: AppIcons.podcasts,
-          title: 'Share notifications',
-          subtitle: access ? sharing.label : 'Turn on notification access first',
+          title: context.l10n.shareNotificationsTitle,
+          subtitle: access ? sharing.label(context.l10n) : context.l10n.shareNeedsAccess,
           value: sharing.enabled,
           onChanged: access
               ? (on) {
@@ -260,7 +277,7 @@ class _SharingSettings extends ConsumerWidget {
                 }
               : null,
         ),
-        _encryption,
+        _encryption(context),
       ],
     );
   }
@@ -276,8 +293,8 @@ class _AlertSettings extends ConsumerWidget {
       children: [
         SwitchRow(
           icon: AppIcons.visibility,
-          title: 'Show message text in alerts',
-          subtitle: 'Off: alerts only name the app, for lock screens and shared displays',
+          title: context.l10n.alertTextTitle,
+          subtitle: context.l10n.alertTextSubtitle,
           value: preferences?.alertShowsContent ?? true,
           onChanged: preferences == null
               ? null
@@ -289,12 +306,10 @@ class _AlertSettings extends ConsumerWidget {
         if (!AppPlatform.usesPush)
           InfoRow(
             icon: AppIcons.desktopWindows,
-            title: AppPlatform.isWeb ? 'Alerts in this browser' : 'Alerts on this computer',
-            subtitle:
-                'New notifications alert you while AirReply is running. Keep it open (on Mac it keeps running when '
-                'you close the window).',
+            title: AppPlatform.isWeb ? context.l10n.alertsBrowserTitle : context.l10n.alertsComputerTitle,
+            subtitle: context.l10n.alertsWhileOpen,
           ),
-        _encryption,
+        _encryption(context),
       ],
     );
   }
@@ -309,34 +324,37 @@ class _SyncSettings extends ConsumerWidget {
     final status = ref.watch(overallStatusProvider);
     final lastSynced = ref.watch(lastSyncedProvider);
     final subtitle = switch (status?.state) {
-      null => 'No paired devices',
-      DeviceState.connected => '${status!.label}. Live now.',
-      _ when lastSynced != null => '${status!.label}. Last synced ${formatAgo(lastSynced)}.',
-      _ => '${status!.label}. ${status.detail}',
+      null => context.l10n.syncNoDevices,
+      DeviceState.connected => context.l10n.syncLive(status!.label(context.l10n)),
+      _ when lastSynced != null => context.l10n.syncLastSynced(
+        status!.label(context.l10n),
+        formatAgo(context.l10n, lastSynced),
+      ),
+      _ => context.l10n.syncStateDetail(status!.label(context.l10n), status.detail(context.l10n)),
     };
     return CardGroup(
       children: [
         InfoRow(
           icon: AppIcons.sync,
-          title: 'Sync status',
+          title: context.l10n.syncStatusTitle,
           subtitle: subtitle,
           trailing: TextButton(
             onPressed: () {
               for (final pair in ref.read(pairedDevicesProvider)) {
                 refreshPair(ref, pair.pairId);
               }
-              context.showMessage('Checking the connection…');
+              context.showMessage(context.l10n.syncChecking);
             },
-            child: const Text('Refresh'),
+            child: Text(context.l10n.actionRefresh),
           ),
         ),
         if (isSender)
           InfoRow(
             icon: AppIcons.sensors,
-            title: 'Notification listener',
-            subtitle: 'Ask Android to connect AirReply\'s listener again if devices stop receiving',
+            title: context.l10n.listenerTitle,
+            subtitle: context.l10n.listenerSubtitle,
             trailing: AsyncButton(
-              label: 'Reconnect',
+              label: context.l10n.actionReconnect,
               style: AsyncButtonStyle.text,
               onPressed: ref.read(syncStatusProvider.notifier).reconnectListener,
             ),
@@ -353,21 +371,31 @@ class _AppearanceSettings extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final haptics = ref.watch(appPreferencesProvider).value?.haptics ?? true;
+    final language = ref.watch(appLocaleProvider);
     return CardGroup(
       children: [
+        InfoRow(
+          icon: AppIcons.language,
+          title: context.l10n.languageTitle,
+          subtitle: language == null
+              ? context.l10n.languageSystemCurrent(languageNames[context.l10n.localeName] ?? context.l10n.localeName)
+              : languageNames[language.languageCode],
+          trailing: InfoRow.chevron,
+          onTap: () => unawaited(showAppSheet<void>(context, builder: (_) => const _LanguageSheet())),
+        ),
         Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.base),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const InfoRow(icon: AppIcons.contrast, title: 'Theme', subtitle: 'System follows this device'),
+              InfoRow(icon: AppIcons.contrast, title: context.l10n.themeTitle, subtitle: context.l10n.themeSubtitle),
               Padding(
                 padding: const EdgeInsets.only(left: InfoRow.textInset, right: AppSpacing.card),
                 child: SegmentedButton<ThemeMode>(
-                  segments: const [
-                    ButtonSegment(value: ThemeMode.system, label: Text('System')),
-                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+                  segments: [
+                    ButtonSegment(value: ThemeMode.system, label: Text(context.l10n.themeSystem)),
+                    ButtonSegment(value: ThemeMode.light, label: Text(context.l10n.themeLight)),
+                    ButtonSegment(value: ThemeMode.dark, label: Text(context.l10n.themeDark)),
                   ],
                   selected: {themeMode},
                   showSelectedIcon: false,
@@ -383,18 +411,58 @@ class _AppearanceSettings extends ConsumerWidget {
         if (!AppPlatform.isDesktop && !AppPlatform.isWeb)
           SwitchRow(
             icon: AppIcons.vibration,
-            title: 'Haptic feedback',
-            subtitle: 'A light tap when you send, toggle or confirm',
+            title: context.l10n.hapticsTitle,
+            subtitle: context.l10n.hapticsSubtitle,
             value: haptics,
             onChanged: (on) {
               unawaited(ref.read(appPreferencesProvider.notifier).setHaptics(on));
               if (on) ref.tick();
             },
           ),
-        const InfoRow(
-          icon: AppIcons.textFields,
-          title: 'Text size',
-          subtitle: 'AirReply follows the text size and bold text set on this device',
+        InfoRow(icon: AppIcons.textFields, title: context.l10n.textSizeTitle, subtitle: context.l10n.textSizeSubtitle),
+      ],
+    );
+  }
+}
+
+/// Every language the app speaks, each named in itself, and following the device; the choice applies at once.
+class _LanguageSheet extends ConsumerWidget {
+  const _LanguageSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.palette;
+    final chosen = ref.watch(appLocaleProvider);
+    Widget option(String title, Locale? locale) {
+      final selected = chosen?.languageCode == locale?.languageCode;
+      return Semantics(
+        selected: selected,
+        child: InfoRow(
+          title: title,
+          trailing: selected ? Icon(AppIcons.check, size: AppDimensions.iconMd, color: c.accent) : null,
+          onTap: () {
+            ref.tick();
+            unawaited(ref.read(appLocaleProvider.notifier).set(locale));
+            Navigator.pop(context);
+          },
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.sm, AppSpacing.xs, AppSpacing.base),
+          child: Text(context.l10n.languageTitle, style: AppType.section.copyWith(color: c.ink)),
+        ),
+        CardGroup(
+          inset: AppSpacing.card,
+          children: [
+            option(context.l10n.languageSystem, null),
+            for (final locale in AppLocalizations.supportedLocales)
+              option(languageNames[locale.languageCode] ?? locale.languageCode, locale),
+          ],
         ),
       ],
     );
@@ -413,11 +481,11 @@ class _DataSettings extends ConsumerWidget {
 
     Future<void> removeAll() async {
       final confirmed = await context.confirm(
-        title: 'Remove all devices?',
-        message:
-            'Syncing stops with ${devices.length == 1 ? devices.single.peerName : 'all ${devices.length} devices'}, '
-            'every encryption key is deleted, and the shared history is removed. You can pair again afterwards.',
-        confirmLabel: 'Remove all',
+        title: context.l10n.removeAllConfirmTitle,
+        message: devices.length == 1
+            ? context.l10n.removeAllConfirmOne(devices.single.peerName)
+            : context.l10n.removeAllConfirmMany(devices.length),
+        confirmLabel: context.l10n.actionRemoveAll,
         destructive: true,
       );
       if (!confirmed || !context.mounted) return;
@@ -432,30 +500,30 @@ class _DataSettings extends ConsumerWidget {
       children: [
         InfoRow(
           icon: AppIcons.doneAll,
-          title: 'Mark all as read',
-          subtitle: unread == 0 ? 'Nothing unread' : '$unread unread',
+          title: context.l10n.markAllReadTitle,
+          subtitle: context.l10n.unreadCount(unread),
           enabled: unread > 0,
           onTap: () {
             ref.success();
             unawaited(inbox.markAllRead());
-            context.showMessage('All marked as read');
+            context.showMessage(context.l10n.markedAllRead);
           },
         ),
         InfoRow(
           icon: AppIcons.visibility,
-          title: 'Restore hidden notifications',
-          subtitle: hidden == 0 ? 'Nothing hidden' : '$hidden hidden on this device',
+          title: context.l10n.restoreHiddenTitle,
+          subtitle: context.l10n.hiddenCount(hidden),
           enabled: hidden > 0,
           onTap: () {
             ref.success();
             unawaited(inbox.restoreHidden());
-            context.showMessage('Hidden notifications restored');
+            context.showMessage(context.l10n.hiddenRestored);
           },
         ),
         InfoRow(
           icon: AppIcons.linkOff,
-          title: 'Remove all devices',
-          subtitle: 'Ends every pair and deletes the keys and shared history',
+          title: context.l10n.removeAllTitle,
+          subtitle: context.l10n.removeAllSubtitle,
           destructive: true,
           enabled: devices.isNotEmpty,
           onTap: removeAll,
@@ -473,26 +541,26 @@ class _HelpSettings extends ConsumerWidget {
     children: [
       InfoRow(
         icon: AppIcons.helpOutline,
-        title: 'Troubleshooting',
-        subtitle: 'What to check when notifications or replies do not arrive',
+        title: context.l10n.troubleshootingTitle,
+        subtitle: context.l10n.troubleshootingSubtitle,
         trailing: InfoRow.chevron,
         onTap: () => context.go(AppRoutes.devices),
       ),
       InfoRow(
         icon: AppIcons.monitorHeart,
-        title: 'Diagnostics',
-        subtitle: 'Connection, permission and sync details to check or share',
+        title: context.l10n.diagnosticsTitle,
+        subtitle: context.l10n.diagnosticsSubtitle,
         trailing: InfoRow.chevron,
         onTap: () => context.push(AppRoutes.diagnostics),
       ),
       InfoRow(
         icon: AppIcons.description,
-        title: 'Open-source licences',
+        title: context.l10n.licencesTitle,
         trailing: InfoRow.chevron,
         onTap: () => showLicensePage(
           context: context,
           applicationName: 'AirReply',
-          applicationLegalese: 'Your phone\'s notifications, on every screen.',
+          applicationLegalese: context.l10n.appTagline,
         ),
       ),
     ],

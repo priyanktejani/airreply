@@ -1,3 +1,4 @@
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -64,7 +65,7 @@ class SkeletonList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-    label: 'Loading',
+    label: context.l10n.loading,
     child: Column(
       children: [
         for (var i = 0; i < rows; i++) ...[

@@ -2,6 +2,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -48,10 +49,10 @@ class DevicesScreen extends ConsumerWidget {
           }
           await Future<void>.delayed(const Duration(milliseconds: 600));
         },
-        title: const Text('Devices'),
+        title: Text(context.l10n.tabDevices),
         actions: [
           IconButton(
-            tooltip: isSender ? 'Add a device' : 'Add a phone',
+            tooltip: isSender ? context.l10n.pairAddADevice : context.l10n.addAPhone,
             onPressed: () => context.push(AppRoutes.pair),
             icon: const Icon(AppIcons.add),
           ),
@@ -63,12 +64,10 @@ class DevicesScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Eyebrow('${devices.length} paired'),
+                  Eyebrow(context.l10n.devicesPaired(devices.length)),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
-                    isSender
-                        ? 'This phone shares its notifications with these devices.'
-                        : 'This device shows notifications from these phones.',
+                    isSender ? context.l10n.devicesIntroSender : context.l10n.devicesIntroReceiver,
                     style: AppType.body.copyWith(color: context.palette.muted),
                   ),
                 ],
@@ -79,9 +78,12 @@ class DevicesScreen extends ConsumerWidget {
             SliverToBoxAdapter(
               child: EmptyState(
                 icon: AppIcons.devices,
-                title: 'No devices',
-                description: 'Pair a device to start.',
-                action: FilledButton(onPressed: () => context.push(AppRoutes.pair), child: const Text('Pair')),
+                title: context.l10n.devicesNone,
+                description: context.l10n.devicesNoneHint,
+                action: FilledButton(
+                  onPressed: () => context.push(AppRoutes.pair),
+                  child: Text(context.l10n.pairTitle),
+                ),
               ),
             )
           else
@@ -99,7 +101,7 @@ class DevicesScreen extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: () => context.push(AppRoutes.pair),
                 icon: const Icon(AppIcons.addLink, size: 18),
-                label: Text(isSender ? 'Add a device' : 'Add another phone'),
+                label: Text(isSender ? context.l10n.pairAddADevice : context.l10n.pairAddAnotherPhone),
               ),
             ),
           ),
@@ -111,7 +113,11 @@ class DevicesScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SectionHeader(eyebrow: 'Help', title: 'Troubleshooting', padding: EdgeInsets.zero),
+                    SectionHeader(
+                      eyebrow: context.l10n.settingsHelpEyebrow,
+                      title: context.l10n.troubleshootingTitle,
+                      padding: EdgeInsets.zero,
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     if (isSender) const _SenderHelp() else const _ReceiverHelp(),
                   ],
@@ -137,8 +143,12 @@ class _DeviceRow extends ConsumerWidget {
     final status = ref.watch(deviceStatusProvider(device.pairId));
     final last = ref.watch(lastActivityProvider(device.pairId));
     final facts = [
-      if (last != null) '${isSender ? 'Last shared' : 'Last notification'} ${formatAgo(last)}',
-      'Paired ${formatRelativeTime(device.pairedAt)}',
+      if (last != null)
+        context.l10n.factWithTime(
+          isSender ? context.l10n.lastShared : context.l10n.lastNotification,
+          formatAgo(context.l10n, last),
+        ),
+      context.l10n.pairedAgo(formatRelativeTime(context.l10n, device.pairedAt)),
     ];
     return AppCard(
       onTap: () => showDeviceSheet(context, device),
@@ -220,10 +230,8 @@ class _ReceiverHelp extends ConsumerWidget {
     inset: AppSpacing.card,
     children: [
       _Help(
-        question: 'Notifications are not arriving',
-        answer:
-            'On the phone, open AirReply and check that "Share notifications" is on and the app is allowed to run in '
-            'the background. Both devices need an internet connection. Then retry here.',
+        question: context.l10n.helpNotArrivingQ,
+        answer: context.l10n.helpNotArrivingA,
         actions: [
           OutlinedButton(
             onPressed: () {
@@ -231,30 +239,23 @@ class _ReceiverHelp extends ConsumerWidget {
                 refreshPair(ref, pair.pairId);
               }
             },
-            child: const Text('Retry sync'),
+            child: Text(context.l10n.actionRetrySync),
           ),
         ],
       ),
       _Help(
-        question: 'No alerts on this device',
-        answer:
-            'New notifications always reach the Notifications tab. To be alerted too, allow notifications for '
-            'AirReply, and check that the app is not muted in Settings → Muted apps.',
+        question: context.l10n.helpNoAlertsQ,
+        answer: context.l10n.helpNoAlertsA,
         actions: [
           AsyncButton(
-            label: 'Allow alerts',
+            label: context.l10n.actionAllowAlerts,
             style: AsyncButtonStyle.outlined,
             onPressed: ref.read(alertPermissionProvider.notifier).request,
           ),
-          OutlinedButton(onPressed: () => context.push(AppRoutes.apps), child: const Text('Muted apps')),
+          OutlinedButton(onPressed: () => context.push(AppRoutes.apps), child: Text(context.l10n.appsMutedTitle)),
         ],
       ),
-      const _Help(
-        question: 'A reply says "Expired on phone"',
-        answer:
-            'Replies are sent through the notification on the phone. Once it is cleared there, or the app replaced '
-            'it, it can no longer be answered. Reply to a newer notification, or from the phone.',
-      ),
+      _Help(question: context.l10n.helpExpiredQ, answer: context.l10n.helpExpiredA),
     ],
   );
 }
@@ -270,46 +271,38 @@ class _SenderHelp extends ConsumerWidget {
       inset: AppSpacing.card,
       children: [
         _Help(
-          question: 'Devices are not receiving notifications',
-          answer:
-              'Check that notification access is on and sharing is not paused. If Android stopped AirReply\'s '
-              'listener, reconnect it.',
+          question: context.l10n.helpNotReceivingQ,
+          answer: context.l10n.helpNotReceivingA,
           actions: [
             AsyncButton(
-              label: 'Reconnect listener',
+              label: context.l10n.actionReconnectListener,
               style: AsyncButtonStyle.outlined,
               onPressed: ref.read(syncStatusProvider.notifier).reconnectListener,
             ),
             OutlinedButton(
               onPressed: guarded(context, permissions.openNotificationAccess),
-              child: const Text('Notification access'),
+              child: Text(context.l10n.permissionAccessTitle),
             ),
           ],
         ),
         _Help(
-          question: 'Sharing stops after a while',
+          question: context.l10n.helpStopsQ,
           answer: restrictions?.hasAutostartScreen ?? false
-              ? 'On ${restrictions!.vendorName} phones, turn on Autostart for AirReply and set its battery use to '
-                    '"Unrestricted", or the phone stops it in the background.'
-              : 'Set AirReply\'s battery use to "Unrestricted" so Android does not pause it in the background.',
+              ? context.l10n.helpStopsAutostartA(restrictions!.vendorName)
+              : context.l10n.helpStopsA,
           actions: [
             if (restrictions?.hasAutostartScreen ?? false)
               OutlinedButton(
                 onPressed: guarded(context, permissions.openAutostartSettings),
-                child: const Text('Autostart'),
+                child: Text(context.l10n.permissionAutostartTitle),
               ),
             OutlinedButton(
               onPressed: guarded(context, permissions.openBatterySettings),
-              child: const Text('Battery settings'),
+              child: Text(context.l10n.actionBatterySettings),
             ),
           ],
         ),
-        const _Help(
-          question: 'Replies are not delivered',
-          answer:
-              'A reply is sent through the notification it answers, so that notification must still be in this '
-              'phone\'s status bar. Messaging apps that offer "Reply" in their notifications work best.',
-        ),
+        _Help(question: context.l10n.helpRepliesQ, answer: context.l10n.helpRepliesA),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:air_reply/core/animations/pressable_scale.dart';
 import 'package:air_reply/core/animations/smooth_size.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -163,7 +164,7 @@ class _Age extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) => Text(
-    formatRelativeTime(time, now: ref.watch(clockProvider).value),
+    formatRelativeTime(context.l10n, time, now: ref.watch(clockProvider).value),
     style: AppType.supporting.copyWith(color: context.palette.muted),
   );
 }

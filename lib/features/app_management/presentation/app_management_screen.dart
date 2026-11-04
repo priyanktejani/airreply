@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
-import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/l10n/describe_error.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -46,7 +47,7 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
     final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
     return Scaffold(
       body: GlassScrollPage(
-        title: Text(isSender ? 'Apps to share' : 'Muted apps'),
+        title: Text(isSender ? context.l10n.appsToShareTitle : context.l10n.appsMutedTitle),
         slivers: isSender ? _senderSlivers() : _receiverSlivers(),
       ),
     );
@@ -68,15 +69,12 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Choose what reaches your devices. This applies even while AirReply is closed.',
-                style: AppType.body.copyWith(color: c.muted),
-              ),
+              Text(context.l10n.appsShareIntro, style: AppType.body.copyWith(color: c.muted)),
               const SizedBox(height: AppSpacing.base),
               SegmentedButton<AppFilterMode>(
-                segments: const [
-                  ButtonSegment(value: AppFilterMode.all, label: Text('All apps')),
-                  ButtonSegment(value: AppFilterMode.selected, label: Text('Only selected')),
+                segments: [
+                  ButtonSegment(value: AppFilterMode.all, label: Text(context.l10n.filterAllApps)),
+                  ButtonSegment(value: AppFilterMode.selected, label: Text(context.l10n.appsOnlySelected)),
                 ],
                 selected: {current.mode},
                 showSelectedIcon: false,
@@ -86,11 +84,11 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
                 },
               ),
               if (current.mode == AppFilterMode.selected) ...[
-                _search('Search apps'),
+                _search(context.l10n.searchApps),
                 Text(
                   current.packages.isEmpty
-                      ? 'Nothing selected: no notifications are shared'
-                      : '${current.packages.length} selected',
+                      ? context.l10n.appsNothingSelected
+                      : context.l10n.appsSelected(current.packages.length),
                   style: AppType.supporting.copyWith(color: current.packages.isEmpty ? c.warnInk : c.muted),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -101,11 +99,11 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
         if (current.mode == AppFilterMode.selected)
           _InstalledAppList(filter: current, matches: _matches)
         else
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: EmptyState(
               icon: AppIcons.apps,
-              title: 'Every app is shared',
-              description: 'Choose "Only selected" to pick which apps reach your devices.',
+              title: context.l10n.appsAllShared,
+              description: context.l10n.appsOnlySelectedHint,
             ),
           ),
       ],
@@ -114,9 +112,12 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
           child: EmptyState(
             icon: AppIcons.errorOutline,
             tone: Tone.error,
-            title: 'Could not load your choice',
-            description: describeError(error),
-            action: OutlinedButton(onPressed: () => ref.invalidate(appFilterProvider), child: const Text('Try again')),
+            title: context.l10n.appsChoiceLoadFailed,
+            description: context.describeError(error),
+            action: OutlinedButton(
+              onPressed: () => ref.invalidate(appFilterProvider),
+              child: Text(context.l10n.actionTryAgain),
+            ),
           ),
         ),
       ],
@@ -137,20 +138,17 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Muted apps still arrive in Notifications, but never alert you on this device.',
-              style: AppType.body.copyWith(color: c.muted),
-            ),
-            if (apps.isNotEmpty) _search('Search apps'),
+            Text(context.l10n.appsMutedIntro, style: AppType.body.copyWith(color: c.muted)),
+            if (apps.isNotEmpty) _search(context.l10n.searchApps),
           ],
         ),
       ),
       if (apps.isEmpty)
-        const SliverToBoxAdapter(
+        SliverToBoxAdapter(
           child: EmptyState(
             icon: AppIcons.apps,
-            title: 'No apps yet',
-            description: 'Apps appear here once your phone has sent a notification from them.',
+            title: context.l10n.appsNoneYet,
+            description: context.l10n.appsNoneYetHint,
           ),
         )
       else
@@ -163,7 +161,7 @@ class _AppManagementScreenState extends ConsumerState<AppManagementScreen> {
             return SwitchRow(
               leading: MirroredAppIcon(packageName: package, appName: name, size: 32),
               title: name,
-              subtitle: muted ? 'Muted' : 'Alerts on',
+              subtitle: muted ? context.l10n.appMuted : context.l10n.appAlertsOn,
               value: !muted,
               onChanged: preferences == null
                   ? null
@@ -195,8 +193,8 @@ class _InstalledAppList extends ConsumerWidget {
             if (matches(app.label, app.packageName)) app,
         ];
         if (visible.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: EmptyState(icon: AppIcons.searchOff, title: 'No apps match'),
+          return SliverToBoxAdapter(
+            child: EmptyState(icon: AppIcons.searchOff, title: context.l10n.appsNoMatch),
           );
         }
         return SliverList.separated(
@@ -221,11 +219,11 @@ class _InstalledAppList extends ConsumerWidget {
         child: EmptyState(
           icon: AppIcons.errorOutline,
           tone: Tone.error,
-          title: 'Could not list apps',
-          description: describeError(error),
+          title: context.l10n.appsListFailed,
+          description: context.describeError(error),
           action: OutlinedButton(
             onPressed: () => ref.invalidate(installedAppsProvider),
-            child: const Text('Try again'),
+            child: Text(context.l10n.actionTryAgain),
           ),
         ),
       ),
@@ -235,7 +233,7 @@ class _InstalledAppList extends ConsumerWidget {
           child: Column(
             children: [
               const SkeletonList(rows: 6),
-              Text('Reading installed apps…', style: AppType.supporting.copyWith(color: c.muted)),
+              Text(context.l10n.appsReading, style: AppType.supporting.copyWith(color: c.muted)),
             ],
           ),
         ),

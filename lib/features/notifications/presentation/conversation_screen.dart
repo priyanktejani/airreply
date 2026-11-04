@@ -4,6 +4,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
@@ -101,12 +102,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             ? Padding(padding: AppInsets.page(context), child: const SkeletonList(rows: 3))
             : EmptyState(
                 icon: AppIcons.forum,
-                title: 'Nothing here now',
-                description:
-                    'These notifications were hidden, removed, or came from a device that is no longer paired.',
+                title: context.l10n.nothingHereNow,
+                description: context.l10n.goneDetail,
                 action: OutlinedButton(
                   onPressed: () => context.go(AppRoutes.notifications),
-                  child: const Text('Back to notifications'),
+                  child: Text(context.l10n.actionBackToNotifications),
                 ),
               ),
       );
@@ -117,7 +117,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
     final replyTarget = view.replyTarget;
     final isConversation = view.kind != ThreadKind.single;
     final messages = view.messageCount;
-    final subtitle = [view.appName, messages == 1 ? '1 message' : '$messages messages'].join(' · ');
+    final subtitle = context.l10n.messageCountSubtitle(view.appName, context.l10n.messagesCount(messages));
 
     final Widget? bottom = isReceiver && replyTarget != null
         ? ReplyComposer(
@@ -129,8 +129,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         : isReceiver && isConversation
         ? _Footnote(
             view.entries.first.notification.dismissedOnSender
-                ? 'These notifications were cleared on your phone, so they can no longer be answered from here.'
-                : '${view.appName} does not accept replies for this conversation.',
+                ? context.l10n.footnoteCleared
+                : context.l10n.footnoteNoReplies(view.appName),
           )
         : null;
 
@@ -353,7 +353,7 @@ class _TimelineState extends State<_Timeline> {
   /// group message whose sender the phone did not report says so, rather than seeming to continue the one before it.
   String? _senderOf(FeedEntry entry) => kind == ThreadKind.group ? messageSender(entry, kind) ?? _unknownSender : null;
 
-  static const _unknownSender = 'Unknown sender';
+  String get _unknownSender => context.l10n.unknownSender;
 
   @override
   Widget build(BuildContext context) {
@@ -389,8 +389,8 @@ class _TimelineState extends State<_Timeline> {
   }
 
   Widget _row(_Item item) => switch (item) {
-    _DayItem(:final date) => _Divider(formatDayLabel(date)),
-    _NewItem() => const _Divider('New', emphasis: true),
+    _DayItem(:final date) => _Divider(formatDayLabel(context.l10n, date)),
+    _NewItem() => _Divider(context.l10n.dividerNew, emphasis: true),
     _MessageItem(:final entry, :final showSender, :final mine) => MessageArrival(
       fromRight: mine,
       animate: !shownAtOpen.contains(entry.key),
@@ -527,12 +527,12 @@ class _MessageBubble extends ConsumerWidget {
                   spacing: AppSpacing.md,
                   runSpacing: AppSpacing.xxs,
                   children: [
-                    Text(formatClock(entry.postedAt), style: AppType.label.copyWith(color: c.muted)),
+                    Text(formatClock(context.l10n, entry.postedAt), style: AppType.label.copyWith(color: c.muted)),
                     if (mine)
-                      const StatusBadge(label: 'Sent from your phone', icon: AppIcons.smartphone)
+                      StatusBadge(label: context.l10n.sentFromPhone, icon: AppIcons.smartphone)
                     // only messages to you can be answered, so only theirs say they can no longer be
                     else if (entry.notification.dismissedOnSender)
-                      const StatusBadge(label: 'Cleared on phone', icon: AppIcons.phonelinkErase),
+                      StatusBadge(label: context.l10n.clearedOnPhone, icon: AppIcons.phonelinkErase),
                   ],
                 ),
               ),

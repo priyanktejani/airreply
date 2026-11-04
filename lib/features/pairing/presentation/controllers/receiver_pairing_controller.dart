@@ -17,7 +17,9 @@ sealed class ReceiverPairingState {
 /// Scanning or typing a code. [error] is the reason the last attempt failed.
 final class ReceiverPairingIdle extends ReceiverPairingState {
   const ReceiverPairingIdle({this.error});
-  final String? error;
+
+  /// Shown in the person's language by the screen (`context.describeError`).
+  final Object? error;
 }
 
 final class ReceiverPairingJoining extends ReceiverPairingState {
@@ -57,7 +59,7 @@ final class ReceiverPairingController extends Notifier<ReceiverPairingState> {
     if (state is! ReceiverPairingIdle) return;
     final invite = PairingInvite.tryParse(raw);
     if (invite == null) {
-      state = const ReceiverPairingIdle(error: 'That is not an AirReply pairing code.');
+      state = const ReceiverPairingIdle(error: PairingException(AppError.notAPairingCode));
       return;
     }
     await _join(invite.code, expectedSenderKey: invite.senderPublicKey);
@@ -96,7 +98,7 @@ final class ReceiverPairingController extends Notifier<ReceiverPairingState> {
   Future<void> _onSession(JoinedPairing joined, PairingSession? session) async {
     if (session == null || session.status == PairingStatus.cancelled) {
       await _sessionUpdates?.cancel();
-      return _fail(const PairingException('Pairing was cancelled on the other phone.'));
+      return _fail(const PairingException(AppError.pairingCancelledOnPhone));
     }
     if (session.status != PairingStatus.confirmed) return;
 
@@ -113,6 +115,6 @@ final class ReceiverPairingController extends Notifier<ReceiverPairingState> {
   }
 
   void _fail(Object error) {
-    if (ref.mounted) state = ReceiverPairingIdle(error: describeError(error));
+    if (ref.mounted) state = ReceiverPairingIdle(error: error);
   }
 }

@@ -3,6 +3,7 @@ import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -107,12 +108,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.lg, AppSpacing.page, AppSpacing.sm),
             sliver: SliverList.list(
               children: [
-                UnderlinedHeadline(first: 'Your phone,', second: isSender ? 'Shared.' : 'Everywhere.'),
+                UnderlinedHeadline(
+                  first: context.l10n.welcomeHeadlineFirst,
+                  second: isSender ? context.l10n.homeHeadlineSender : context.l10n.welcomeHeadlineSecond,
+                ),
                 const SizedBox(height: AppSpacing.base),
                 Text(
-                  isSender
-                      ? 'Notifications from this phone reach your other devices, and their replies come back.'
-                      : 'Your phone’s notifications arrive here. Read them, and reply without picking it up.',
+                  isSender ? context.l10n.homeIntroSender : context.l10n.homeIntroReceiver,
                   style: AppType.bodyLarge.copyWith(color: c.muted),
                 ),
               ],
@@ -121,7 +123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           PinnedSearchBar(
             maxWidth: maxWidth,
             field: SearchField(
-              hint: 'Search notifications',
+              hint: context.l10n.searchNotificationsHint,
               value: query,
               onChanged: ref.read(homeSearchQueryProvider.notifier).set,
             ),
@@ -179,7 +181,7 @@ class _HomeSections extends ConsumerWidget {
     final activity = <Widget>[
       isSender ? const SharingStatusCard() : const ReceivingStatusCard(),
       _gap,
-      const SectionHeader(eyebrow: 'Today', title: 'At a glance', padding: header),
+      SectionHeader(eyebrow: context.l10n.homeTodayEyebrow, title: context.l10n.homeGlanceTitle, padding: header),
       _headGap,
       GlanceStats(
         onToday: () => onOpenInbox(const FeedFilter(period: FeedPeriod.today)),
@@ -189,18 +191,16 @@ class _HomeSections extends ConsumerWidget {
       _gap,
       const AttentionNotices(bottom: AppSpacing.section),
       SectionHeader(
-        eyebrow: 'Recent activity',
-        title: 'Latest notifications',
-        actionLabel: 'See all',
+        eyebrow: context.l10n.homeRecentEyebrow,
+        title: context.l10n.homeLatestTitle,
+        actionLabel: context.l10n.actionSeeAll,
         onActionPressed: () => onOpenInbox(FeedFilter.none),
         padding: header,
       ),
       _headGap,
       switch (recent) {
         AsyncData(value: final entries) when entries.isEmpty => Text(
-          isSender
-              ? 'Nothing shared yet. New notifications on this phone will appear here.'
-              : 'Nothing yet. New notifications from your phone will appear here.',
+          isSender ? context.l10n.homeRecentEmptySender : context.l10n.homeRecentEmptyReceiver,
           style: AppType.body.copyWith(color: c.muted),
         ),
         AsyncData(value: final entries) => Column(
@@ -215,24 +215,28 @@ class _HomeSections extends ConsumerWidget {
             ],
           ],
         ),
-        AsyncError() => Text('Recent notifications could not be loaded.', style: AppType.body.copyWith(color: c.muted)),
+        AsyncError() => Text(context.l10n.homeRecentFailed, style: AppType.body.copyWith(color: c.muted)),
         _ => const SkeletonList(rows: 3, itemHeight: 76),
       },
     ];
     final guides = <Widget>[
       if (isSender) ...[
-        const SectionHeader(eyebrow: 'Sharing', title: 'This phone', padding: header),
+        SectionHeader(
+          eyebrow: context.l10n.homeSharingEyebrow,
+          title: context.l10n.homeThisPhoneTitle,
+          padding: header,
+        ),
         _headGap,
         const SharingShortcuts(),
         _gap,
       ],
       SectionHeader(
-        eyebrow: 'How it works',
-        title: isSender ? 'Share once. Reply anywhere.' : 'Three steps. Every screen.',
+        eyebrow: context.l10n.howItWorksEyebrow,
+        title: isSender ? context.l10n.howItWorksSenderTitle : context.l10n.howItWorksReceiverTitle,
         padding: header,
       ),
       _headGap,
-      HowItWorks(items: isSender ? HowItWorks.senderSteps : HowItWorks.steps),
+      HowItWorks(items: isSender ? HowItWorks.senderSteps(context.l10n) : HowItWorks.steps(context.l10n)),
     ];
 
     var n = 0;
@@ -260,7 +264,7 @@ class _BellButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final unread = ref.watch(unreadCountProvider);
     return IconButton(
-      tooltip: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
+      tooltip: context.l10n.bellUnread(unread),
       onPressed: () => context.go(AppRoutes.notifications),
       icon: Badge(
         isLabelVisible: unread > 0,

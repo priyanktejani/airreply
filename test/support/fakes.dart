@@ -64,7 +64,7 @@ class InMemoryPairingRepository implements PairingRepository {
   }) async {
     final session = sessions[code];
     if (session == null || session.status != PairingStatus.waiting) {
-      throw const PairingException('not available');
+      throw const PairingException(AppError.codeUnavailable);
     }
     return _put(
       PairingSession(

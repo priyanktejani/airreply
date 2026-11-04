@@ -16,6 +16,12 @@ class AppGlass {
     return c.surface.withValues(alpha: strong ? (dark ? .86 : .9) : (dark ? .7 : .74));
   }
 
+  /// Fill of the bars pinned over scrolling pages (app bar): the page colour, nearly opaque. Big bright text (Home's
+  /// headline) races under them on a fast scroll; any thinner and it shows through as a passing glow, so the bar seems
+  /// to flick between see-through and frosted.
+  static Color barFill(BuildContext context) =>
+      context.palette.bg.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? .9 : .88);
+
   /// Fill for a selected card: the brand's soft accent, still translucent.
   static Color selectedFill(BuildContext context) {
     final c = context.palette;

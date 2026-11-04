@@ -3,24 +3,25 @@ import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/widgets/app_card.dart';
+import 'package:air_reply/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// The steps on one card, numbered and joined by a line: a receiver's ([steps]) or a phone's ([senderSteps]).
 class HowItWorks extends StatelessWidget {
-  const HowItWorks({this.items = steps, super.key});
+  const HowItWorks({required this.items, super.key});
 
   final List<(String, String)> items;
 
-  static const steps = [
-    ('Share from your phone', 'On your Android phone, AirReply sends each notification here, end-to-end encrypted.'),
-    ('Read it here', 'Notifications arrive within seconds, grouped by app and by person.'),
-    ('Reply from anywhere', 'Write an answer here; your phone sends it through the app it came from.'),
+  static List<(String, String)> steps(AppLocalizations l10n) => [
+    (l10n.stepShareTitle, l10n.stepShareText),
+    (l10n.stepReadTitle, l10n.stepReadText),
+    (l10n.stepReplyTitle, l10n.stepReplyText),
   ];
 
-  static const senderSteps = [
-    ('Pick what to share', 'Choose every app, or only the ones you want on your other devices.'),
-    ('Pair your devices', 'A Mac, PC, iPhone, iPad or browser scans a code once, and they stay paired.'),
-    ('Reply from anywhere', 'Replies written there are sent from this phone, through the app they belong to.'),
+  static List<(String, String)> senderSteps(AppLocalizations l10n) => [
+    (l10n.stepPickTitle, l10n.stepPickText),
+    (l10n.stepPairTitle, l10n.stepPairText),
+    (l10n.stepReplyTitle, l10n.stepReplySenderText),
   ];
 
   /// The numbered dot's diameter.

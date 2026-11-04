@@ -4,6 +4,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -80,11 +81,11 @@ class _NotificationDetailScreenState extends ConsumerState<NotificationDetailScr
             ? Padding(padding: AppInsets.page(context), child: const SkeletonList(rows: 2))
             : EmptyState(
                 icon: AppIcons.notificationsOff,
-                title: 'Not available',
-                description: 'This notification was removed, hidden, or belongs to a device that is no longer paired.',
+                title: context.l10n.notAvailable,
+                description: context.l10n.notificationGoneDetail,
                 action: OutlinedButton(
                   onPressed: () => context.go(AppRoutes.notifications),
-                  child: const Text('Back to notifications'),
+                  child: Text(context.l10n.actionBackToNotifications),
                 ),
               ),
       );
@@ -105,7 +106,7 @@ class _NotificationDetailScreenState extends ConsumerState<NotificationDetailScr
         ),
         actions: [
           IconButton(
-            tooltip: 'Mark as unread',
+            tooltip: context.l10n.markAsUnread,
             onPressed: isRead
                 ? () async {
                     await ref.toggleRead(context, entry, isRead: true);
@@ -115,12 +116,12 @@ class _NotificationDetailScreenState extends ConsumerState<NotificationDetailScr
             icon: const Icon(AppIcons.markEmailUnread),
           ),
           IconButton(
-            tooltip: 'Copy text',
+            tooltip: context.l10n.copyText,
             onPressed: () => ref.copyText(context, entry),
             icon: const Icon(AppIcons.contentCopy),
           ),
           IconButton(
-            tooltip: 'Hide from this device',
+            tooltip: context.l10n.hideFromDevice,
             onPressed: () {
               unawaited(ref.hide(context, [entry]));
               _close();
@@ -190,9 +191,15 @@ class _Body extends ConsumerWidget {
         if (!echoKeys.contains(e.key))
           (
             e.postedAt,
-            _MessageCard.notification(e, own: ownMessage(e, [for (final s in sent) s.reply]), isReceiver: isReceiver),
+            _MessageCard.notification(
+              context.l10n,
+              e,
+              own: ownMessage(e, [for (final s in sent) s.reply]),
+              isReceiver: isReceiver,
+            ),
           ),
-      for (final s in sent) (s.reply.createdAt, _MessageCard.reply(s.reply, to: s.to, echo: echoes[s.reply.id])),
+      for (final s in sent)
+        (s.reply.createdAt, _MessageCard.reply(context.l10n, s.reply, to: s.to, echo: echoes[s.reply.id])),
     ]..sort((a, b) => b.$1.compareTo(a.$1));
 
     return Column(
@@ -222,7 +229,12 @@ class _MessageCard extends StatelessWidget {
   });
 
   /// An incoming notification (or a message you wrote on the phone, [own]).
-  factory _MessageCard.notification(FeedEntry entry, {required OwnMessage? own, required bool isReceiver}) {
+  factory _MessageCard.notification(
+    AppLocalizations l10n,
+    FeedEntry entry, {
+    required OwnMessage? own,
+    required bool isReceiver,
+  }) {
     final notification = entry.notification;
     final content = notification.content;
     final group = content.isGroupConversation ? content.conversationTitle?.trim() : null;
@@ -233,7 +245,7 @@ class _MessageCard extends StatelessWidget {
       appName: content.appName,
       // in a group chat, the person who wrote it; the group is named under it
       who: own != null
-          ? 'You'
+          ? l10n.you
           : group != null && sender != null && sender.isNotEmpty
           ? sender
           : content.title.isEmpty
@@ -245,37 +257,37 @@ class _MessageCard extends StatelessWidget {
       text: text.isEmpty ? content.title : text,
       pills: [
         if (own != null)
-          const StatusPill('Sent from your phone', tone: PillTone.good)
+          StatusPill(l10n.sentFromPhone, tone: PillTone.good)
         else if (notification.dismissedOnSender)
-          const StatusPill('Cleared on phone', tone: PillTone.warn)
+          StatusPill(l10n.clearedOnPhone, tone: PillTone.warn)
         else if (notification.canReply)
-          StatusPill(isReceiver ? 'Can reply' : 'Can be answered', tone: PillTone.good)
+          StatusPill(isReceiver ? l10n.canReply : l10n.canBeAnswered, tone: PillTone.good)
         else
-          const StatusPill('No replies in this app'),
+          StatusPill(l10n.noRepliesInApp),
       ],
     );
   }
 
   /// A reply you sent from AirReply, to [to]; [echo] is the app's copy of it on the phone, once it went out.
-  factory _MessageCard.reply(ReplyCommand reply, {required FeedEntry to, FeedEntry? echo}) {
+  factory _MessageCard.reply(AppLocalizations l10n, ReplyCommand reply, {required FeedEntry to, FeedEntry? echo}) {
     final content = to.notification.content;
     final (state, tone) = switch (reply.status) {
-      ReplyStatus.pending => ('Sending', PillTone.neutral),
-      ReplyStatus.sent when echo != null => ('Delivered', PillTone.good),
-      ReplyStatus.sent => ('Sent', PillTone.good),
-      ReplyStatus.expired => ('Expired on phone', PillTone.warn),
-      ReplyStatus.failed => ('Not delivered', PillTone.bad),
+      ReplyStatus.pending => (l10n.replySending, PillTone.neutral),
+      ReplyStatus.sent when echo != null => (l10n.replyDelivered, PillTone.good),
+      ReplyStatus.sent => (l10n.replySent, PillTone.good),
+      ReplyStatus.expired => (l10n.replyExpired, PillTone.warn),
+      ReplyStatus.failed => (l10n.replyNotDelivered, PillTone.bad),
     };
     return _MessageCard(
       packageName: content.packageName,
       appName: content.appName,
-      who: 'You',
+      who: l10n.you,
       group: content.isGroupConversation ? content.conversationTitle?.trim() : null,
       where: '${content.appName} · ${to.deviceName}',
       at: reply.createdAt,
       text: reply.text,
       pills: [
-        const StatusPill('Your reply', tone: PillTone.good),
+        StatusPill(l10n.yourReply, tone: PillTone.good),
         StatusPill(state, tone: tone),
       ],
     );
@@ -324,8 +336,8 @@ class _MessageCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(formatClock(at), style: AppType.titleSmall.copyWith(color: c.ink)),
-                  Text(formatDayLabel(at), style: AppType.supporting.copyWith(color: c.muted)),
+                  Text(formatClock(context.l10n, at), style: AppType.titleSmall.copyWith(color: c.ink)),
+                  Text(formatDayLabel(context.l10n, at), style: AppType.supporting.copyWith(color: c.muted)),
                 ],
               ),
             ],

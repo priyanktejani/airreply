@@ -1,8 +1,10 @@
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
+import 'package:air_reply/features/devices/presentation/device_status_text.dart';
 import 'package:flutter/material.dart';
 
 /// A device's state as a small pill: a dot, the word and its colour together (accent connected, amber offline, red
@@ -40,7 +42,7 @@ class DeviceStatusBadge extends StatelessWidget {
               const SizedBox(width: AppSpacing.xs + 2),
               Flexible(
                 child: Text(
-                  status.label,
+                  status.label(context.l10n),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppType.label.copyWith(color: ink, letterSpacing: 0),

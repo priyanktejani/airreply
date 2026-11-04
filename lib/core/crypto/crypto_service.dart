@@ -39,7 +39,7 @@ final class CryptoService implements KeyAgreement, PayloadCipher {
     required Uint8List senderPublicKey,
     required Uint8List receiverPublicKey,
   }) async {
-    if (peerPublicKey.length != 32) throw const PairingException('The other device sent an invalid key.');
+    if (peerPublicKey.length != 32) throw const PairingException(AppError.invalidPeerKey);
 
     final shared = await _x25519.sharedSecretKey(
       keyPair: SimpleKeyPairData(
@@ -50,7 +50,7 @@ final class CryptoService implements KeyAgreement, PayloadCipher {
       remotePublicKey: SimplePublicKey(peerPublicKey, type: KeyPairType.x25519),
     );
     final sharedBytes = await shared.extractBytes();
-    if (sharedBytes.every((b) => b == 0)) throw const PairingException('The other device sent an unsafe key.');
+    if (sharedBytes.every((b) => b == 0)) throw const PairingException(AppError.unsafePeerKey);
 
     // The salt binds the derived keys to this exact pairing transcript.
     final salt = [...utf8.encode('$_protocol|$code|'), ...senderPublicKey, ...receiverPublicKey];
@@ -73,7 +73,7 @@ final class CryptoService implements KeyAgreement, PayloadCipher {
       final box = await _aesGcm.encrypt(utf8.encode(jsonEncode(json)), secretKey: SecretKey(key), aad: _aad(context));
       return '$_envelopeVersion.${base64Url.encode(box.concatenation())}';
     } catch (e) {
-      throw CryptoException('Could not encrypt the payload.', cause: e);
+      throw CryptoException(AppError.encryptFailed, cause: e);
     }
   }
 
@@ -81,7 +81,7 @@ final class CryptoService implements KeyAgreement, PayloadCipher {
   Future<Map<String, Object?>> open(String envelope, {required Uint8List key, required String context}) async {
     final dot = envelope.indexOf('.');
     if (dot < 0 || envelope.substring(0, dot) != _envelopeVersion) {
-      throw const CryptoException('Unknown payload format.');
+      throw const CryptoException(AppError.payloadUnknown);
     }
     try {
       final box = SecretBox.fromConcatenation(
@@ -92,9 +92,9 @@ final class CryptoService implements KeyAgreement, PayloadCipher {
       final clear = await _aesGcm.decrypt(box, secretKey: SecretKey(key), aad: _aad(context));
       return (jsonDecode(utf8.decode(clear)) as Map).cast<String, Object?>();
     } on SecretBoxAuthenticationError catch (e) {
-      throw CryptoException('This payload was not made with the pair key, or it was altered.', cause: e);
+      throw CryptoException(AppError.payloadForeign, cause: e);
     } catch (e) {
-      throw CryptoException('Could not decrypt the payload.', cause: e);
+      throw CryptoException(AppError.decryptFailed, cause: e);
     }
   }
 

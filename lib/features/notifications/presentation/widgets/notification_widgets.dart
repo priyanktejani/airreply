@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:air_reply/app/router/route_guard.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -78,10 +79,7 @@ extension EntryActions on WidgetRef {
     tick();
     final keys = [for (final e in entries) e.key];
     final inbox = read(inboxStateProvider.notifier);
-    context.showUndo(
-      entries.length == 1 ? 'Notification hidden' : '${entries.length} notifications hidden',
-      () => unawaited(inbox.unhide(keys)),
-    );
+    context.showUndo(context.l10n.notificationHidden(entries.length), () => unawaited(inbox.unhide(keys)));
     return inbox.hide(keys);
   }
 
@@ -110,7 +108,7 @@ extension EntryActions on WidgetRef {
   Future<void> copyText(BuildContext context, FeedEntry entry) async {
     final c = entry.notification.content;
     await Clipboard.setData(ClipboardData(text: [c.title, c.text].where((s) => s.isNotEmpty).join('\n')));
-    if (context.mounted) context.showMessage('Copied');
+    if (context.mounted) context.showMessage(context.l10n.copied);
   }
 }
 
@@ -139,7 +137,7 @@ class NotificationRow extends ConsumerWidget {
     // your own message: under the other person's name, as yours
     final own = ref.watch(ownMessageProvider(target));
     final title = own == null ? content.title : ref.watch(conversationNameProvider(target)) ?? content.title;
-    final text = own == null ? content.text : 'You: ${messageText(content)}';
+    final text = own == null ? content.text : context.l10n.youSaid(messageText(content));
 
     Future<void> showActions() async {
       final action = await showAppSheet<_RowAction>(
@@ -161,14 +159,14 @@ class NotificationRow extends ConsumerWidget {
         if (own != null) OwnMessageBadge(own: own, appName: content.appName),
         if (latest != null) ReplyStatusBadge(reply: latest, prefix: true),
         if (entry.notification.dismissedOnSender)
-          const StatusBadge(label: 'Dismissed on phone', icon: AppIcons.phonelinkErase),
+          StatusBadge(label: context.l10n.dismissedOnPhone, icon: AppIcons.phonelinkErase),
       ],
       trailing: wide
           ? PopupMenuButton<_RowAction>(
-              tooltip: 'More actions',
+              tooltip: context.l10n.moreActions,
               icon: Icon(AppIcons.moreHoriz, color: c.muted, size: AppDimensions.iconMd),
               onSelected: (a) => _perform(context, ref, a, isRead: isRead, hideTargets: hideTargets),
-              itemBuilder: (_) => _RowAction.menu(isRead: isRead, count: hideTargets.length),
+              itemBuilder: (_) => _RowAction.menu(context.l10n, isRead: isRead, count: hideTargets.length),
             )
           : null,
       onTap: () => ref.open(context, entry),
@@ -201,10 +199,10 @@ enum _RowAction {
   hide,
   copy;
 
-  static List<PopupMenuEntry<_RowAction>> menu({required bool isRead, required int count}) => [
-    PopupMenuItem(value: toggleRead, child: Text(isRead ? 'Mark as unread' : 'Mark as read')),
-    const PopupMenuItem(value: copy, child: Text('Copy text')),
-    PopupMenuItem(value: hide, child: Text(count > 1 ? 'Hide $count notifications' : 'Hide')),
+  static List<PopupMenuEntry<_RowAction>> menu(AppLocalizations l10n, {required bool isRead, required int count}) => [
+    PopupMenuItem(value: toggleRead, child: Text(isRead ? l10n.markAsUnread : l10n.markAsRead)),
+    PopupMenuItem(value: copy, child: Text(l10n.copyText)),
+    PopupMenuItem(value: hide, child: Text(count > 1 ? l10n.hideCount(count) : l10n.actionHide)),
   ];
 }
 
@@ -219,14 +217,18 @@ class _ActionSheet extends StatelessWidget {
     children: [
       InfoRow(
         icon: isRead ? AppIcons.markEmailUnread : AppIcons.markEmailRead,
-        title: isRead ? 'Mark as unread' : 'Mark as read',
+        title: isRead ? context.l10n.markAsUnread : context.l10n.markAsRead,
         onTap: () => Navigator.pop(context, _RowAction.toggleRead),
       ),
-      InfoRow(icon: AppIcons.contentCopy, title: 'Copy text', onTap: () => Navigator.pop(context, _RowAction.copy)),
+      InfoRow(
+        icon: AppIcons.contentCopy,
+        title: context.l10n.copyText,
+        onTap: () => Navigator.pop(context, _RowAction.copy),
+      ),
       InfoRow(
         icon: AppIcons.visibilityOff,
         destructive: true,
-        title: count > 1 ? 'Hide $count notifications' : 'Hide from this device',
+        title: count > 1 ? context.l10n.hideCount(count) : context.l10n.hideFromDevice,
         onTap: () => Navigator.pop(context, _RowAction.hide),
       ),
     ],
@@ -247,19 +249,23 @@ class ReplyStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final (label, icon, tone) = switch (reply.status) {
-      ReplyStatus.pending => ('Sending', AppIcons.schedule, Tone.neutral),
-      ReplyStatus.sent when delivered => ('Delivered', AppIcons.doneAll, Tone.success),
-      ReplyStatus.sent => ('Sent', AppIcons.done, Tone.success),
-      ReplyStatus.expired => ('Expired on phone', AppIcons.timerOff, Tone.warning),
-      ReplyStatus.failed => ('Not delivered', AppIcons.errorOutline, Tone.error),
+      ReplyStatus.pending => (prefix ? l10n.replySendingPrefixed : l10n.replySending, AppIcons.schedule, Tone.neutral),
+      ReplyStatus.sent when delivered => (
+        prefix ? l10n.replyDeliveredPrefixed : l10n.replyDelivered,
+        AppIcons.doneAll,
+        Tone.success,
+      ),
+      ReplyStatus.sent => (prefix ? l10n.replySentPrefixed : l10n.replySent, AppIcons.done, Tone.success),
+      ReplyStatus.expired => (prefix ? l10n.replyExpiredPrefixed : l10n.replyExpired, AppIcons.timerOff, Tone.warning),
+      ReplyStatus.failed => (
+        prefix ? l10n.replyNotDeliveredPrefixed : l10n.replyNotDelivered,
+        AppIcons.errorOutline,
+        Tone.error,
+      ),
     };
-    return StatusBadge(
-      label: prefix ? 'Reply ${label.toLowerCase()}' : label,
-      icon: icon,
-      tone: tone,
-      busy: reply.status == ReplyStatus.pending,
-    );
+    return StatusBadge(label: label, icon: icon, tone: tone, busy: reply.status == ReplyStatus.pending);
   }
 }
 
@@ -308,7 +314,7 @@ class ReplyBubble extends StatelessWidget {
                   spacing: AppSpacing.md,
                   runSpacing: AppSpacing.xxs,
                   children: [
-                    Text(formatClock(reply.createdAt), style: AppType.label.copyWith(color: c.muted)),
+                    Text(formatClock(context.l10n, reply.createdAt), style: AppType.label.copyWith(color: c.muted)),
                     ReplyStatusBadge(reply: reply, delivered: echo != null),
                   ],
                 ),
@@ -334,10 +340,10 @@ class OwnMessageBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) => switch (own) {
     OwnMessage.reply => StatusBadge(
-      label: 'Your reply, as $appName shows it',
+      label: context.l10n.yourReplyAsShown(appName),
       icon: AppIcons.reply,
       tone: Tone.success,
     ),
-    OwnMessage.phone => const StatusBadge(label: 'Sent from your phone', icon: AppIcons.smartphone),
+    OwnMessage.phone => StatusBadge(label: context.l10n.sentFromPhone, icon: AppIcons.smartphone),
   };
 }

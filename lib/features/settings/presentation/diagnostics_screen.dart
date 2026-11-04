@@ -1,6 +1,7 @@
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -11,6 +12,7 @@ import 'package:air_reply/core/widgets/card_group.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
 import 'package:air_reply/core/widgets/glass_scroll_page.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
+import 'package:air_reply/features/devices/presentation/device_status_text.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
@@ -33,7 +35,10 @@ class DiagnosticsScreen extends ConsumerWidget {
     final isSender = role == DeviceRole.sender;
     final pairs = ref.watch(pairedDevicesProvider);
     final now = DateTime.now();
-    String at(DateTime? t) => t == null ? 'never' : '${formatTimestamp(t, now: now)} (${formatAgo(t, now: now)})';
+    // the report is for whoever helps, so it stays in English whatever the app's language
+    final en = lookupAppLocalizations(const Locale('en'));
+    String at(DateTime? t) =>
+        t == null ? 'never' : '${formatTimestamp(en, t, now: now)} (${formatAgo(en, t, now: now)})';
 
     final sections = [
       DiagnosticsSection('This device', [
@@ -43,16 +48,16 @@ class DiagnosticsScreen extends ConsumerWidget {
         ('Push', AppPlatform.usesPush ? 'used' : 'not used (alerts while running)'),
         if (AppPlatform.isDemo) ('Demo mode', AppPlatform.demo),
       ]),
-      if (isSender) _senderSection(ref) else _receiverSection(ref),
+      if (isSender) _senderSection(ref, en) else _receiverSection(ref),
       for (final (i, pair) in pairs.indexed)
         DiagnosticsSection('Device ${i + 1}', [
           ('Name', pair.peerName),
           ('Pair', '${pair.pairId.substring(0, pair.pairId.length.clamp(0, 6))}…'),
-          ('State', ref.watch(deviceStatusProvider(pair.pairId)).label),
+          ('State', ref.watch(deviceStatusProvider(pair.pairId)).label(en)),
           ('Last synced', at(ref.watch(deviceStatusProvider(pair.pairId)).lastSyncedAt)),
           ('Last notification', at(ref.watch(lastActivityProvider(pair.pairId)))),
           ('Notifications loaded', '${ref.watch(mirroredNotificationsProvider(pair.pairId)).value?.length ?? '–'}'),
-          ('Paired', formatLongDate(pair.pairedAt, now: now)),
+          ('Paired', formatLongDate(en, pair.pairedAt, now: now)),
         ]),
       DiagnosticsSection('Inbox', [
         ('Unread', '${ref.watch(unreadCountProvider)}'),
@@ -63,13 +68,17 @@ class DiagnosticsScreen extends ConsumerWidget {
 
     return Scaffold(
       body: GlassScrollPage(
-        title: const Text('Diagnostics'),
+        title: Text(context.l10n.diagnosticsTitle),
         slivers: [
           SliverList.list(
             children: [
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Nothing here includes notification text or encryption keys.',
+                [
+                  context.l10n.diagnosticsIntro,
+                  // the report below is English; say so in any other language
+                  if (context.l10n.localeName != 'en') context.l10n.diagnosticsReportNote,
+                ].join(' '),
                 style: AppType.body.copyWith(color: context.palette.muted),
               ),
               for (final (i, section) in sections.indexed)
@@ -88,10 +97,10 @@ class DiagnosticsScreen extends ConsumerWidget {
               FilledButton.icon(
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: diagnosticsText(sections, generatedAt: now)));
-                  if (context.mounted) context.showMessage('Report copied');
+                  if (context.mounted) context.showMessage(context.l10n.reportCopied);
                 },
                 icon: const Icon(AppIcons.contentCopy, size: 18),
-                label: const Text('Copy report'),
+                label: Text(context.l10n.actionCopyReport),
               ),
               const SizedBox(height: AppSpacing.sm),
               OutlinedButton.icon(
@@ -103,10 +112,10 @@ class DiagnosticsScreen extends ConsumerWidget {
                     ..invalidate(alertPermissionProvider)
                     ..invalidate(senderPermissionsProvider)
                     ..invalidate(syncStatusProvider);
-                  context.showMessage('Checking again…');
+                  context.showMessage(context.l10n.checkingAgain);
                 },
                 icon: const Icon(AppIcons.refresh, size: 18),
-                label: const Text('Check again'),
+                label: Text(context.l10n.actionCheckAgain),
               ),
             ],
           ),
@@ -115,12 +124,12 @@ class DiagnosticsScreen extends ConsumerWidget {
     );
   }
 
-  DiagnosticsSection _senderSection(WidgetRef ref) {
+  DiagnosticsSection _senderSection(WidgetRef ref, AppLocalizations en) {
     final status = ref.watch(syncStatusProvider).value;
     final permissions = ref.watch(senderPermissionsProvider).value;
     final restrictions = permissions?.restrictions;
     return DiagnosticsSection('Sharing', [
-      ('Sharing', status?.label ?? 'unknown'),
+      ('Sharing', status?.label(en) ?? 'unknown'),
       ('Service running', onOff(status?.running)),
       ('Listener connected', onOff(status?.listenerConnected)),
       ('Notification access', onOff(permissions?.notificationAccess)),

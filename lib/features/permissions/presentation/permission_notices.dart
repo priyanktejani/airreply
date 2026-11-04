@@ -1,5 +1,6 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -54,38 +55,45 @@ class AttentionNotices extends ConsumerWidget {
         Notice(
           tone: Tone.error,
           icon: AppIcons.notificationsOff,
-          title: 'Notification access is off',
-          message: 'AirReply cannot see new notifications until you turn it back on.',
+          title: context.l10n.noticeAccessOffTitle,
+          message: context.l10n.noticeAccessOffMessage,
           actions: [
             TextButton(
               onPressed: guarded(context, ref.read(senderPermissionsProvider.notifier).openNotificationAccess),
-              child: const Text('Open settings'),
+              child: Text(context.l10n.actionOpenSettings),
             ),
           ],
         )
       else if (!status.enabled)
         Notice(
           icon: AppIcons.pauseCircleOutline,
-          title: 'Sharing is paused',
-          message: 'Notifications on this phone are not being sent to your devices.',
+          title: context.l10n.noticePausedTitle,
+          message: context.l10n.noticePausedMessage,
           actions: [
-            AsyncButton(label: 'Resume sharing', style: AsyncButtonStyle.text, onPressed: () => sync.setEnabled(true)),
+            AsyncButton(
+              label: context.l10n.actionResumeSharing,
+              style: AsyncButtonStyle.text,
+              onPressed: () => sync.setEnabled(true),
+            ),
           ],
         )
       else if (status.running && !status.listenerConnected)
         Notice(
           icon: AppIcons.sensorsOff,
-          title: 'Not receiving notifications',
+          title: context.l10n.noticeNotReceivingTitle,
           message: restrictions.hasAutostartScreen
-              ? 'Android stopped AirReply\'s listener. Reconnect, and turn on Autostart for AirReply on '
-                    '${restrictions.vendorName} phones so it does not happen again.'
-              : 'Android stopped AirReply\'s notification listener. Reconnect to start again.',
+              ? context.l10n.noticeNotReceivingAutostart(restrictions.vendorName)
+              : context.l10n.noticeNotReceivingMessage,
           actions: [
-            AsyncButton(label: 'Reconnect', style: AsyncButtonStyle.text, onPressed: sync.reconnectListener),
+            AsyncButton(
+              label: context.l10n.actionReconnect,
+              style: AsyncButtonStyle.text,
+              onPressed: sync.reconnectListener,
+            ),
             if (restrictions.hasAutostartScreen)
               TextButton(
                 onPressed: guarded(context, ref.read(senderPermissionsProvider.notifier).openAutostartSettings),
-                child: const Text('Autostart'),
+                child: Text(context.l10n.permissionAutostartTitle),
               ),
           ],
         ),
@@ -93,12 +101,12 @@ class AttentionNotices extends ConsumerWidget {
         Notice(
           tone: Tone.neutral,
           icon: AppIcons.batteryAlert,
-          title: 'Battery optimisation is on',
-          message: 'Android may pause sharing to save battery. Set AirReply to "Unrestricted".',
+          title: context.l10n.noticeBatteryTitle,
+          message: context.l10n.noticeBatteryMessage,
           actions: [
             TextButton(
               onPressed: guarded(context, ref.read(senderPermissionsProvider.notifier).openBatterySettings),
-              child: const Text('Battery settings'),
+              child: Text(context.l10n.actionBatterySettings),
             ),
           ],
         ),
@@ -112,11 +120,11 @@ class AttentionNotices extends ConsumerWidget {
       if (alertsAllowed == false)
         Notice(
           icon: AppIcons.notificationsPaused,
-          title: 'Alerts are off on this device',
-          message: 'New notifications still appear here, but this device will not alert you.',
+          title: context.l10n.noticeAlertsOffTitle,
+          message: context.l10n.noticeAlertsOffMessage,
           actions: [
             AsyncButton(
-              label: 'Allow alerts',
+              label: context.l10n.actionAllowAlerts,
               style: AsyncButtonStyle.text,
               onPressed: ref.read(alertPermissionProvider.notifier).request,
             ),
@@ -140,8 +148,10 @@ class AttentionNotices extends ConsumerWidget {
     return [
       Notice(
         icon: AppIcons.cloudOff,
-        title: offline.length == 1 ? '${offline.single.peerName} is offline' : '${offline.length} devices are offline',
-        message: 'Showing saved notifications. New ones arrive once this device is back online.',
+        title: offline.length == 1
+            ? context.l10n.noticeOneOffline(offline.single.peerName)
+            : context.l10n.noticeManyOffline(offline.length),
+        message: context.l10n.noticeOfflineMessage,
         actions: [
           TextButton(
             onPressed: () {
@@ -149,9 +159,9 @@ class AttentionNotices extends ConsumerWidget {
                 refreshPair(ref, pair.pairId);
               }
             },
-            child: const Text('Retry'),
+            child: Text(context.l10n.actionRetry),
           ),
-          TextButton(onPressed: () => context.go(AppRoutes.devices), child: const Text('Devices')),
+          TextButton(onPressed: () => context.go(AppRoutes.devices), child: Text(context.l10n.tabDevices)),
         ],
       ),
     ];
@@ -160,10 +170,11 @@ class AttentionNotices extends ConsumerWidget {
 
 /// Keeps a sender's sharing state readable for the notices without importing the native models everywhere.
 extension SyncStatusLabel on SyncStatus {
-  String get label => switch ((enabled, running, listenerConnected)) {
-    (false, _, _) => 'Paused',
-    (true, false, _) => 'Starting',
-    (true, true, false) => 'Not receiving',
-    (true, true, true) => 'Sharing',
+  /// One word for whether this phone is sharing, in the person's language.
+  String label(AppLocalizations l10n) => switch ((enabled, running, listenerConnected)) {
+    (false, _, _) => l10n.devicePaused,
+    (true, false, _) => l10n.syncStarting,
+    (true, true, false) => l10n.deviceNotReceiving,
+    (true, true, true) => l10n.syncSharing,
   };
 }

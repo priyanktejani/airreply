@@ -7,7 +7,10 @@ import 'package:air_reply/features/notifications/data/local_stores.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/domain/inbox_state.dart';
 import 'package:air_reply/features/notifications/domain/send_reply.dart';
+import 'package:air_reply/l10n/app_localizations.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
@@ -206,18 +209,20 @@ void main() {
     });
   });
 
-  test('time labels', () {
+  test('time labels', () async {
+    await initializeDateFormatting();
+    final en = lookupAppLocalizations(const Locale('en'));
     final now = DateTime(2026, 10, 24, 15);
-    expect(formatDayLabel(DateTime(2026, 10, 24, 1), now: now), 'Today');
-    expect(formatDayLabel(DateTime(2026, 10, 23, 23), now: now), 'Yesterday');
-    expect(formatDayLabel(DateTime(2026, 10, 20), now: now), 'Tuesday');
-    expect(formatDayLabel(DateTime(2026, 3, 12), now: now), '12 March');
-    expect(formatDayLabel(DateTime(2025, 3, 12), now: now), '12 March 2025');
-    expect(formatLongDate(DateTime(2026, 10, 24), now: now), 'Saturday, 24 October');
-    expect(formatTimestamp(DateTime(2026, 10, 24, 9, 5), now: now), 'Today at 09:05');
-    expect(formatAgo(DateTime(2026, 10, 24, 14, 56), now: now), '4 min ago');
-    expect(formatAgo(DateTime(2026, 10, 24, 14, 59, 50), now: now), 'just now');
-    expect(formatAgo(DateTime(2026, 10, 24, 12), now: now), '3 h ago');
+    expect(formatDayLabel(en, DateTime(2026, 10, 24, 1), now: now), 'Today');
+    expect(formatDayLabel(en, DateTime(2026, 10, 23, 23), now: now), 'Yesterday');
+    expect(formatDayLabel(en, DateTime(2026, 10, 20), now: now), 'Tuesday');
+    expect(formatDayLabel(en, DateTime(2026, 3, 12), now: now), '12 March');
+    expect(formatDayLabel(en, DateTime(2025, 3, 12), now: now), '12 March 2025');
+    expect(formatLongDate(en, DateTime(2026, 10, 24), now: now), 'Saturday 24 October');
+    expect(formatTimestamp(en, DateTime(2026, 10, 24, 9, 5), now: now), 'Today at 09:05');
+    expect(formatAgo(en, DateTime(2026, 10, 24, 14, 56), now: now), '4 min ago');
+    expect(formatAgo(en, DateTime(2026, 10, 24, 14, 59, 50), now: now), 'just now');
+    expect(formatAgo(en, DateTime(2026, 10, 24, 12), now: now), '3 h ago');
   });
 
   group('SendReply', () {

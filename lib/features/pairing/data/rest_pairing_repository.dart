@@ -62,7 +62,7 @@ final class RestPairingRepository implements PairingRepository {
         if (e.status != 'ALREADY_EXISTS') throw _mapped(e);
       }
     }
-    throw const PairingException('Could not create a pairing code. Please try again.');
+    throw const PairingException(AppError.pairingCodeNotCreated);
   }
 
   @override
@@ -94,9 +94,9 @@ final class RestPairingRepository implements PairingRepository {
     final doc = await _guard(() => _client.get(_session(code)));
     final session = PairingDocuments.session(code, doc?.data);
     if (session == null || session.status != PairingStatus.waiting || session.isExpiredAt(_clock())) {
-      throw const PairingException('This code is no longer available. Make a new one on the other phone.');
+      throw const PairingException(AppError.codeUnavailable);
     }
-    if (session.senderUid == uid) throw const PairingException('A device cannot pair with itself.');
+    if (session.senderUid == uid) throw const PairingException(AppError.cannotPairWithItself);
 
     try {
       // Only succeeds if nobody changed the session since we read it: the REST equivalent of a transaction.
@@ -108,7 +108,7 @@ final class RestPairingRepository implements PairingRepository {
         ),
       ]);
     } on RestFirestoreException catch (e) {
-      if (e.status == 'FAILED_PRECONDITION') throw const PairingException('This code was already used.');
+      if (e.status == 'FAILED_PRECONDITION') throw const PairingException(AppError.codeAlreadyUsed);
       throw _mapped(e);
     }
     return PairingDocuments.withReceiver(
@@ -123,7 +123,7 @@ final class RestPairingRepository implements PairingRepository {
   Future<String> confirmSession(PairingSession session) async {
     final uid = await _auth.ensureSignedIn();
     if (session.receiverUid == null || session.senderUid != uid) {
-      throw const PairingException('This session cannot be confirmed.');
+      throw const PairingException(AppError.sessionNotConfirmable);
     }
     final pairId = _client.newId();
     await _guard(
@@ -185,11 +185,11 @@ final class RestPairingRepository implements PairingRepository {
     }
   }
 
-  static AppException _mapped(RestFirestoreException e) => SyncException(switch (e.status) {
-    'PERMISSION_DENIED' => 'This pairing session is not available to this device.',
-    'UNAVAILABLE' => 'You appear to be offline. Check your connection and try again.',
-    _ => 'The server could not complete pairing (${e.status}).',
-  }, cause: e);
+  static AppException _mapped(RestFirestoreException e) => switch (e.status) {
+    'PERMISSION_DENIED' => SyncException(AppError.pairingNotAvailable, cause: e),
+    'UNAVAILABLE' => SyncException(AppError.offline, cause: e),
+    _ => SyncException(AppError.pairingServerFailed, detail: e.status, cause: e),
+  };
 }
 
 /// Lets a stream of nullable values go through [pollingStream], where null means "no change".

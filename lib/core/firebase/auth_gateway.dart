@@ -27,7 +27,7 @@ final class FirebaseAuthGateway implements AuthGateway {
       final credential = await _auth.signInAnonymously();
       return credential.user!.uid;
     } on FirebaseAuthException catch (e) {
-      throw SyncException('Could not reach AirReply servers. Check your connection.', cause: e);
+      throw SyncException(AppError.serverUnreachable, cause: e);
     }
   }
 
@@ -35,7 +35,7 @@ final class FirebaseAuthGateway implements AuthGateway {
   Future<String> idToken({bool forceRefresh = false}) async {
     await ensureSignedIn();
     final token = await _auth.currentUser!.getIdToken(forceRefresh);
-    if (token == null) throw const SyncException('Could not reach AirReply servers. Check your connection.');
+    if (token == null) throw const SyncException(AppError.serverUnreachable);
     return token;
   }
 }

@@ -131,7 +131,7 @@ final class FirestoreRestClient {
       try {
         response = await http.Response.fromStream(await _http.send(request));
       } on Exception catch (e) {
-        throw SyncException('You appear to be offline. Check your connection.', cause: e);
+        throw SyncException(AppError.offline, cause: e);
       }
 
       if (response.statusCode == 200) return response.body.isEmpty ? null : jsonDecode(response.body);

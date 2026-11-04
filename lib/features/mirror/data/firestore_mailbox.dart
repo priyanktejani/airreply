@@ -94,7 +94,7 @@ final class FirestoreMailbox implements PairMailbox {
     try {
       return await body();
     } on FirebaseException catch (e) {
-      throw SyncException('Sync with your paired device failed (${e.code}).', cause: e);
+      throw SyncException(AppError.syncFailed, detail: e.code, cause: e);
     }
   }
 }

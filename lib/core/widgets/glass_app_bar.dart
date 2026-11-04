@@ -1,7 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:air_reply/core/theme/app_glass.dart';
-import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:flutter/material.dart';
 
 /// The app bar on frosted glass: the page scrolls up underneath it and shows softly through a backdrop blur, under a
@@ -56,16 +55,14 @@ class GlassBarBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.palette;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return RepaintBoundary(
       child: ClipRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: AppGlass.blur, sigmaY: AppGlass.blur),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              // the page colour, translucent: invisible at rest, frosted once content passes under it
-              color: c.bg.withValues(alpha: dark ? .78 : .8),
+              // the page colour, nearly opaque: invisible at rest, frosted once content passes under it
+              color: AppGlass.barFill(context),
               border: Border(bottom: BorderSide(color: AppGlass.edge(context).withValues(alpha: .55), width: .5)),
             ),
             child: const SizedBox.expand(),

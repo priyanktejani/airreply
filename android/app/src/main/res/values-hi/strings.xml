@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The sharing service's status notification. The app's own strings are in lib/l10n/*.arb. -->
+<resources>
+    <string name="sync_notification_title">सूचना सिंक चालू है</string>
+    <string name="sync_notification_text">आपके जोड़े गए डिवाइस पर सूचनाएँ भेजी जा रही हैं</string>
+    <string name="sync_pause">रोकें</string>
+    <string name="sync_channel_name">सिंक की स्थिति</string>
+    <string name="sync_channel_description">तब दिखती है जब यह फ़ोन अपनी सूचनाएँ साझा करता है</string>
+</resources>

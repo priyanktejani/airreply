@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
@@ -136,7 +137,7 @@ class _ReplyComposerState extends ConsumerState<ReplyComposer> {
                     border: field,
                     enabledBorder: field,
                     focusedBorder: field.copyWith(borderSide: BorderSide(color: c.accent, width: 1.5)),
-                    hintText: to.isEmpty ? 'Reply' : 'Reply to $to',
+                    hintText: to.isEmpty ? context.l10n.replyHint : context.l10n.replyToHint(to),
                   ),
                 ),
               ),
@@ -149,7 +150,9 @@ class _ReplyComposerState extends ConsumerState<ReplyComposer> {
                   opacity: canSend ? 1 : .6,
                   duration: quick,
                   child: IconButton.filled(
-                    tooltip: AppPlatform.prefersKeyboardShortcuts ? 'Send (Enter)' : 'Send',
+                    tooltip: AppPlatform.prefersKeyboardShortcuts
+                        ? context.l10n.sendWithEnter
+                        : context.l10n.actionSend,
                     onPressed: canSend ? _send : null,
                     style: IconButton.styleFrom(
                       backgroundColor: c.accent,

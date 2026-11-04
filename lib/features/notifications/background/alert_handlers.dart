@@ -1,4 +1,7 @@
+import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/app_language.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/mirror_providers.dart';
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
@@ -29,6 +32,8 @@ Future<void> presentMirroredPush(ProviderContainer container, Map<String, dynami
 
   final preferences = await container.read(appPreferencesProvider.future);
   if (!preferences.alertsFor(notification.content.packageName)) return;
+  // a push can start this isolate cold: the alert's buttons follow the language chosen in Settings
+  chosenLocale ??= await AppLanguageStore(container.read(sharedPreferencesProvider)).read();
   await container
       .read(mirroredAlertsProvider)
       .show(

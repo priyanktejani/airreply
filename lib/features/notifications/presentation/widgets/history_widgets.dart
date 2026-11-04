@@ -1,7 +1,8 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/pressable_scale.dart';
 import 'package:air_reply/core/domain/device_role.dart';
-import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/l10n/describe_error.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -55,7 +56,7 @@ class NewResultsPill extends ConsumerWidget {
                             const SizedBox(width: AppSpacing.sm),
                             Flexible(
                               child: Text(
-                                count == 1 ? '1 new notification' : '$count new notifications',
+                                context.l10n.newNotificationsCount(count),
                                 style: AppType.link.copyWith(color: c.accent),
                               ),
                             ),
@@ -92,11 +93,11 @@ class HistoryLoadMore extends ConsumerWidget {
         child: Column(
           children: [
             Text(
-              describeError(results.error!),
+              context.describeError(results.error!),
               textAlign: TextAlign.center,
               style: AppType.supporting.copyWith(color: context.palette.muted),
             ),
-            TextButton(onPressed: controller.loadMore, child: const Text('Try again')),
+            TextButton(onPressed: controller.loadMore, child: Text(context.l10n.actionTryAgain)),
           ],
         ),
       );
@@ -109,7 +110,7 @@ class HistoryLoadMore extends ConsumerWidget {
       child: Center(
         child: results.loading || auto
             ? const SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2.5))
-            : OutlinedButton(onPressed: controller.loadMore, child: const Text('Show more')),
+            : OutlinedButton(onPressed: controller.loadMore, child: Text(context.l10n.actionShowMore)),
       ),
     );
   }
@@ -133,8 +134,8 @@ class DeviceResults extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SectionHeader(
-            eyebrow: 'Devices',
-            title: devices.length == 1 ? '1 device' : '${devices.length} devices',
+            eyebrow: context.l10n.tabDevices,
+            title: context.l10n.devicesCount(devices.length),
             padding: EdgeInsets.zero,
           ),
           const SizedBox(height: AppSpacing.md),
@@ -144,7 +145,7 @@ class DeviceResults extends ConsumerWidget {
                 InfoRow(
                   icon: isSender ? AppIcons.devices : AppIcons.smartphone,
                   title: device.peerName,
-                  subtitle: isSender ? 'Browse what you shared with it' : 'Browse its notification history',
+                  subtitle: isSender ? context.l10n.browseSharedWithIt : context.l10n.browseItsHistory,
                   trailing: InfoRow.chevron,
                   onTap: () => context.push(AppRoutes.deviceHistory(device.pairId)),
                 ),
@@ -166,11 +167,7 @@ class ResultsCount extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final total = ref.watch(historyResultsProvider(scope).select((r) => r.total));
-    final label = switch (total) {
-      null => shown == 1 ? '1 notification' : '$shown notifications',
-      1 => '1 notification',
-      final t => '$t notifications',
-    };
+    final label = context.l10n.notificationsCount(total ?? shown);
     return Text(label, style: AppType.supporting.copyWith(color: context.palette.muted));
   }
 }

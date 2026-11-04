@@ -119,7 +119,7 @@ final class RestMailbox implements PairMailbox {
     try {
       return await body();
     } on RestFirestoreException catch (e) {
-      throw SyncException('Sync with your paired device failed (${e.status}).', cause: e);
+      throw SyncException(AppError.syncFailed, detail: e.status, cause: e);
     }
   }
 }

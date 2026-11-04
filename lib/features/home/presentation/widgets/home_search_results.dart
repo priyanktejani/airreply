@@ -1,5 +1,6 @@
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/empty_state.dart';
@@ -30,15 +31,19 @@ class HomeSearchResults extends ConsumerWidget {
     if (found.isEmpty && devices.isEmpty && !reading && !results.hasMore) {
       return EmptyState(
         icon: AppIcons.searchOff,
-        title: 'No matches',
-        description: 'No notification or device mentions “${query.trim()}”.',
+        title: context.l10n.searchNoMatches,
+        description: context.l10n.searchNoMatchesDetail(query.trim()),
       );
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         DeviceResults(query: query),
-        SectionHeader(eyebrow: 'Search', title: 'Notifications', padding: EdgeInsets.zero),
+        SectionHeader(
+          eyebrow: context.l10n.searchEyebrow,
+          title: context.l10n.tabNotifications,
+          padding: EdgeInsets.zero,
+        ),
         const SizedBox(height: AppSpacing.xxs),
         ResultsCount(scope: homeSearch, shown: found.length),
         const SizedBox(height: AppSpacing.md),

@@ -32,12 +32,15 @@ final class SenderPairingVerifying extends SenderPairingState {
   final PairingSecrets secrets;
   final bool confirming;
 
-  String get receiverName => joined.receiverName ?? 'The other device';
+  /// The receiver's name, when it sent one.
+  String? get receiverName => joined.receiverName;
 }
 
 final class SenderPairingFailed extends SenderPairingState {
-  const SenderPairingFailed(this.message);
-  final String message;
+  const SenderPairingFailed(this.error);
+
+  /// Shown in the person's language by the screen (`context.describeError`).
+  final Object error;
 }
 
 /// Paired: the screen returns to the sender home.
@@ -111,7 +114,7 @@ final class SenderPairingController extends Notifier<SenderPairingState> {
     final pending = _pending;
     if (pending == null || _completed) return;
     if (session == null || session.status == PairingStatus.cancelled) {
-      return _fail(const PairingException('The pairing was cancelled. Make a new code to try again.'));
+      return _fail(const PairingException(AppError.pairingCancelled));
     }
     if (session.status == PairingStatus.joined && state is SenderPairingWaiting) {
       try {
@@ -138,6 +141,6 @@ final class SenderPairingController extends Notifier<SenderPairingState> {
   }
 
   void _fail(Object error) {
-    if (ref.mounted) state = SenderPairingFailed(describeError(error));
+    if (ref.mounted) state = SenderPairingFailed(error);
   }
 }

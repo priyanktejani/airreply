@@ -7,6 +7,7 @@ import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/conversation_screen.dart';
+import 'package:air_reply/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -65,6 +66,8 @@ void main() {
       ProviderScope(
         overrides: [...demoOverrides('receiver'), threadProvider.overrideWith((ref, _) => thread)],
         child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: AppTheme.dark(),
           home: ConversationScreen(source: thread.source, packageName: thread.packageName, threadKey: thread.key),
         ),

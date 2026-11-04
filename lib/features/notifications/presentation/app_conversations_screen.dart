@@ -1,6 +1,7 @@
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -53,12 +54,11 @@ class _AppConversationsScreenState extends ConsumerState<AppConversationsScreen>
             ? Padding(padding: AppInsets.page(context), child: const SkeletonList(rows: 3))
             : EmptyState(
                 icon: AppIcons.forum,
-                title: 'Nothing here now',
-                description:
-                    'These notifications were hidden, removed, or came from a device that is no longer paired.',
+                title: context.l10n.nothingHereNow,
+                description: context.l10n.goneDetail,
                 action: OutlinedButton(
                   onPressed: () => context.go(AppRoutes.notifications),
-                  child: const Text('Back to notifications'),
+                  child: Text(context.l10n.actionBackToNotifications),
                 ),
               ),
       );
@@ -70,8 +70,8 @@ class _AppConversationsScreenState extends ConsumerState<AppConversationsScreen>
     final others = matches.where((t) => t.kind == ThreadKind.single).toList();
     final conversationCount = group.threads.where((t) => t.kind != ThreadKind.single).length;
     final subtitle = [
-      if (conversationCount > 0) conversationCount == 1 ? '1 conversation' : '$conversationCount conversations',
-      group.count == 1 ? '1 notification' : '${group.count} notifications',
+      if (conversationCount > 0) context.l10n.conversationsCount(conversationCount),
+      context.l10n.notificationsCount(group.count),
       if (group.source != AppGroup.allDevices) group.deviceName,
     ].join(' · ');
 
@@ -129,7 +129,7 @@ class _AppConversationsScreenState extends ConsumerState<AppConversationsScreen>
                       Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.sm),
                         child: SearchField(
-                          hint: 'Search names, numbers and messages',
+                          hint: context.l10n.searchConversationsHint,
                           value: _query,
                           onChanged: (q) => setState(() => _query = q),
                         ),
@@ -138,8 +138,10 @@ class _AppConversationsScreenState extends ConsumerState<AppConversationsScreen>
                       const SizedBox(height: AppSpacing.base),
                       rise(
                         SectionHeader(
-                          eyebrow: others.isEmpty ? 'Conversations' : 'Conversations · ${conversations.length}',
-                          title: 'People and groups',
+                          eyebrow: others.isEmpty
+                              ? context.l10n.conversationsEyebrow
+                              : context.l10n.conversationsEyebrowCount(conversations.length),
+                          title: context.l10n.peopleAndGroups,
                           padding: EdgeInsets.zero,
                         ),
                       ),
@@ -150,8 +152,10 @@ class _AppConversationsScreenState extends ConsumerState<AppConversationsScreen>
                       const SizedBox(height: AppSpacing.section),
                       rise(
                         SectionHeader(
-                          eyebrow: conversations.isEmpty ? 'Notifications' : 'Other notifications · ${others.length}',
-                          title: 'From ${group.appName}',
+                          eyebrow: conversations.isEmpty
+                              ? context.l10n.tabNotifications
+                              : context.l10n.otherNotificationsCount(others.length),
+                          title: context.l10n.fromApp(group.appName),
                           padding: EdgeInsets.zero,
                         ),
                       ),
@@ -162,7 +166,7 @@ class _AppConversationsScreenState extends ConsumerState<AppConversationsScreen>
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
                         child: Text(
-                          'Nothing matches “$_query”.',
+                          context.l10n.nothingMatchesQuery(_query),
                           textAlign: TextAlign.center,
                           style: AppType.body.copyWith(color: c.muted),
                         ),

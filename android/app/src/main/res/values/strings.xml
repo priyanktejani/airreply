@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The sharing service's status notification. The app's own strings are in lib/l10n/*.arb. -->
+<resources>
+    <string name="sync_notification_title">Notification Sync Active</string>
+    <string name="sync_notification_text">Mirroring alerts to your paired device</string>
+    <string name="sync_pause">Pause</string>
+    <string name="sync_channel_name">Sync status</string>
+    <string name="sync_channel_description">Shown while this phone shares its notifications</string>
+</resources>

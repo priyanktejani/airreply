@@ -1,3 +1,4 @@
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/stat_tile.dart';
@@ -24,17 +25,22 @@ class GlanceStats extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: Stat(value: '$today', label: 'Today', icon: AppIcons.bolt, onTap: onToday),
+            child: Stat(value: '$today', label: context.l10n.statToday, icon: AppIcons.bolt, onTap: onToday),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Stat(value: '$unread', label: 'Unread', icon: AppIcons.markChatUnread, onTap: onUnread),
+            child: Stat(
+              value: '$unread',
+              label: context.l10n.statUnread,
+              icon: AppIcons.markChatUnread,
+              onTap: onUnread,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Stat(
               value: '$devices',
-              label: devices == 1 ? 'Device' : 'Devices',
+              label: context.l10n.statDevices(devices),
               icon: AppIcons.devices,
               onTap: onDevices,
             ),

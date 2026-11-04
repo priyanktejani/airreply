@@ -59,7 +59,7 @@ final class RestAuthGateway implements AuthGateway {
         'content-type': 'application/json',
       });
     } on _AuthRejected {
-      throw const SyncException('Sign-in was refused. Is Anonymous sign-in enabled in the Firebase project?');
+      throw const SyncException(AppError.signInRefused);
     }
     final session = _Session(
       uid: json['localId']! as String,
@@ -98,12 +98,12 @@ final class RestAuthGateway implements AuthGateway {
     try {
       response = await _http.post(uri, headers: headers, body: body);
     } on Exception catch (e) {
-      throw SyncException('Could not reach AirReply servers. Check your connection.', cause: e);
+      throw SyncException(AppError.serverUnreachable, cause: e);
     }
     final json = (jsonDecode(response.body) as Map).cast<String, Object?>();
     if (response.statusCode == 200) return json;
     if (response.statusCode == 400) throw _AuthRejected();
-    throw SyncException('Sign-in failed (${response.statusCode}).', cause: json['error']);
+    throw SyncException(AppError.signInFailed, detail: '${response.statusCode}', cause: json['error']);
   }
 
   DateTime _expiry(Object? expiresInSeconds) =>

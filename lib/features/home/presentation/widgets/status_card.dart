@@ -1,4 +1,5 @@
 import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -14,6 +15,7 @@ import 'package:air_reply/core/widgets/info_row.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/devices/presentation/device_status_badge.dart';
+import 'package:air_reply/features/devices/presentation/device_status_text.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
 import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
@@ -32,18 +34,18 @@ class ReceivingStatusCard extends ConsumerWidget {
     final status = ref.watch(overallStatusProvider);
     final lastSynced = ref.watch(lastSyncedProvider);
     ref.watch(clockProvider); // keeps "Last synced 5m ago" current
-    final names = devices.length == 1 ? devices.single.peerName : '${devices.length} phones';
+    final names = devices.length == 1 ? devices.single.peerName : context.l10n.phonesCount(devices.length);
     return _StatusCard(
       status: status,
       headline: switch (status?.state) {
-        DeviceState.connected => 'Receiving from $names.',
-        DeviceState.connecting => 'Connecting to $names…',
-        _ => 'Showing saved notifications from $names.',
+        DeviceState.connected => context.l10n.statusReceivingFrom(names),
+        DeviceState.connecting => context.l10n.statusConnectingTo(names),
+        _ => context.l10n.statusShowingSaved(names),
       },
       detail: switch (status?.state) {
-        DeviceState.connected => 'Live. New notifications appear within seconds.',
-        _ when lastSynced != null => 'Last synced ${formatAgo(lastSynced)}.',
-        _ => status?.detail ?? '',
+        DeviceState.connected => context.l10n.statusLive,
+        _ when lastSynced != null => context.l10n.statusLastSynced(formatAgo(context.l10n, lastSynced)),
+        _ => status?.detail(context.l10n) ?? '',
       },
       footer: devices.isEmpty
           ? null
@@ -67,27 +69,25 @@ class SharingStatusCard extends ConsumerWidget {
     final access = ref.watch(senderPermissionsProvider.select((p) => p.value?.notificationAccess)) ?? true;
     final devices = ref.watch(pairedDevicesProvider);
     final status = ref.watch(overallStatusProvider);
-    final names = devices.length == 1 ? devices.single.peerName : '${devices.length} devices';
+    final names = devices.length == 1 ? devices.single.peerName : context.l10n.devicesCount(devices.length);
     return _StatusCard(
       status: status,
       headline: switch (status?.state) {
-        _ when !access => 'Sharing needs notification access.',
-        _ when !sharing.enabled => 'Sharing is paused.',
-        DeviceState.connected => 'Sharing with $names.',
-        DeviceState.connecting => 'Connecting to $names…',
-        _ => status?.detail ?? 'Sharing is not working right now.',
+        _ when !access => context.l10n.statusNeedsAccess,
+        _ when !sharing.enabled => context.l10n.statusPaused,
+        DeviceState.connected => context.l10n.statusSharingWith(names),
+        DeviceState.connecting => context.l10n.statusConnectingTo(names),
+        _ => status?.detail(context.l10n) ?? context.l10n.statusNotWorking,
       },
-      detail: sharing.enabled && access
-          ? 'Notifications are end-to-end encrypted on this phone before they leave it.'
-          : 'Nothing from this phone reaches your devices until sharing is on.',
+      detail: sharing.enabled && access ? context.l10n.statusEncryptedDetail : context.l10n.statusOffDetail,
       footer: Material(
         color: c.soft,
         borderRadius: AppRadius.mdBorder,
         clipBehavior: Clip.antiAlias,
         child: SwitchRow(
           icon: AppIcons.podcasts,
-          title: 'Share notifications',
-          subtitle: sharing.label,
+          title: context.l10n.shareNotificationsTitle,
+          subtitle: sharing.label(context.l10n),
           value: sharing.enabled,
           onChanged: access
               ? (on) {
@@ -130,7 +130,7 @@ class _StatusCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Icon(AppIcons.lock, size: 14, color: c.muted),
               const SizedBox(width: AppSpacing.xs),
-              Text('Encrypted', style: AppType.supporting.copyWith(color: c.muted)),
+              Text(context.l10n.encrypted, style: AppType.supporting.copyWith(color: c.muted)),
             ],
           ),
           const SizedBox(height: AppSpacing.md),

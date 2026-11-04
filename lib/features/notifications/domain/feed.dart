@@ -31,13 +31,9 @@ final class FeedEntry {
 }
 
 enum FeedPeriod {
-  all('Any time'),
-  today('Today'),
-  week('Last 7 days');
-
-  const FeedPeriod(this.label);
-
-  final String label;
+  all,
+  today,
+  week;
 
   bool includes(DateTime time, DateTime now) => switch (this) {
     FeedPeriod.all => true,

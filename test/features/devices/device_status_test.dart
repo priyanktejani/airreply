@@ -43,7 +43,7 @@ void main() {
       final status = phoneStatus(SyncState(SyncHealth.offline, lastSyncedAt: t0));
       expect(status.state, DeviceState.disconnected);
       expect(status.fix, DeviceFix.retrySync);
-      expect(status.label, 'Offline');
+      expect(status.condition, DeviceCondition.offline);
     });
   });
 
@@ -66,7 +66,7 @@ void main() {
         accessGranted: true,
         sync: live,
       );
-      expect(status.label, 'Not receiving');
+      expect(status.condition, DeviceCondition.notReceiving);
       expect(status.fix, DeviceFix.reconnectListener);
     });
 

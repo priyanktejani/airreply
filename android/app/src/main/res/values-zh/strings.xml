@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The sharing service's status notification. The app's own strings are in lib/l10n/*.arb. -->
+<resources>
+    <string name="sync_notification_title">通知同步已开启</string>
+    <string name="sync_notification_text">正在将通知同步到已配对的设备</string>
+    <string name="sync_pause">暂停</string>
+    <string name="sync_channel_name">同步状态</string>
+    <string name="sync_channel_description">在此手机共享通知时显示</string>
+</resources>

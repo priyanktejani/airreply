@@ -1,0 +1,2403 @@
+{
+  "@@locale": "en",
+  "appTitle": "AirReply",
+  "@appTitle": {
+    "description": "The app's name: window title, task switcher."
+  },
+  "tabHome": "Home",
+  "@tabHome": {
+    "description": "Navigation tab: the start screen."
+  },
+  "tabNotifications": "Notifications",
+  "@tabNotifications": {
+    "description": "Navigation tab: every mirrored notification."
+  },
+  "tabNotificationsUnread": "{count, plural, =0{Notifications} =1{Notifications, 1 unread} other{Notifications, {count} unread}}",
+  "@tabNotificationsUnread": {
+    "description": "Screen reader label of the Notifications tab, with how many are unread.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tabDevices": "Devices",
+  "@tabDevices": {
+    "description": "Navigation tab: the paired devices."
+  },
+  "tabSettings": "Settings",
+  "@tabSettings": {
+    "description": "Navigation tab: settings."
+  },
+  "inboxUnread": "{count, plural, =0{All read} other{{count} unread}}",
+  "@inboxUnread": {
+    "description": "Above the notifications list: how many are unread.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "welcomeHeadlineFirst": "Your phone,",
+  "@welcomeHeadlineFirst": {
+    "description": "Welcome headline, first line."
+  },
+  "welcomeHeadlineSecond": "Everywhere.",
+  "@welcomeHeadlineSecond": {
+    "description": "Welcome headline, second (underlined, accent) line."
+  },
+  "welcomeIntro": "Read your phone's notifications on your iPhone, iPad, Mac, PC or browser, and reply to messages from there.",
+  "@welcomeIntro": {
+    "description": "Welcome screen, under the headline."
+  },
+  "welcomeEyebrow": "Get started",
+  "@welcomeEyebrow": {
+    "description": "Small label above the role question."
+  },
+  "welcomeQuestion": "How will you use this device?",
+  "@welcomeQuestion": {
+    "description": "Welcome screen: choose sharing or receiving."
+  },
+  "roleShareTitle": "Share my notifications",
+  "@roleShareTitle": {
+    "description": "Role option: this Android phone sends its notifications."
+  },
+  "roleShareDescription": "This phone sends its notifications to your other devices, and sends the replies you write there.",
+  "@roleShareDescription": {
+    "description": "Role option description, on Android."
+  },
+  "roleShareUnavailable": "Only Android lets apps read notifications. Use an Android phone to share.",
+  "@roleShareUnavailable": {
+    "description": "Role option description where sharing is impossible (not Android)."
+  },
+  "roleReceiveTitle": "View and reply here",
+  "@roleReceiveTitle": {
+    "description": "Role option: this device shows another phone's notifications."
+  },
+  "roleReceiveDescription": "See your phone's notifications on this device and answer messages without picking it up.",
+  "@roleReceiveDescription": {
+    "description": "Role option description."
+  },
+  "errorOffline": "You appear to be offline. Check your connection and try again.",
+  "@errorOffline": {
+    "description": "Error shown to the person: offline."
+  },
+  "errorServerUnreachable": "Could not reach AirReply servers. Check your connection.",
+  "@errorServerUnreachable": {
+    "description": "Error shown to the person: serverUnreachable."
+  },
+  "errorSignInRefused": "Sign-in was refused. Is Anonymous sign-in enabled in the Firebase project?",
+  "@errorSignInRefused": {
+    "description": "Error shown to the person: signInRefused."
+  },
+  "errorSignInFailed": "Sign-in failed.",
+  "@errorSignInFailed": {
+    "description": "Error shown to the person: signInFailed."
+  },
+  "errorSyncFailed": "Sync with your paired device failed.",
+  "@errorSyncFailed": {
+    "description": "Error shown to the person: syncFailed."
+  },
+  "errorPairingCodeNotCreated": "Could not create a pairing code. Please try again.",
+  "@errorPairingCodeNotCreated": {
+    "description": "Error shown to the person: pairingCodeNotCreated."
+  },
+  "errorSessionNotConfirmable": "This session cannot be confirmed.",
+  "@errorSessionNotConfirmable": {
+    "description": "Error shown to the person: sessionNotConfirmable."
+  },
+  "errorCodeUnavailable": "This code is no longer available. Make a new one on the other phone.",
+  "@errorCodeUnavailable": {
+    "description": "Error shown to the person: codeUnavailable."
+  },
+  "errorCannotPairWithItself": "A device cannot pair with itself.",
+  "@errorCannotPairWithItself": {
+    "description": "Error shown to the person: cannotPairWithItself."
+  },
+  "errorCodeAlreadyUsed": "This code was already used.",
+  "@errorCodeAlreadyUsed": {
+    "description": "Error shown to the person: codeAlreadyUsed."
+  },
+  "errorNoDeviceJoined": "No device has joined yet.",
+  "@errorNoDeviceJoined": {
+    "description": "Error shown to the person: noDeviceJoined."
+  },
+  "errorCodeFormat": "Enter the 6-digit code shown on the phone.",
+  "@errorCodeFormat": {
+    "description": "Error shown to the person: codeFormat."
+  },
+  "errorNotAPairingCode": "That is not an AirReply pairing code.",
+  "@errorNotAPairingCode": {
+    "description": "Error shown to the person: notAPairingCode."
+  },
+  "errorCodeNotFound": "No pairing code like that. Check the code on the other phone.",
+  "@errorCodeNotFound": {
+    "description": "Error shown to the person: codeNotFound."
+  },
+  "errorCodeExpired": "This code has expired. Make a new one.",
+  "@errorCodeExpired": {
+    "description": "Error shown to the person: codeExpired."
+  },
+  "errorQrMismatch": "The QR code does not match this session. Pairing stopped for your safety.",
+  "@errorQrMismatch": {
+    "description": "Error shown to the person: qrMismatch."
+  },
+  "errorNotConfirmedYet": "The other phone has not confirmed yet.",
+  "@errorNotConfirmedYet": {
+    "description": "Error shown to the person: notConfirmedYet."
+  },
+  "errorPairingCancelledOnPhone": "Pairing was cancelled on the other phone.",
+  "@errorPairingCancelledOnPhone": {
+    "description": "Error shown to the person: pairingCancelledOnPhone."
+  },
+  "errorPairingCancelled": "The pairing was cancelled. Make a new code to try again.",
+  "@errorPairingCancelled": {
+    "description": "Error shown to the person: pairingCancelled."
+  },
+  "errorPairingNotAvailable": "This pairing session is not available to this device.",
+  "@errorPairingNotAvailable": {
+    "description": "Error shown to the person: pairingNotAvailable."
+  },
+  "errorPairingServerFailed": "The server could not complete pairing.",
+  "@errorPairingServerFailed": {
+    "description": "Error shown to the person: pairingServerFailed."
+  },
+  "errorPairingOffInDemo": "Pairing is turned off in demo mode.",
+  "@errorPairingOffInDemo": {
+    "description": "Error shown to the person: pairingOffInDemo."
+  },
+  "errorNotPaired": "This device is not paired yet.",
+  "@errorNotPaired": {
+    "description": "Error shown to the person: notPaired."
+  },
+  "errorInvalidPeerKey": "The other device sent an invalid key.",
+  "@errorInvalidPeerKey": {
+    "description": "Error shown to the person: invalidPeerKey."
+  },
+  "errorUnsafePeerKey": "The other device sent an unsafe key.",
+  "@errorUnsafePeerKey": {
+    "description": "Error shown to the person: unsafePeerKey."
+  },
+  "errorEncryptFailed": "Could not encrypt the notification.",
+  "@errorEncryptFailed": {
+    "description": "Error shown to the person: encryptFailed."
+  },
+  "errorDecryptFailed": "Could not decrypt the notification.",
+  "@errorDecryptFailed": {
+    "description": "Error shown to the person: decryptFailed."
+  },
+  "errorPayloadUnknown": "This notification is in an unknown format.",
+  "@errorPayloadUnknown": {
+    "description": "Error shown to the person: payloadUnknown."
+  },
+  "errorPayloadForeign": "This notification was not made with this pair's key, or it was altered.",
+  "@errorPayloadForeign": {
+    "description": "Error shown to the person: payloadForeign."
+  },
+  "errorNativeServiceFailed": "The Android notification service failed.",
+  "@errorNativeServiceFailed": {
+    "description": "Error shown to the person: nativeServiceFailed."
+  },
+  "errorNativeServiceUnavailable": "The Android notification service is not available.",
+  "@errorNativeServiceUnavailable": {
+    "description": "Error shown to the person: nativeServiceUnavailable."
+  },
+  "errorReplyEmpty": "Type a reply first.",
+  "@errorReplyEmpty": {
+    "description": "Error shown to the person: replyEmpty."
+  },
+  "errorReplyTooLong": "That reply is too long.",
+  "@errorReplyTooLong": {
+    "description": "Error shown to the person: replyTooLong."
+  },
+  "errorReplyNotPossible": "This notification cannot be answered.",
+  "@errorReplyNotPossible": {
+    "description": "Error shown to the person: replyNotPossible."
+  },
+  "errorReplyDismissed": "This notification was dismissed on your phone, so it can no longer be answered.",
+  "@errorReplyDismissed": {
+    "description": "Error shown to the person: replyDismissed."
+  },
+  "errorDevicesUnreachable": "{count, plural, =1{Could not reach 1 of {total} paired devices.} other{Could not reach {count} of {total} paired devices.}}",
+  "@errorDevicesUnreachable": {
+    "description": "Error: some paired devices could not be reached.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "errorWithDetail": "{message} ({detail})",
+  "@errorWithDetail": {
+    "description": "An error sentence followed by a technical code in brackets.",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String",
+        "example": "unavailable"
+      }
+    }
+  },
+  "errorUnknown": "Something went wrong. Please try again.",
+  "@errorUnknown": {
+    "description": "Error with no known cause."
+  },
+  "errorSharingAndroidOnly": "Sharing notifications is only available on Android.",
+  "@errorSharingAndroidOnly": {
+    "description": "Error: sharing tried on a platform that is not Android."
+  },
+  "timeNow": "now",
+  "@timeNow": {
+    "description": "Compact time: under a minute ago."
+  },
+  "timeMinutesShort": "{n}m",
+  "@timeMinutesShort": {
+    "description": "Compact time: minutes ago, e.g. \"5m\".",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursShort": "{n}h",
+  "@timeHoursShort": {
+    "description": "Compact time: hours ago, e.g. \"3h\".",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timeToday": "Today",
+  "@timeToday": {
+    "description": "A day heading: today."
+  },
+  "timeYesterday": "Yesterday",
+  "@timeYesterday": {
+    "description": "A day heading or time: yesterday."
+  },
+  "timeAt": "{day} at {time}",
+  "@timeAt": {
+    "description": "A full timestamp: day heading and clock time.",
+    "placeholders": {
+      "day": {
+        "type": "String",
+        "example": "Yesterday"
+      },
+      "time": {
+        "type": "String",
+        "example": "14:05"
+      }
+    }
+  },
+  "timeJustNow": "just now",
+  "@timeJustNow": {
+    "description": "How long ago: under a minute."
+  },
+  "timeMinutesAgo": "{n, plural, =1{1 min ago} other{{n} min ago}}",
+  "@timeMinutesAgo": {
+    "description": "How long ago, in minutes.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "timeHoursAgo": "{n, plural, =1{1 h ago} other{{n} h ago}}",
+  "@timeHoursAgo": {
+    "description": "How long ago, in hours.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "actionUndo": "Undo",
+  "@actionUndo": {
+    "description": "Button: undo the last action."
+  },
+  "actionCancel": "Cancel",
+  "@actionCancel": {
+    "description": "Button: cancel and close."
+  },
+  "searchHint": "Search",
+  "@searchHint": {
+    "description": "Placeholder of a search box."
+  },
+  "searchClear": "Clear search",
+  "@searchClear": {
+    "description": "Tooltip: empty the search box."
+  },
+  "splashFailed": "AirReply could not start",
+  "@splashFailed": {
+    "description": "Start-up failed."
+  },
+  "actionTryAgain": "Try again",
+  "@actionTryAgain": {
+    "description": "Button: retry what failed."
+  },
+  "splashStarting": "AirReply is starting",
+  "@splashStarting": {
+    "description": "Screen reader label of the start-up screen."
+  },
+  "firebaseSetupEyebrow": "Setup required",
+  "@firebaseSetupEyebrow": {
+    "description": "Eyebrow: the app needs setting up."
+  },
+  "firebaseSetupTitle": "Connect Firebase",
+  "@firebaseSetupTitle": {
+    "description": "Title of the Firebase setup screen."
+  },
+  "firebaseSetupBody": "AirReply syncs your devices through your own Firebase project. Run this in the project folder, then rebuild the app.",
+  "@firebaseSetupBody": {
+    "description": "Firebase setup instructions."
+  },
+  "actionCopyCommand": "Copy command",
+  "@actionCopyCommand": {
+    "description": "Button: copy the shown command."
+  },
+  "firebaseSetupDetails": "Details",
+  "@firebaseSetupDetails": {
+    "description": "Eyebrow above the technical error."
+  },
+  "deviceConnected": "Connected",
+  "@deviceConnected": {
+    "description": "Device state: connected and live."
+  },
+  "deviceOffline": "Offline",
+  "@deviceOffline": {
+    "description": "Device state: no connection."
+  },
+  "deviceConnecting": "Connecting",
+  "@deviceConnecting": {
+    "description": "Device state: reaching the server."
+  },
+  "deviceNeedsAccess": "Needs access",
+  "@deviceNeedsAccess": {
+    "description": "Device state: the phone needs notification access."
+  },
+  "devicePaused": "Paused",
+  "@devicePaused": {
+    "description": "Device state: sharing is paused."
+  },
+  "deviceNotReceiving": "Not receiving",
+  "@deviceNotReceiving": {
+    "description": "Device state: Android stopped the listener."
+  },
+  "deviceReceivingDetail": "New notifications arrive as they happen.",
+  "@deviceReceivingDetail": {
+    "description": "Explains the connected state on a receiving device."
+  },
+  "deviceSharingDetail": "New notifications are shared as they arrive.",
+  "@deviceSharingDetail": {
+    "description": "Explains the connected state on the sharing phone."
+  },
+  "deviceOfflineDetail": "Showing saved notifications until this device is back online.",
+  "@deviceOfflineDetail": {
+    "description": "Explains the offline state."
+  },
+  "deviceConnectingDetail": "Reaching the server…",
+  "@deviceConnectingDetail": {
+    "description": "Explains the connecting state."
+  },
+  "deviceNeedsAccessDetail": "Notification access is off, so nothing can be shared.",
+  "@deviceNeedsAccessDetail": {
+    "description": "Explains the needs-access state."
+  },
+  "devicePausedDetail": "Sharing is off. Turn it on to send notifications.",
+  "@devicePausedDetail": {
+    "description": "Explains the paused state."
+  },
+  "deviceNotReceivingDetail": "Android stopped AirReply's notification listener.",
+  "@deviceNotReceivingDetail": {
+    "description": "Explains the not-receiving state."
+  },
+  "settingsAccessEyebrow": "Access",
+  "@settingsAccessEyebrow": {
+    "description": "Settings section eyebrow."
+  },
+  "settingsPermissionsTitle": "Permissions",
+  "@settingsPermissionsTitle": {
+    "description": "Settings section title."
+  },
+  "settingsFilterEyebrow": "Filter",
+  "@settingsFilterEyebrow": {
+    "description": "Settings section eyebrow."
+  },
+  "settingsAppsTitle": "Apps",
+  "@settingsAppsTitle": {
+    "description": "Settings section title."
+  },
+  "settingsPrivacyEyebrow": "Privacy",
+  "@settingsPrivacyEyebrow": {
+    "description": "Settings section eyebrow."
+  },
+  "settingsPrivacyTitle": "Mirroring and privacy",
+  "@settingsPrivacyTitle": {
+    "description": "Settings section title."
+  },
+  "settingsConnectionEyebrow": "Connection",
+  "@settingsConnectionEyebrow": {
+    "description": "Settings section eyebrow."
+  },
+  "settingsSyncTitle": "Sync",
+  "@settingsSyncTitle": {
+    "description": "Settings section title."
+  },
+  "settingsAppearanceEyebrow": "Appearance",
+  "@settingsAppearanceEyebrow": {
+    "description": "Settings section eyebrow."
+  },
+  "settingsAppearanceTitle": "Appearance and accessibility",
+  "@settingsAppearanceTitle": {
+    "description": "Settings section title."
+  },
+  "settingsDataEyebrow": "Data",
+  "@settingsDataEyebrow": {
+    "description": "Settings section eyebrow."
+  },
+  "settingsDataTitle": "Your data",
+  "@settingsDataTitle": {
+    "description": "Settings section title."
+  },
+  "settingsHelpEyebrow": "Help",
+  "@settingsHelpEyebrow": {
+    "description": "Settings section eyebrow."
+  },
+  "settingsHelpTitle": "Help and about",
+  "@settingsHelpTitle": {
+    "description": "Settings section title."
+  },
+  "permissionOn": "On",
+  "@permissionOn": {
+    "description": "A permission that is granted."
+  },
+  "actionOpen": "Open",
+  "@actionOpen": {
+    "description": "Button: open the system setting."
+  },
+  "actionAllow": "Allow",
+  "@actionAllow": {
+    "description": "Button: grant a permission."
+  },
+  "permissionAccessTitle": "Notification access",
+  "@permissionAccessTitle": {
+    "description": "Permission row title."
+  },
+  "permissionAccessSubtitle": "Required to read and share notifications",
+  "@permissionAccessSubtitle": {
+    "description": "Permission row."
+  },
+  "permissionStatusTitle": "Status notification",
+  "@permissionStatusTitle": {
+    "description": "Permission row title."
+  },
+  "permissionStatusSubtitle": "Shows \"Notification Sync Active\" with a Pause button",
+  "@permissionStatusSubtitle": {
+    "description": "Permission row: the sharing notification on the phone."
+  },
+  "permissionBatteryTitle": "Battery optimisation",
+  "@permissionBatteryTitle": {
+    "description": "Permission row title."
+  },
+  "permissionBatteryOk": "Unrestricted: Android will not pause sharing",
+  "@permissionBatteryOk": {
+    "description": "Battery setting is right."
+  },
+  "permissionBatteryFix": "Set to \"Unrestricted\" so Android never pauses sharing",
+  "@permissionBatteryFix": {
+    "description": "Battery setting needs changing."
+  },
+  "permissionAlertsTitle": "Alerts",
+  "@permissionAlertsTitle": {
+    "description": "Permission row title: system notifications."
+  },
+  "permissionAlertsBrowser": "Lets this browser show new notifications",
+  "@permissionAlertsBrowser": {
+    "description": "Alerts permission on the web."
+  },
+  "permissionAlertsDevice": "Lets this device alert you to new notifications",
+  "@permissionAlertsDevice": {
+    "description": "Alerts permission."
+  },
+  "loading": "Loading…",
+  "@loading": {
+    "description": "Something is loading."
+  },
+  "appsAllShared": "Every app is shared",
+  "@appsAllShared": {
+    "description": "App filter: all apps."
+  },
+  "appsNoneShared": "No apps selected: nothing is shared",
+  "@appsNoneShared": {
+    "description": "App filter: none."
+  },
+  "appsToShareTitle": "Apps to share",
+  "@appsToShareTitle": {
+    "description": "Settings row: choose shared apps."
+  },
+  "appsMutedTitle": "Muted apps",
+  "@appsMutedTitle": {
+    "description": "Settings row: apps without alerts."
+  },
+  "encryptionTitle": "End-to-end encrypted",
+  "@encryptionTitle": {
+    "description": "Privacy row title."
+  },
+  "encryptionDetail": "Each pair has its own key, agreed between the two devices (X25519). Notifications and replies are sealed with AES-256-GCM. History stays on your devices: the server only relays ciphertext and deletes each message once it is delivered.",
+  "@encryptionDetail": {
+    "description": "Explains the encryption."
+  },
+  "shareNotificationsTitle": "Share notifications",
+  "@shareNotificationsTitle": {
+    "description": "Switch: share this phone's notifications."
+  },
+  "shareNeedsAccess": "Turn on notification access first",
+  "@shareNeedsAccess": {
+    "description": "Sharing cannot start yet."
+  },
+  "alertTextTitle": "Show message text in alerts",
+  "@alertTextTitle": {
+    "description": "Switch title."
+  },
+  "alertTextSubtitle": "Off: alerts only name the app, for lock screens and shared displays",
+  "@alertTextSubtitle": {
+    "description": "Switch subtitle."
+  },
+  "alertsBrowserTitle": "Alerts in this browser",
+  "@alertsBrowserTitle": {
+    "description": "Row title on the web."
+  },
+  "alertsComputerTitle": "Alerts on this computer",
+  "@alertsComputerTitle": {
+    "description": "Row title on desktop."
+  },
+  "alertsWhileOpen": "New notifications alert you while AirReply is running. Keep it open (on Mac it keeps running when you close the window).",
+  "@alertsWhileOpen": {
+    "description": "Desktop alerts explanation."
+  },
+  "syncNoDevices": "No paired devices",
+  "@syncNoDevices": {
+    "description": "Sync status with nothing paired."
+  },
+  "syncStatusTitle": "Sync status",
+  "@syncStatusTitle": {
+    "description": "Settings row title."
+  },
+  "syncChecking": "Checking the connection…",
+  "@syncChecking": {
+    "description": "Message while refreshing."
+  },
+  "actionRefresh": "Refresh",
+  "@actionRefresh": {
+    "description": "Button: check again."
+  },
+  "listenerTitle": "Notification listener",
+  "@listenerTitle": {
+    "description": "Settings row title."
+  },
+  "listenerSubtitle": "Ask Android to connect AirReply's listener again if devices stop receiving",
+  "@listenerSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "actionReconnect": "Reconnect",
+  "@actionReconnect": {
+    "description": "Button: reconnect the listener."
+  },
+  "themeTitle": "Theme",
+  "@themeTitle": {
+    "description": "Settings row title."
+  },
+  "themeSubtitle": "System follows this device",
+  "@themeSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "themeSystem": "System",
+  "@themeSystem": {
+    "description": "Theme choice."
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "Theme choice."
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Theme choice."
+  },
+  "hapticsTitle": "Haptic feedback",
+  "@hapticsTitle": {
+    "description": "Switch title."
+  },
+  "hapticsSubtitle": "A light tap when you send, toggle or confirm",
+  "@hapticsSubtitle": {
+    "description": "Switch subtitle."
+  },
+  "textSizeTitle": "Text size",
+  "@textSizeTitle": {
+    "description": "Settings row title."
+  },
+  "textSizeSubtitle": "AirReply follows the text size and bold text set on this device",
+  "@textSizeSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "removeAllConfirmTitle": "Remove all devices?",
+  "@removeAllConfirmTitle": {
+    "description": "Confirmation title."
+  },
+  "actionRemoveAll": "Remove all",
+  "@actionRemoveAll": {
+    "description": "Button: remove every device."
+  },
+  "markAllReadTitle": "Mark all as read",
+  "@markAllReadTitle": {
+    "description": "Settings row title."
+  },
+  "markedAllRead": "All marked as read",
+  "@markedAllRead": {
+    "description": "Message after marking all read."
+  },
+  "restoreHiddenTitle": "Restore hidden notifications",
+  "@restoreHiddenTitle": {
+    "description": "Settings row title."
+  },
+  "hiddenRestored": "Hidden notifications restored",
+  "@hiddenRestored": {
+    "description": "Message after restoring."
+  },
+  "removeAllTitle": "Remove all devices",
+  "@removeAllTitle": {
+    "description": "Settings row title."
+  },
+  "removeAllSubtitle": "Ends every pair and deletes the keys and shared history",
+  "@removeAllSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "troubleshootingTitle": "Troubleshooting",
+  "@troubleshootingTitle": {
+    "description": "Settings row title."
+  },
+  "troubleshootingSubtitle": "What to check when notifications or replies do not arrive",
+  "@troubleshootingSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "diagnosticsTitle": "Diagnostics",
+  "@diagnosticsTitle": {
+    "description": "Settings row and screen title."
+  },
+  "diagnosticsSubtitle": "Connection, permission and sync details to check or share",
+  "@diagnosticsSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "licencesTitle": "Open-source licences",
+  "@licencesTitle": {
+    "description": "Settings row title."
+  },
+  "appTagline": "Your phone's notifications, on every screen.",
+  "@appTagline": {
+    "description": "The app's one-line description."
+  },
+  "syncSharing": "Sharing",
+  "@syncSharing": {
+    "description": "Sharing state."
+  },
+  "syncStarting": "Starting",
+  "@syncStarting": {
+    "description": "Sharing state: starting up."
+  },
+  "permissionAutostartTitle": "Autostart",
+  "@permissionAutostartTitle": {
+    "description": "Permission row title (phone makers' autostart switch)."
+  },
+  "permissionAutostartSubtitle": "Required on {vendor} phones. Android cannot report it, so check it there.",
+  "@permissionAutostartSubtitle": {
+    "description": "Autostart row.",
+    "placeholders": {
+      "vendor": {
+        "type": "String",
+        "example": "Xiaomi"
+      }
+    }
+  },
+  "appsSomeShared": "{count, plural, =1{Only 1 selected app} other{Only {count} selected apps}}",
+  "@appsSomeShared": {
+    "description": "App filter: some apps.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appsMuted": "{count, plural, =0{Every app can alert you} other{{count} muted: they arrive silently}}",
+  "@appsMuted": {
+    "description": "Muted apps summary.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncLive": "{state}. Live now.",
+  "@syncLive": {
+    "description": "Sync status: connected.",
+    "placeholders": {
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "syncLastSynced": "{state}. Last synced {ago}.",
+  "@syncLastSynced": {
+    "description": "Sync status with when it last synced.",
+    "placeholders": {
+      "state": {
+        "type": "String"
+      },
+      "ago": {
+        "type": "String",
+        "example": "5 min ago"
+      }
+    }
+  },
+  "syncStateDetail": "{state}. {detail}",
+  "@syncStateDetail": {
+    "description": "Sync status with its explanation.",
+    "placeholders": {
+      "state": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "removeAllConfirmOne": "Syncing stops with {name}, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.",
+  "@removeAllConfirmOne": {
+    "description": "Confirm removing the only device.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "removeAllConfirmMany": "Syncing stops with all {count} devices, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.",
+  "@removeAllConfirmMany": {
+    "description": "Confirm removing every device.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unreadCount": "{count, plural, =0{Nothing unread} other{{count} unread}}",
+  "@unreadCount": {
+    "description": "How many notifications are unread.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hiddenCount": "{count, plural, =0{Nothing hidden} other{{count} hidden on this device}}",
+  "@hiddenCount": {
+    "description": "How many notifications are hidden.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noticeAccessOffTitle": "Notification access is off",
+  "@noticeAccessOffTitle": {
+    "description": "Notice title."
+  },
+  "noticeAccessOffMessage": "AirReply cannot see new notifications until you turn it back on.",
+  "@noticeAccessOffMessage": {
+    "description": "Notice message."
+  },
+  "actionOpenSettings": "Open settings",
+  "@actionOpenSettings": {
+    "description": "Button: open the system settings."
+  },
+  "noticePausedTitle": "Sharing is paused",
+  "@noticePausedTitle": {
+    "description": "Notice title."
+  },
+  "noticePausedMessage": "Notifications on this phone are not being sent to your devices.",
+  "@noticePausedMessage": {
+    "description": "Notice message."
+  },
+  "actionResumeSharing": "Resume sharing",
+  "@actionResumeSharing": {
+    "description": "Button: turn sharing back on."
+  },
+  "noticeNotReceivingTitle": "Not receiving notifications",
+  "@noticeNotReceivingTitle": {
+    "description": "Notice title."
+  },
+  "noticeNotReceivingAutostart": "Android stopped AirReply's listener. Reconnect, and turn on Autostart for AirReply on {vendor} phones so it does not happen again.",
+  "@noticeNotReceivingAutostart": {
+    "description": "Notice message on phones with an Autostart switch.",
+    "placeholders": {
+      "vendor": {
+        "type": "String",
+        "example": "Xiaomi"
+      }
+    }
+  },
+  "noticeNotReceivingMessage": "Android stopped AirReply's notification listener. Reconnect to start again.",
+  "@noticeNotReceivingMessage": {
+    "description": "Notice message."
+  },
+  "noticeBatteryTitle": "Battery optimisation is on",
+  "@noticeBatteryTitle": {
+    "description": "Notice title."
+  },
+  "noticeBatteryMessage": "Android may pause sharing to save battery. Set AirReply to \"Unrestricted\".",
+  "@noticeBatteryMessage": {
+    "description": "Notice message."
+  },
+  "actionBatterySettings": "Battery settings",
+  "@actionBatterySettings": {
+    "description": "Button: open battery settings."
+  },
+  "noticeAlertsOffTitle": "Alerts are off on this device",
+  "@noticeAlertsOffTitle": {
+    "description": "Notice title."
+  },
+  "noticeAlertsOffMessage": "New notifications still appear here, but this device will not alert you.",
+  "@noticeAlertsOffMessage": {
+    "description": "Notice message."
+  },
+  "actionAllowAlerts": "Allow alerts",
+  "@actionAllowAlerts": {
+    "description": "Button: allow system notifications."
+  },
+  "noticeOneOffline": "{name} is offline",
+  "@noticeOneOffline": {
+    "description": "Notice title: one device offline.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "noticeManyOffline": "{count} devices are offline",
+  "@noticeManyOffline": {
+    "description": "Notice title: several devices offline.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noticeOfflineMessage": "Showing saved notifications. New ones arrive once this device is back online.",
+  "@noticeOfflineMessage": {
+    "description": "Notice message."
+  },
+  "actionRetry": "Retry",
+  "@actionRetry": {
+    "description": "Button: try again."
+  },
+  "setupTitle": "Set up",
+  "@setupTitle": {
+    "description": "Setup screen title."
+  },
+  "disclosureEyebrow": "Before you start",
+  "@disclosureEyebrow": {
+    "description": "Privacy disclosure eyebrow."
+  },
+  "disclosureTitle": "AirReply needs access to your notifications",
+  "@disclosureTitle": {
+    "description": "Privacy disclosure title."
+  },
+  "disclosureIntro": "To share this phone's notifications with your paired devices, AirReply uses Android's Notification Access permission.",
+  "@disclosureIntro": {
+    "description": "Privacy disclosure."
+  },
+  "disclosureWhatTitle": "What is accessed",
+  "@disclosureWhatTitle": {
+    "description": "Privacy disclosure point."
+  },
+  "disclosureWhatBody": "The notifications shown on this phone: app name, title, text, time, and the reply action of messaging apps. This works in the background, even when AirReply is closed.",
+  "@disclosureWhatBody": {
+    "description": "Privacy disclosure point."
+  },
+  "disclosureWhyTitle": "Why",
+  "@disclosureWhyTitle": {
+    "description": "Privacy disclosure point."
+  },
+  "disclosureWhyBody": "Only to show those notifications on the devices you pair, and to send the replies you type there through the original app on this phone.",
+  "@disclosureWhyBody": {
+    "description": "Privacy disclosure point."
+  },
+  "disclosureHowTitle": "How it is protected",
+  "@disclosureHowTitle": {
+    "description": "Privacy disclosure point."
+  },
+  "disclosureHowBody": "Each notification is encrypted on this phone with AES-256-GCM, using a key that only this phone and the paired device hold. Our servers relay ciphertext they cannot read, and delete it once delivered: history is kept only on your devices.",
+  "@disclosureHowBody": {
+    "description": "Privacy disclosure point."
+  },
+  "disclosureControlTitle": "You stay in control",
+  "@disclosureControlTitle": {
+    "description": "Privacy disclosure point."
+  },
+  "disclosureControlBody": "Choose which apps are shared, pause from the status notification at any time, or remove a device to stop sharing and delete the synced history. Notification content is never sold, shared with third parties, or used for ads or analytics.",
+  "@disclosureControlBody": {
+    "description": "Privacy disclosure point."
+  },
+  "actionAgreeAndContinue": "Agree and continue",
+  "@actionAgreeAndContinue": {
+    "description": "Button: accept the disclosure."
+  },
+  "actionNoThanks": "No thanks",
+  "@actionNoThanks": {
+    "description": "Button: decline."
+  },
+  "setupProgress": "{done} of {total} required steps done",
+  "@setupProgress": {
+    "description": "Setup progress.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "setupPhoneTitle": "Set up this phone",
+  "@setupPhoneTitle": {
+    "description": "Setup checklist title."
+  },
+  "setupPhoneSubtitle": "Two permissions let AirReply share notifications and keep running in the background.",
+  "@setupPhoneSubtitle": {
+    "description": "Setup checklist subtitle."
+  },
+  "setupAccessSubtitle": "Required. Find AirReply in the list and switch it on.",
+  "@setupAccessSubtitle": {
+    "description": "Setup step."
+  },
+  "setupStatusSubtitle": "Shows \"Notification Sync Active\" with a Pause button while sharing is on.",
+  "@setupStatusSubtitle": {
+    "description": "Setup step."
+  },
+  "setupAutostartSubtitle": "Required on {vendor}. Without it the phone stops AirReply from listening once the app is closed. Find AirReply and switch Autostart on.",
+  "@setupAutostartSubtitle": {
+    "description": "Setup step.",
+    "placeholders": {
+      "vendor": {
+        "type": "String",
+        "example": "Xiaomi"
+      }
+    }
+  },
+  "setupBatterySubtitle": "Recommended. Set AirReply to \"Unrestricted\" so Android never pauses sharing.",
+  "@setupBatterySubtitle": {
+    "description": "Setup step."
+  },
+  "actionContinue": "Continue",
+  "@actionContinue": {
+    "description": "Button: go on."
+  },
+  "setupNeedsAccess": "Turn on notification access to continue",
+  "@setupNeedsAccess": {
+    "description": "Button label while a step is missing."
+  },
+  "stepDone": "Done",
+  "@stepDone": {
+    "description": "A finished step."
+  },
+  "pairADevice": "Pair a device",
+  "@pairADevice": {
+    "description": "Pairing screen title."
+  },
+  "pairTitle": "Pair",
+  "@pairTitle": {
+    "description": "Pairing screen title before anything is paired."
+  },
+  "pairAddADevice": "Add a device",
+  "@pairAddADevice": {
+    "description": "Pairing screen title on the phone when already sharing."
+  },
+  "pairPairedWith": "Paired with {name}",
+  "@pairPairedWith": {
+    "description": "Message once paired.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "pairStep": "Step {current} of {total}",
+  "@pairStep": {
+    "description": "Pairing progress.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pairStopped": "Pairing stopped",
+  "@pairStopped": {
+    "description": "Pairing failed: title."
+  },
+  "actionMakeNewCode": "Make a new code",
+  "@actionMakeNewCode": {
+    "description": "Button: new pairing code."
+  },
+  "pairShowCodeIntro": "On your iPhone, iPad, Mac, PC, browser or other Android, open AirReply, choose \"View and reply here\", then scan this code or type the digits.",
+  "@pairShowCodeIntro": {
+    "description": "Pairing instructions on the phone."
+  },
+  "pairQrLabel": "Pairing QR code",
+  "@pairQrLabel": {
+    "description": "Screen reader label of the QR code."
+  },
+  "pairOrTypeCode": "OR TYPE THIS CODE",
+  "@pairOrTypeCode": {
+    "description": "Label above the six digits (uppercase style)."
+  },
+  "pairCodeCopied": "Code {code} copied",
+  "@pairCodeCopied": {
+    "description": "Message after copying the code.",
+    "placeholders": {
+      "code": {
+        "type": "String",
+        "example": "482 913"
+      }
+    }
+  },
+  "actionCopyCode": "Copy code",
+  "@actionCopyCode": {
+    "description": "Button: copy the code."
+  },
+  "actionNewCode": "New code",
+  "@actionNewCode": {
+    "description": "Button: make another code."
+  },
+  "pairCodesMatchQuestion": "Do the codes match?",
+  "@pairCodesMatchQuestion": {
+    "description": "Verification title."
+  },
+  "pairVerifyWarning": "{name} wants to pair. It must show exactly this code. If it does not, someone else may be trying to connect.",
+  "@pairVerifyWarning": {
+    "description": "Verification warning.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "MacBook"
+      }
+    }
+  },
+  "actionCodesMatch": "Codes match, pair",
+  "@actionCodesMatch": {
+    "description": "Button: confirm pairing."
+  },
+  "actionCodesDoNotMatch": "They do not match",
+  "@actionCodesDoNotMatch": {
+    "description": "Button: reject pairing."
+  },
+  "pairAddAnotherPhone": "Add another phone",
+  "@pairAddAnotherPhone": {
+    "description": "Pairing title on a device already receiving."
+  },
+  "pairWithYourPhone": "Pair with your phone",
+  "@pairWithYourPhone": {
+    "description": "Pairing title on a receiving device."
+  },
+  "pairEnterCodeIntro": "On the Android phone you want to see here, open AirReply and choose \"Share my notifications\" (or \"Add a device\" if it already shares). It shows a QR code and six digits.",
+  "@pairEnterCodeIntro": {
+    "description": "Pairing instructions on the receiving device."
+  },
+  "pairMethodScan": "Scan",
+  "@pairMethodScan": {
+    "description": "Pairing method: scan the QR code."
+  },
+  "pairMethodType": "Type code",
+  "@pairMethodType": {
+    "description": "Pairing method: type the digits."
+  },
+  "pairCodeLabel": "PAIRING CODE",
+  "@pairCodeLabel": {
+    "description": "Label above the code field (uppercase style)."
+  },
+  "pairStartsOnLastDigit": "Pairing starts as soon as you type the last digit.",
+  "@pairStartsOnLastDigit": {
+    "description": "Hint under the code field."
+  },
+  "pairConnecting": "Connecting…",
+  "@pairConnecting": {
+    "description": "Pairing in progress."
+  },
+  "pairPointCamera": "Point the camera at the QR code on your phone.",
+  "@pairPointCamera": {
+    "description": "Scanner hint."
+  },
+  "cameraDenied": "AirReply needs the camera to scan. Allow it in your phone's settings, or type the code instead.",
+  "@cameraDenied": {
+    "description": "Camera permission refused."
+  },
+  "cameraNotStarted": "The camera did not start.",
+  "@cameraNotStarted": {
+    "description": "Camera failed to start."
+  },
+  "pairConfirmOn": "Confirm on {name}",
+  "@pairConfirmOn": {
+    "description": "Title while waiting for the phone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "pairConfirmHint": "Check that your phone shows the same code, then tap \"Codes match\" there.",
+  "@pairConfirmHint": {
+    "description": "Waiting for the phone: what to do."
+  },
+  "pairWaitingForPhone": "Waiting for your phone…",
+  "@pairWaitingForPhone": {
+    "description": "Waiting for the phone to confirm."
+  },
+  "pairCodeExpired": "Code expired, making a new one",
+  "@pairCodeExpired": {
+    "description": "The pairing code ran out."
+  },
+  "pairExpiresIn": "Expires in {minutes}:{seconds}",
+  "@pairExpiresIn": {
+    "description": "Pairing code countdown.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "String",
+        "example": "05"
+      }
+    }
+  },
+  "pairStepNamed": "Step {current} of {total}: {name}",
+  "@pairStepNamed": {
+    "description": "Screen reader label of the pairing steps.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pairCouldNotPair": "Could not pair",
+  "@pairCouldNotPair": {
+    "description": "Error notice title on the pairing screen."
+  },
+  "stepShowCode": "Show code",
+  "@stepShowCode": {
+    "description": "Pairing step."
+  },
+  "stepVerify": "Verify",
+  "@stepVerify": {
+    "description": "Pairing step."
+  },
+  "stepEnterCode": "Enter code",
+  "@stepEnterCode": {
+    "description": "Pairing step."
+  },
+  "notYet": "Not yet",
+  "@notYet": {
+    "description": "A time that has not happened yet."
+  },
+  "factStatus": "Status",
+  "@factStatus": {
+    "description": "Device fact label."
+  },
+  "factLive": "Live",
+  "@factLive": {
+    "description": "Device fact: live connection."
+  },
+  "factLastSynced": "Last synced",
+  "@factLastSynced": {
+    "description": "Device fact label."
+  },
+  "factNow": "Now",
+  "@factNow": {
+    "description": "Device fact: right now."
+  },
+  "lastShared": "Last shared",
+  "@lastShared": {
+    "description": "When the phone last shared a notification."
+  },
+  "lastNotification": "Last notification",
+  "@lastNotification": {
+    "description": "When the last notification arrived."
+  },
+  "factPaired": "Paired",
+  "@factPaired": {
+    "description": "Device fact: when it was paired."
+  },
+  "factEncryption": "Encryption",
+  "@factEncryption": {
+    "description": "Device fact label."
+  },
+  "factEncryptionValue": "End-to-end, AES-256-GCM",
+  "@factEncryptionValue": {
+    "description": "Device fact value."
+  },
+  "removeDeviceTitle": "Remove {name}?",
+  "@removeDeviceTitle": {
+    "description": "Confirm removing a device: title.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "removeDeviceMessage": "Syncing with {name} stops on both devices, its encryption key is deleted, and the history you share with it is removed. Other devices are not affected.",
+  "@removeDeviceMessage": {
+    "description": "Confirm removing a device.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "actionRemove": "Remove",
+  "@actionRemove": {
+    "description": "Button: remove."
+  },
+  "deviceRemoved": "{name} removed",
+  "@deviceRemoved": {
+    "description": "Message after removing a device.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "actionTurnOnAccess": "Turn on notification access",
+  "@actionTurnOnAccess": {
+    "description": "Button: open notification access."
+  },
+  "browseShared": "Browse what you shared",
+  "@browseShared": {
+    "description": "Button: open what this phone shared with a device."
+  },
+  "browseHistory": "Browse notification history",
+  "@browseHistory": {
+    "description": "Button: open a phone's history."
+  },
+  "actionRemoveDevice": "Remove device",
+  "@actionRemoveDevice": {
+    "description": "Button: unpair a device."
+  },
+  "addAPhone": "Add a phone",
+  "@addAPhone": {
+    "description": "Tooltip: pair a phone."
+  },
+  "factWithTime": "{label} {time}",
+  "@factWithTime": {
+    "description": "A label followed by a time, e.g. \"Last shared 5 min ago\".",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String",
+        "example": "5 min ago"
+      }
+    }
+  },
+  "pairedAgo": "Paired {time}",
+  "@pairedAgo": {
+    "description": "When a device was paired.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "Mon"
+      }
+    }
+  },
+  "devicesPaired": "{count} paired",
+  "@devicesPaired": {
+    "description": "How many devices are paired.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "devicesIntroSender": "This phone shares its notifications with these devices.",
+  "@devicesIntroSender": {
+    "description": "Devices screen intro on the phone."
+  },
+  "devicesIntroReceiver": "This device shows notifications from these phones.",
+  "@devicesIntroReceiver": {
+    "description": "Devices screen intro on a receiving device."
+  },
+  "devicesNone": "No devices",
+  "@devicesNone": {
+    "description": "Empty state title."
+  },
+  "devicesNoneHint": "Pair a device to start.",
+  "@devicesNoneHint": {
+    "description": "Empty state description."
+  },
+  "helpNotArrivingQ": "Notifications are not arriving",
+  "@helpNotArrivingQ": {
+    "description": "Troubleshooting question."
+  },
+  "helpNotArrivingA": "On the phone, open AirReply and check that \"Share notifications\" is on and the app is allowed to run in the background. Both devices need an internet connection. Then retry here.",
+  "@helpNotArrivingA": {
+    "description": "Troubleshooting answer."
+  },
+  "actionRetrySync": "Retry sync",
+  "@actionRetrySync": {
+    "description": "Button: sync again."
+  },
+  "helpNoAlertsQ": "No alerts on this device",
+  "@helpNoAlertsQ": {
+    "description": "Troubleshooting question."
+  },
+  "helpNoAlertsA": "New notifications always reach the Notifications tab. To be alerted too, allow notifications for AirReply, and check that the app is not muted in Settings → Muted apps.",
+  "@helpNoAlertsA": {
+    "description": "Troubleshooting answer."
+  },
+  "helpExpiredQ": "A reply says \"Expired on phone\"",
+  "@helpExpiredQ": {
+    "description": "Troubleshooting question."
+  },
+  "helpExpiredA": "Replies are sent through the notification on the phone. Once it is cleared there, or the app replaced it, it can no longer be answered. Reply to a newer notification, or from the phone.",
+  "@helpExpiredA": {
+    "description": "Troubleshooting answer."
+  },
+  "helpNotReceivingQ": "Devices are not receiving notifications",
+  "@helpNotReceivingQ": {
+    "description": "Troubleshooting question."
+  },
+  "helpNotReceivingA": "Check that notification access is on and sharing is not paused. If Android stopped AirReply's listener, reconnect it.",
+  "@helpNotReceivingA": {
+    "description": "Troubleshooting answer."
+  },
+  "actionReconnectListener": "Reconnect listener",
+  "@actionReconnectListener": {
+    "description": "Button: reconnect the notification listener."
+  },
+  "helpStopsQ": "Sharing stops after a while",
+  "@helpStopsQ": {
+    "description": "Troubleshooting question."
+  },
+  "helpStopsAutostartA": "On {vendor} phones, turn on Autostart for AirReply and set its battery use to \"Unrestricted\", or the phone stops it in the background.",
+  "@helpStopsAutostartA": {
+    "description": "Troubleshooting answer.",
+    "placeholders": {
+      "vendor": {
+        "type": "String",
+        "example": "Xiaomi"
+      }
+    }
+  },
+  "helpStopsA": "Set AirReply's battery use to \"Unrestricted\" so Android does not pause it in the background.",
+  "@helpStopsA": {
+    "description": "Troubleshooting answer."
+  },
+  "helpRepliesQ": "Replies are not delivered",
+  "@helpRepliesQ": {
+    "description": "Troubleshooting question."
+  },
+  "helpRepliesA": "A reply is sent through the notification it answers, so that notification must still be in this phone's status bar. Messaging apps that offer \"Reply\" in their notifications work best.",
+  "@helpRepliesA": {
+    "description": "Troubleshooting answer."
+  },
+  "historyTitle": "History",
+  "@historyTitle": {
+    "description": "Title of a device's history."
+  },
+  "historySharedWithIt": "Shared with it",
+  "@historySharedWithIt": {
+    "description": "Eyebrow: what this phone shared with a device."
+  },
+  "emptyNothingYet": "Nothing here yet",
+  "@emptyNothingYet": {
+    "description": "Empty state title."
+  },
+  "historyEmptySender": "Notifications this phone shares with {name} appear here.",
+  "@historyEmptySender": {
+    "description": "Empty device history on the phone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "MacBook"
+      }
+    }
+  },
+  "historyEmptyReceiver": "Notifications from {name} appear here.",
+  "@historyEmptyReceiver": {
+    "description": "Empty device history on a receiving device.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "thisPhone": "this phone",
+  "@thisPhone": {
+    "description": "Stands in for a phone name that is not known."
+  },
+  "itDevice": "it",
+  "@itDevice": {
+    "description": "Stands in for a device name that is not known."
+  },
+  "homeHeadlineSender": "Shared.",
+  "@homeHeadlineSender": {
+    "description": "Second line of the phone's home headline, after \"Your phone,\"."
+  },
+  "homeIntroSender": "Notifications from this phone reach your other devices, and their replies come back.",
+  "@homeIntroSender": {
+    "description": "Home intro on the phone."
+  },
+  "homeIntroReceiver": "Your phone’s notifications arrive here. Read them, and reply without picking it up.",
+  "@homeIntroReceiver": {
+    "description": "Home intro on a receiving device."
+  },
+  "searchNotificationsHint": "Search notifications",
+  "@searchNotificationsHint": {
+    "description": "Search field hint."
+  },
+  "homeTodayEyebrow": "Today",
+  "@homeTodayEyebrow": {
+    "description": "Eyebrow above the day's figures."
+  },
+  "homeGlanceTitle": "At a glance",
+  "@homeGlanceTitle": {
+    "description": "Section title."
+  },
+  "homeRecentEyebrow": "Recent activity",
+  "@homeRecentEyebrow": {
+    "description": "Section eyebrow."
+  },
+  "homeLatestTitle": "Latest notifications",
+  "@homeLatestTitle": {
+    "description": "Section title."
+  },
+  "actionSeeAll": "See all",
+  "@actionSeeAll": {
+    "description": "Button: see everything."
+  },
+  "homeRecentEmptySender": "Nothing shared yet. New notifications on this phone will appear here.",
+  "@homeRecentEmptySender": {
+    "description": "Empty recent list on the phone."
+  },
+  "homeRecentEmptyReceiver": "Nothing yet. New notifications from your phone will appear here.",
+  "@homeRecentEmptyReceiver": {
+    "description": "Empty recent list on a receiving device."
+  },
+  "homeRecentFailed": "Recent notifications could not be loaded.",
+  "@homeRecentFailed": {
+    "description": "Error loading recent notifications."
+  },
+  "homeSharingEyebrow": "Sharing",
+  "@homeSharingEyebrow": {
+    "description": "Section eyebrow."
+  },
+  "homeThisPhoneTitle": "This phone",
+  "@homeThisPhoneTitle": {
+    "description": "Section title."
+  },
+  "howItWorksEyebrow": "How it works",
+  "@howItWorksEyebrow": {
+    "description": "Section eyebrow."
+  },
+  "howItWorksSenderTitle": "Share once. Reply anywhere.",
+  "@howItWorksSenderTitle": {
+    "description": "Section title on the phone."
+  },
+  "howItWorksReceiverTitle": "Three steps. Every screen.",
+  "@howItWorksReceiverTitle": {
+    "description": "Section title on a receiving device."
+  },
+  "bellUnread": "{count, plural, =0{Notifications} other{Notifications, {count} unread}}",
+  "@bellUnread": {
+    "description": "Bell button tooltip.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statToday": "Today",
+  "@statToday": {
+    "description": "Figure label: notifications today."
+  },
+  "statUnread": "Unread",
+  "@statUnread": {
+    "description": "Figure label: unread notifications."
+  },
+  "statDevices": "{count, plural, =1{Device} other{Devices}}",
+  "@statDevices": {
+    "description": "Figure label: paired devices.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchNoMatches": "No matches",
+  "@searchNoMatches": {
+    "description": "Search empty state title."
+  },
+  "searchNoMatchesDetail": "No notification or device mentions “{query}”.",
+  "@searchNoMatchesDetail": {
+    "description": "Search empty state.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchEyebrow": "Search",
+  "@searchEyebrow": {
+    "description": "Eyebrow above search results."
+  },
+  "stepShareTitle": "Share from your phone",
+  "@stepShareTitle": {
+    "description": "How it works step."
+  },
+  "stepShareText": "On your Android phone, AirReply sends each notification here, end-to-end encrypted.",
+  "@stepShareText": {
+    "description": "How it works step."
+  },
+  "stepReadTitle": "Read it here",
+  "@stepReadTitle": {
+    "description": "How it works step."
+  },
+  "stepReadText": "Notifications arrive within seconds, grouped by app and by person.",
+  "@stepReadText": {
+    "description": "How it works step."
+  },
+  "stepReplyTitle": "Reply from anywhere",
+  "@stepReplyTitle": {
+    "description": "How it works step."
+  },
+  "stepReplyText": "Write an answer here; your phone sends it through the app it came from.",
+  "@stepReplyText": {
+    "description": "How it works step."
+  },
+  "stepPickTitle": "Pick what to share",
+  "@stepPickTitle": {
+    "description": "How it works step."
+  },
+  "stepPickText": "Choose every app, or only the ones you want on your other devices.",
+  "@stepPickText": {
+    "description": "How it works step."
+  },
+  "stepPairTitle": "Pair your devices",
+  "@stepPairTitle": {
+    "description": "How it works step."
+  },
+  "stepPairText": "A Mac, PC, iPhone, iPad or browser scans a code once, and they stay paired.",
+  "@stepPairText": {
+    "description": "How it works step."
+  },
+  "stepReplySenderText": "Replies written there are sent from this phone, through the app they belong to.",
+  "@stepReplySenderText": {
+    "description": "How it works step."
+  },
+  "appsSelectedCount": "{count, plural, =1{1 selected app} other{{count} selected apps}}",
+  "@appsSelectedCount": {
+    "description": "How many apps are shared.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "actionChooseApps": "Choose apps →",
+  "@actionChooseApps": {
+    "description": "Shortcut action."
+  },
+  "pairDeviceKinds": "iPhone, iPad, Mac, PC, browser or Android",
+  "@pairDeviceKinds": {
+    "description": "Devices that can be paired."
+  },
+  "actionPairArrow": "Pair →",
+  "@actionPairArrow": {
+    "description": "Shortcut action."
+  },
+  "phonesCount": "{count, plural, =1{1 phone} other{{count} phones}}",
+  "@phonesCount": {
+    "description": "Several phones, by number.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "devicesCount": "{count, plural, =1{1 device} other{{count} devices}}",
+  "@devicesCount": {
+    "description": "Several devices, by number.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statusReceivingFrom": "Receiving from {names}.",
+  "@statusReceivingFrom": {
+    "description": "Status headline.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "statusConnectingTo": "Connecting to {names}…",
+  "@statusConnectingTo": {
+    "description": "Status headline.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "statusShowingSaved": "Showing saved notifications from {names}.",
+  "@statusShowingSaved": {
+    "description": "Status headline.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "statusLive": "Live. New notifications appear within seconds.",
+  "@statusLive": {
+    "description": "Status detail."
+  },
+  "statusLastSynced": "Last synced {ago}.",
+  "@statusLastSynced": {
+    "description": "Status detail.",
+    "placeholders": {
+      "ago": {
+        "type": "String",
+        "example": "5 min ago"
+      }
+    }
+  },
+  "statusNeedsAccess": "Sharing needs notification access.",
+  "@statusNeedsAccess": {
+    "description": "Status headline."
+  },
+  "statusPaused": "Sharing is paused.",
+  "@statusPaused": {
+    "description": "Status headline."
+  },
+  "statusSharingWith": "Sharing with {names}.",
+  "@statusSharingWith": {
+    "description": "Status headline.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "statusNotWorking": "Sharing is not working right now.",
+  "@statusNotWorking": {
+    "description": "Status headline."
+  },
+  "statusEncryptedDetail": "Notifications are end-to-end encrypted on this phone before they leave it.",
+  "@statusEncryptedDetail": {
+    "description": "Status detail."
+  },
+  "statusOffDetail": "Nothing from this phone reaches your devices until sharing is on.",
+  "@statusOffDetail": {
+    "description": "Status detail."
+  },
+  "encrypted": "Encrypted",
+  "@encrypted": {
+    "description": "Short label: end-to-end encrypted."
+  },
+  "periodAnyTime": "Any time",
+  "@periodAnyTime": {
+    "description": "Filter: no time limit."
+  },
+  "periodToday": "Today",
+  "@periodToday": {
+    "description": "Filter: today."
+  },
+  "periodWeek": "Last 7 days",
+  "@periodWeek": {
+    "description": "Filter: the last week."
+  },
+  "notificationsCount": "{count, plural, =1{1 notification} other{{count} notifications}}",
+  "@notificationsCount": {
+    "description": "A number of notifications.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "conversationsCount": "{count, plural, =1{1 conversation} other{{count} conversations}}",
+  "@conversationsCount": {
+    "description": "A number of conversations.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messagesCount": "{count, plural, =1{1 message} other{{count} messages}}",
+  "@messagesCount": {
+    "description": "A number of messages.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newNotificationsCount": "{count, plural, =1{1 new notification} other{{count} new notifications}}",
+  "@newNotificationsCount": {
+    "description": "Pill: notifications that arrived meanwhile.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "withUnread": "{label}, {count} unread",
+  "@withUnread": {
+    "description": "A label followed by its unread count, for screen readers.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nothingHereNow": "Nothing here now",
+  "@nothingHereNow": {
+    "description": "Empty state title."
+  },
+  "goneDetail": "These notifications were hidden, removed, or came from a device that is no longer paired.",
+  "@goneDetail": {
+    "description": "Empty state: the notifications are gone."
+  },
+  "actionBackToNotifications": "Back to notifications",
+  "@actionBackToNotifications": {
+    "description": "Button."
+  },
+  "searchConversationsHint": "Search names, numbers and messages",
+  "@searchConversationsHint": {
+    "description": "Search hint on an app's screen."
+  },
+  "conversationsEyebrow": "Conversations",
+  "@conversationsEyebrow": {
+    "description": "Section eyebrow."
+  },
+  "conversationsEyebrowCount": "Conversations · {count}",
+  "@conversationsEyebrowCount": {
+    "description": "Section eyebrow with a count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "peopleAndGroups": "People and groups",
+  "@peopleAndGroups": {
+    "description": "Section title."
+  },
+  "otherNotificationsCount": "Other notifications · {count}",
+  "@otherNotificationsCount": {
+    "description": "Section eyebrow with a count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fromApp": "From {app}",
+  "@fromApp": {
+    "description": "Section title: notifications from an app.",
+    "placeholders": {
+      "app": {
+        "type": "String",
+        "example": "WhatsApp"
+      }
+    }
+  },
+  "nothingMatchesQuery": "Nothing matches “{query}”.",
+  "@nothingMatchesQuery": {
+    "description": "Search found nothing.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "notAvailable": "Not available",
+  "@notAvailable": {
+    "description": "Empty state title."
+  },
+  "notificationGoneDetail": "This notification was removed, hidden, or belongs to a device that is no longer paired.",
+  "@notificationGoneDetail": {
+    "description": "Empty state."
+  },
+  "markAsUnread": "Mark as unread",
+  "@markAsUnread": {
+    "description": "Action."
+  },
+  "markAsRead": "Mark as read",
+  "@markAsRead": {
+    "description": "Action."
+  },
+  "copyText": "Copy text",
+  "@copyText": {
+    "description": "Action."
+  },
+  "hideFromDevice": "Hide from this device",
+  "@hideFromDevice": {
+    "description": "Action."
+  },
+  "actionHide": "Hide",
+  "@actionHide": {
+    "description": "Action."
+  },
+  "hideCount": "Hide {count} notifications",
+  "@hideCount": {
+    "description": "Action: hide several notifications.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "you": "You",
+  "@you": {
+    "description": "The person using the app, as a message sender."
+  },
+  "youSaid": "You: {text}",
+  "@youSaid": {
+    "description": "A message the person sent, in a preview.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "sentFromPhone": "Sent from your phone",
+  "@sentFromPhone": {
+    "description": "Badge: written on the phone."
+  },
+  "clearedOnPhone": "Cleared on phone",
+  "@clearedOnPhone": {
+    "description": "Badge."
+  },
+  "canReply": "Can reply",
+  "@canReply": {
+    "description": "Badge."
+  },
+  "canBeAnswered": "Can be answered",
+  "@canBeAnswered": {
+    "description": "Badge."
+  },
+  "noRepliesInApp": "No replies in this app",
+  "@noRepliesInApp": {
+    "description": "Badge."
+  },
+  "replySending": "Sending",
+  "@replySending": {
+    "description": "Reply status."
+  },
+  "replyDelivered": "Delivered",
+  "@replyDelivered": {
+    "description": "Reply status."
+  },
+  "replySent": "Sent",
+  "@replySent": {
+    "description": "Reply status."
+  },
+  "replyExpired": "Expired on phone",
+  "@replyExpired": {
+    "description": "Reply status."
+  },
+  "replyNotDelivered": "Not delivered",
+  "@replyNotDelivered": {
+    "description": "Reply status."
+  },
+  "replySendingPrefixed": "Reply sending",
+  "@replySendingPrefixed": {
+    "description": "Reply status, where the reply is not shown."
+  },
+  "replyDeliveredPrefixed": "Reply delivered",
+  "@replyDeliveredPrefixed": {
+    "description": "Reply status, where the reply is not shown."
+  },
+  "replySentPrefixed": "Reply sent",
+  "@replySentPrefixed": {
+    "description": "Reply status, where the reply is not shown."
+  },
+  "replyExpiredPrefixed": "Reply expired on phone",
+  "@replyExpiredPrefixed": {
+    "description": "Reply status, where the reply is not shown."
+  },
+  "replyNotDeliveredPrefixed": "Reply not delivered",
+  "@replyNotDeliveredPrefixed": {
+    "description": "Reply status, where the reply is not shown."
+  },
+  "yourReply": "Your reply",
+  "@yourReply": {
+    "description": "Badge."
+  },
+  "yourReplyAsShown": "Your reply, as {app} shows it",
+  "@yourReplyAsShown": {
+    "description": "Badge.",
+    "placeholders": {
+      "app": {
+        "type": "String",
+        "example": "WhatsApp"
+      }
+    }
+  },
+  "allMarkedRead": "All marked as read",
+  "@allMarkedRead": {
+    "description": "Message."
+  },
+  "sharedWith": "Shared with {name}",
+  "@sharedWith": {
+    "description": "Inbox source line on the phone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "sharedWithDevices": "Shared with {count} devices",
+  "@sharedWithDevices": {
+    "description": "Inbox source line on the phone.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fromDevice": "From {name}",
+  "@fromDevice": {
+    "description": "Inbox source line.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Pixel 9"
+      }
+    }
+  },
+  "fromPhones": "From {count} phones",
+  "@fromPhones": {
+    "description": "Inbox source line.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "markAllRead": "Mark all as read",
+  "@markAllRead": {
+    "description": "Action."
+  },
+  "filtersOn": "{count, plural, =0{Filters} other{Filters, {count} on}}",
+  "@filtersOn": {
+    "description": "Filters button tooltip.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nothingMatchesFilter": "Nothing matches this search or filter.",
+  "@nothingMatchesFilter": {
+    "description": "Empty state."
+  },
+  "actionClearSearchAndFilters": "Clear search and filters",
+  "@actionClearSearchAndFilters": {
+    "description": "Button."
+  },
+  "allCaughtUp": "All caught up",
+  "@allCaughtUp": {
+    "description": "Empty state title."
+  },
+  "inboxEmptySender": "Notifications this phone shares appear here, with the replies sent from your devices.",
+  "@inboxEmptySender": {
+    "description": "Empty inbox on the phone."
+  },
+  "inboxEmptyReceiver": "Notifications from your phone appear here the moment they arrive.",
+  "@inboxEmptyReceiver": {
+    "description": "Empty inbox on a receiving device."
+  },
+  "inboxAllHidden": "Every notification is hidden. Restore them from Settings.",
+  "@inboxAllHidden": {
+    "description": "Empty inbox."
+  },
+  "notificationsLoadFailed": "Could not load notifications",
+  "@notificationsLoadFailed": {
+    "description": "Error title."
+  },
+  "removeFilter": "Remove filter",
+  "@removeFilter": {
+    "description": "Tooltip."
+  },
+  "filterUnread": "Unread",
+  "@filterUnread": {
+    "description": "Filter chip."
+  },
+  "device": "Device",
+  "@device": {
+    "description": "A device whose name is unknown."
+  },
+  "messageCountSubtitle": "{app} · {messages}",
+  "@messageCountSubtitle": {
+    "description": "App name and message count.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "messages": {
+        "type": "String"
+      }
+    }
+  },
+  "footnoteCleared": "These notifications were cleared on your phone, so they can no longer be answered from here.",
+  "@footnoteCleared": {
+    "description": "Footnote."
+  },
+  "footnoteNoReplies": "{app} does not accept replies for this conversation.",
+  "@footnoteNoReplies": {
+    "description": "Footnote.",
+    "placeholders": {
+      "app": {
+        "type": "String",
+        "example": "WhatsApp"
+      }
+    }
+  },
+  "unknownSender": "Unknown sender",
+  "@unknownSender": {
+    "description": "A group message whose sender is not known."
+  },
+  "dividerNew": "New",
+  "@dividerNew": {
+    "description": "Divider above unread messages."
+  },
+  "notificationHidden": "{count, plural, =1{Notification hidden} other{{count} notifications hidden}}",
+  "@notificationHidden": {
+    "description": "Message after hiding.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copied": "Copied",
+  "@copied": {
+    "description": "Message."
+  },
+  "dismissedOnPhone": "Dismissed on phone",
+  "@dismissedOnPhone": {
+    "description": "Badge."
+  },
+  "moreActions": "More actions",
+  "@moreActions": {
+    "description": "Tooltip."
+  },
+  "hideConversations": "Hide conversations",
+  "@hideConversations": {
+    "description": "Tooltip."
+  },
+  "showConversations": "Show conversations",
+  "@showConversations": {
+    "description": "Tooltip."
+  },
+  "unmuteApp": "Unmute alerts from {app}",
+  "@unmuteApp": {
+    "description": "Action.",
+    "placeholders": {
+      "app": {
+        "type": "String",
+        "example": "WhatsApp"
+      }
+    }
+  },
+  "muteApp": "Mute alerts from {app}",
+  "@muteApp": {
+    "description": "Action.",
+    "placeholders": {
+      "app": {
+        "type": "String",
+        "example": "WhatsApp"
+      }
+    }
+  },
+  "threadChat": "Chat",
+  "@threadChat": {
+    "description": "Kind of conversation."
+  },
+  "threadGroup": "Group",
+  "@threadGroup": {
+    "description": "Kind of conversation."
+  },
+  "threadNotification": "Notification",
+  "@threadNotification": {
+    "description": "Kind of conversation."
+  },
+  "replyHint": "Reply",
+  "@replyHint": {
+    "description": "Reply field hint."
+  },
+  "replyToHint": "Reply to {name}",
+  "@replyToHint": {
+    "description": "Reply field hint.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Asha"
+      }
+    }
+  },
+  "sendWithEnter": "Send (Enter)",
+  "@sendWithEnter": {
+    "description": "Send button tooltip with its shortcut."
+  },
+  "actionSend": "Send",
+  "@actionSend": {
+    "description": "Send button."
+  },
+  "filterTitle": "Filter",
+  "@filterTitle": {
+    "description": "Filter sheet title."
+  },
+  "actionClearAll": "Clear all",
+  "@actionClearAll": {
+    "description": "Button."
+  },
+  "filterShow": "Show",
+  "@filterShow": {
+    "description": "Filter label."
+  },
+  "filterAll": "All",
+  "@filterAll": {
+    "description": "Filter choice."
+  },
+  "filterUnreadOnly": "Unread only",
+  "@filterUnreadOnly": {
+    "description": "Filter choice."
+  },
+  "filterWhen": "When",
+  "@filterWhen": {
+    "description": "Filter label."
+  },
+  "filterSharedWith": "Shared with",
+  "@filterSharedWith": {
+    "description": "Filter label."
+  },
+  "filterPhone": "Phone",
+  "@filterPhone": {
+    "description": "Filter label."
+  },
+  "filterApp": "App",
+  "@filterApp": {
+    "description": "Filter label."
+  },
+  "filterAllApps": "All apps",
+  "@filterAllApps": {
+    "description": "Filter choice."
+  },
+  "showNotificationsCount": "{count, plural, =1{Show 1 notification} other{Show {count} notifications}}",
+  "@showNotificationsCount": {
+    "description": "Button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "actionShowMore": "Show more",
+  "@actionShowMore": {
+    "description": "Button."
+  },
+  "browseSharedWithIt": "Browse what you shared with it",
+  "@browseSharedWithIt": {
+    "description": "Device result subtitle."
+  },
+  "browseItsHistory": "Browse its notification history",
+  "@browseItsHistory": {
+    "description": "Device result subtitle."
+  },
+  "swipeUnread": "Unread",
+  "@swipeUnread": {
+    "description": "Swipe action."
+  },
+  "swipeRead": "Read",
+  "@swipeRead": {
+    "description": "Swipe action."
+  },
+  "diagnosticsIntro": "Nothing here includes notification text or encryption keys.",
+  "@diagnosticsIntro": {
+    "description": "Diagnostics screen intro."
+  },
+  "reportCopied": "Report copied",
+  "@reportCopied": {
+    "description": "Message."
+  },
+  "actionCopyReport": "Copy report",
+  "@actionCopyReport": {
+    "description": "Button."
+  },
+  "checkingAgain": "Checking again…",
+  "@checkingAgain": {
+    "description": "Message."
+  },
+  "actionCheckAgain": "Check again",
+  "@actionCheckAgain": {
+    "description": "Button."
+  },
+  "diagnosticsReportNote": "The report itself stays in English, so whoever helps you can read it.",
+  "@diagnosticsReportNote": {
+    "description": "Diagnostics: why the report is in English."
+  },
+  "welcomeEncryption": "End-to-end encrypted with a key only your devices hold. The server relays ciphertext it cannot read.",
+  "@welcomeEncryption": {
+    "description": "Welcome screen: how notifications are protected."
+  },
+  "theOtherDevice": "The other device",
+  "@theOtherDevice": {
+    "description": "Stands in for a device name that is not known."
+  },
+  "appsShareIntro": "Choose what reaches your devices. This applies even while AirReply is closed.",
+  "@appsShareIntro": {
+    "description": "Apps to share: intro."
+  },
+  "appsOnlySelected": "Only selected",
+  "@appsOnlySelected": {
+    "description": "Choice: share only selected apps."
+  },
+  "searchApps": "Search apps",
+  "@searchApps": {
+    "description": "Search hint."
+  },
+  "appsNothingSelected": "Nothing selected: no notifications are shared",
+  "@appsNothingSelected": {
+    "description": "Warning."
+  },
+  "appsSelected": "{count} selected",
+  "@appsSelected": {
+    "description": "How many apps are selected.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appsOnlySelectedHint": "Choose \"Only selected\" to pick which apps reach your devices.",
+  "@appsOnlySelectedHint": {
+    "description": "Empty state."
+  },
+  "appsChoiceLoadFailed": "Could not load your choice",
+  "@appsChoiceLoadFailed": {
+    "description": "Error title."
+  },
+  "appsMutedIntro": "Muted apps still arrive in Notifications, but never alert you on this device.",
+  "@appsMutedIntro": {
+    "description": "Muted apps: intro."
+  },
+  "appsNoneYet": "No apps yet",
+  "@appsNoneYet": {
+    "description": "Empty state title."
+  },
+  "appsNoneYetHint": "Apps appear here once your phone has sent a notification from them.",
+  "@appsNoneYetHint": {
+    "description": "Empty state."
+  },
+  "appMuted": "Muted",
+  "@appMuted": {
+    "description": "App row subtitle."
+  },
+  "appAlertsOn": "Alerts on",
+  "@appAlertsOn": {
+    "description": "App row subtitle."
+  },
+  "appsNoMatch": "No apps match",
+  "@appsNoMatch": {
+    "description": "Empty search."
+  },
+  "appsListFailed": "Could not list apps",
+  "@appsListFailed": {
+    "description": "Error title."
+  },
+  "appsReading": "Reading installed apps…",
+  "@appsReading": {
+    "description": "Loading message."
+  },
+  "alertChannelName": "Mirrored notifications",
+  "@alertChannelName": {
+    "description": "Android notification channel name."
+  },
+  "alertChannelDescription": "Notifications mirrored from your paired phone",
+  "@alertChannelDescription": {
+    "description": "Android notification channel description."
+  },
+  "alertReply": "Reply",
+  "@alertReply": {
+    "description": "Alert action."
+  },
+  "alertReplyHint": "Reply…",
+  "@alertReplyHint": {
+    "description": "Alert reply field hint."
+  },
+  "alertOpenApp": "Open AirReply",
+  "@alertOpenApp": {
+    "description": "Alert default action (Linux)."
+  },
+  "alertNewNotification": "New notification",
+  "@alertNewNotification": {
+    "description": "Alert text when message text is hidden."
+  },
+  "languageTitle": "Language",
+  "languageSystem": "Same as this device",
+  "languageSystemCurrent": "Same as this device ({language})",
+  "@languageTitle": {
+    "description": "Settings row and sheet title: the app's language."
+  },
+  "@languageSystem": {
+    "description": "Language choice: follow the device's language."
+  },
+  "@languageSystemCurrent": {
+    "description": "The language setting when it follows the device, with the language that gives.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "English"
+      }
+    }
+  }
+}

@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
-import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/l10n/describe_error.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -20,6 +21,7 @@ import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/history_providers.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/notifications/presentation/feed_period_label.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/filter_sheet.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/group_widgets.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/history_widgets.dart';
@@ -57,7 +59,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     ref.success();
     await inbox.markAllRead();
     if (!mounted || previous == null) return;
-    context.showUndo('All marked as read', () => unawaited(inbox.restore(previous)));
+    context.showUndo(context.l10n.allMarkedRead, () => unawaited(inbox.restore(previous)));
   }
 
   @override
@@ -73,20 +75,20 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     final matchedDevices = ref.watch(deviceMatchesProvider(filter.query)).isNotEmpty;
 
     final source = switch ((isSender, devices)) {
-      (true, [final only]) => 'Shared with ${only.peerName}',
-      (true, _) => 'Shared with ${devices.length} devices',
-      (false, [final only]) => 'From ${only.peerName}',
-      (false, _) => 'From ${devices.length} phones',
+      (true, [final only]) => context.l10n.sharedWith(only.peerName),
+      (true, _) => context.l10n.sharedWithDevices(devices.length),
+      (false, [final only]) => context.l10n.fromDevice(only.peerName),
+      (false, _) => context.l10n.fromPhones(devices.length),
     };
 
     final count = filter.activeCount;
     return Scaffold(
       body: GlassScrollPage(
         onRefresh: _refresh,
-        title: const Text('Notifications'),
+        title: Text(context.l10n.tabNotifications),
         actions: [
           IconButton(
-            tooltip: 'Mark all as read',
+            tooltip: context.l10n.markAllRead,
             onPressed: unread == 0 ? null : _markAllRead,
             icon: const Icon(AppIcons.doneAll),
           ),
@@ -96,14 +98,14 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
           children: [
             Expanded(
               child: SearchField(
-                hint: 'Search notifications',
+                hint: context.l10n.searchNotificationsHint,
                 value: filter.query,
                 onChanged: ref.read(inboxFilterProvider.notifier).search,
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             IconButton.filledTonal(
-              tooltip: count > 0 ? 'Filters, $count on' : 'Filters',
+              tooltip: context.l10n.filtersOn(count),
               onPressed: () => showFilterSheet(context),
               style: IconButton.styleFrom(
                 fixedSize: const Size(AppDimensions.fieldHeight, AppDimensions.fieldHeight),
@@ -121,7 +123,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Eyebrow(unread == 0 ? 'All read' : '$unread unread'),
+                  Eyebrow(context.l10n.inboxUnread(unread)),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(source, style: AppType.body.copyWith(color: context.palette.muted)),
                 ],
@@ -147,22 +149,19 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 child: filter.isActive
                     ? EmptyState(
                         icon: AppIcons.filterAltOff,
-                        title: 'No matches',
-                        description: 'Nothing matches this search or filter.',
+                        title: context.l10n.searchNoMatches,
+                        description: context.l10n.nothingMatchesFilter,
                         action: OutlinedButton(
                           onPressed: ref.read(inboxFilterProvider.notifier).clear,
-                          child: const Text('Clear search and filters'),
+                          child: Text(context.l10n.actionClearSearchAndFilters),
                         ),
                       )
                     : EmptyState(
                         icon: everything.isEmpty ? AppIcons.notificationsNone : AppIcons.inbox,
-                        title: everything.isEmpty ? 'Nothing here yet' : 'All caught up',
+                        title: everything.isEmpty ? context.l10n.emptyNothingYet : context.l10n.allCaughtUp,
                         description: everything.isEmpty
-                            ? (isSender
-                                  ? 'Notifications this phone shares appear here, with the replies sent from your '
-                                        'devices.'
-                                  : 'Notifications from your phone appear here the moment they arrive.')
-                            : 'Every notification is hidden. Restore them from Settings.',
+                            ? (isSender ? context.l10n.inboxEmptySender : context.l10n.inboxEmptyReceiver)
+                            : context.l10n.inboxAllHidden,
                       ),
               ),
             ],
@@ -182,9 +181,9 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 child: EmptyState(
                   icon: AppIcons.cloudOff,
                   tone: Tone.error,
-                  title: 'Could not load notifications',
-                  description: describeError(error),
-                  action: OutlinedButton(onPressed: _refresh, child: const Text('Try again')),
+                  title: context.l10n.notificationsLoadFailed,
+                  description: context.describeError(error),
+                  action: OutlinedButton(onPressed: _refresh, child: Text(context.l10n.actionTryAgain)),
                 ),
               ),
             ],
@@ -212,7 +211,7 @@ class _ActiveFilters extends ConsumerWidget {
       selected: true,
       onPressed: onDeleted,
       onDeleted: onDeleted,
-      deleteButtonTooltipMessage: 'Remove filter',
+      deleteButtonTooltipMessage: context.l10n.removeFilter,
       deleteIcon: const Icon(AppIcons.close, size: 16),
       deleteIconColor: context.palette.accent,
     );
@@ -222,11 +221,12 @@ class _ActiveFilters extends ConsumerWidget {
         spacing: AppSpacing.sm,
         runSpacing: AppSpacing.sm,
         children: [
-          if (filter.unreadOnly) chip('Unread', () => controller.unreadOnly(false)),
-          if (filter.period != FeedPeriod.all) chip(filter.period.label, () => controller.period(FeedPeriod.all)),
+          if (filter.unreadOnly) chip(context.l10n.filterUnread, () => controller.unreadOnly(false)),
+          if (filter.period != FeedPeriod.all)
+            chip(filter.period.label(context.l10n), () => controller.period(FeedPeriod.all)),
           if (filter.pairId case final pairId?)
             chip(
-              devices.where((d) => d.pairId == pairId).firstOrNull?.peerName ?? 'Device',
+              devices.where((d) => d.pairId == pairId).firstOrNull?.peerName ?? context.l10n.device,
               () => controller.device(null),
             ),
           if (filter.packageName case final package?) chip(apps[package] ?? package, () => controller.app(null)),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/empty_state.dart';
@@ -56,7 +57,7 @@ class _DeviceHistoryScreenState extends ConsumerState<DeviceHistoryScreen> {
     final entries = ref.watch(shownResultsProvider(_scope));
     return Scaffold(
       body: GlassScrollPage(
-        title: Text(device?.peerName ?? 'History'),
+        title: Text(device?.peerName ?? context.l10n.historyTitle),
         onRefresh: _refresh,
         slivers: [
           SliverToBoxAdapter(
@@ -65,7 +66,7 @@ class _DeviceHistoryScreenState extends ConsumerState<DeviceHistoryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Eyebrow(isSender ? 'Shared with it' : 'History'),
+                  Eyebrow(isSender ? context.l10n.historySharedWithIt : context.l10n.historyTitle),
                   const SizedBox(height: AppSpacing.xxs),
                   ResultsCount(scope: _scope, shown: entries.length),
                 ],
@@ -79,10 +80,10 @@ class _DeviceHistoryScreenState extends ConsumerState<DeviceHistoryScreen> {
             SliverToBoxAdapter(
               child: EmptyState(
                 icon: AppIcons.notificationsNone,
-                title: 'Nothing here yet',
+                title: context.l10n.emptyNothingYet,
                 description: isSender
-                    ? 'Notifications this phone shares with ${device?.peerName ?? 'it'} appear here.'
-                    : 'Notifications from ${device?.peerName ?? 'this phone'} appear here.',
+                    ? context.l10n.historyEmptySender(device?.peerName ?? context.l10n.itDevice)
+                    : context.l10n.historyEmptyReceiver(device?.peerName ?? context.l10n.thisPhone),
               ),
             )
           else

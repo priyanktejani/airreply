@@ -1,4 +1,5 @@
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
@@ -7,6 +8,7 @@ import 'package:air_reply/core/widgets/app_sheet.dart';
 import 'package:air_reply/core/widgets/eyebrow.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/notifications/presentation/feed_period_label.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_widgets.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
@@ -76,11 +78,11 @@ class _FilterSheet extends ConsumerWidget {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text('Filter', style: AppType.section.copyWith(color: c.ink)),
+                      child: Text(context.l10n.filterTitle, style: AppType.section.copyWith(color: c.ink)),
                     ),
                     TextButton(
                       onPressed: filter.activeCount == 0 ? null : controller.clearFilters,
-                      child: const Text('Clear all'),
+                      child: Text(context.l10n.actionClearAll),
                     ),
                   ],
                 ),
@@ -90,11 +92,11 @@ class _FilterSheet extends ConsumerWidget {
                   controller: scroll,
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   children: [
-                    const _Label('Show', top: AppSpacing.sm),
+                    _Label(context.l10n.filterShow, top: AppSpacing.sm),
                     SegmentedButton<bool>(
-                      segments: const [
-                        ButtonSegment(value: false, label: Text('All')),
-                        ButtonSegment(value: true, label: Text('Unread only')),
+                      segments: [
+                        ButtonSegment(value: false, label: Text(context.l10n.filterAll)),
+                        ButtonSegment(value: true, label: Text(context.l10n.filterUnreadOnly)),
                       ],
                       selected: {filter.unreadOnly},
                       showSelectedIcon: false,
@@ -103,26 +105,30 @@ class _FilterSheet extends ConsumerWidget {
                         controller.unreadOnly(s.first);
                       },
                     ),
-                    const _Label('When'),
+                    _Label(context.l10n.filterWhen),
                     Wrap(
                       spacing: AppSpacing.sm,
                       runSpacing: AppSpacing.sm,
                       children: [
                         for (final period in FeedPeriod.values)
                           choice(
-                            period.label,
+                            period.label(context.l10n),
                             selected: filter.period == period,
                             onTap: () => controller.period(period),
                           ),
                       ],
                     ),
                     if (devices.length > 1) ...[
-                      _Label(isSender ? 'Shared with' : 'Phone'),
+                      _Label(isSender ? context.l10n.filterSharedWith : context.l10n.filterPhone),
                       Wrap(
                         spacing: AppSpacing.sm,
                         runSpacing: AppSpacing.sm,
                         children: [
-                          choice('All', selected: filter.pairId == null, onTap: () => controller.device(null)),
+                          choice(
+                            context.l10n.filterAll,
+                            selected: filter.pairId == null,
+                            onTap: () => controller.device(null),
+                          ),
                           for (final d in devices)
                             choice(
                               d.peerName,
@@ -133,12 +139,16 @@ class _FilterSheet extends ConsumerWidget {
                       ),
                     ],
                     if (apps.isNotEmpty) ...[
-                      const _Label('App'),
+                      _Label(context.l10n.filterApp),
                       Wrap(
                         spacing: AppSpacing.sm,
                         runSpacing: AppSpacing.sm,
                         children: [
-                          choice('All apps', selected: filter.packageName == null, onTap: () => controller.app(null)),
+                          choice(
+                            context.l10n.filterAllApps,
+                            selected: filter.packageName == null,
+                            onTap: () => controller.app(null),
+                          ),
                           for (final MapEntry(key: package, value: name) in apps.entries)
                             choice(
                               name,
@@ -161,7 +171,7 @@ class _FilterSheet extends ConsumerWidget {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text(results == 1 ? 'Show 1 notification' : 'Show $results notifications'),
+                      child: Text(context.l10n.showNotificationsCount(results)),
                     ),
                   ),
                 ),

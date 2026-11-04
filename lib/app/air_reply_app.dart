@@ -4,6 +4,8 @@ import 'package:air_reply/app/router/app_router.dart';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/l10n/app_language.dart';
+import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_theme.dart';
 import 'package:air_reply/core/theme/theme_mode.dart';
@@ -24,7 +26,12 @@ class AirReplyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
-      title: 'AirReply',
+      onGenerateTitle: (context) => context.l10n.appTitle,
+      // the app's strings and Material's own (dialog buttons, tooltips, dates) in the language chosen in Settings, or
+      // the device's
+      locale: ref.watch(appLocaleProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

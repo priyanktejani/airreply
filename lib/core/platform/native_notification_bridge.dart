@@ -141,13 +141,13 @@ final class MethodChannelNotificationBridge implements NotificationBridge {
   }
 
   Future<T?> _invoke<T>(String method, [Object? arguments]) async {
-    if (!isSupported) throw const NativeBridgeException('Sharing notifications is only available on Android.');
+    if (!isSupported) throw const NativeBridgeException(AppError.sharingAndroidOnly);
     try {
       return await _methods.invokeMethod<T>(method, arguments);
     } on PlatformException catch (e) {
-      throw NativeBridgeException(e.message ?? 'The Android notification service failed.', cause: e);
+      throw NativeBridgeException(AppError.nativeServiceFailed, detail: e.code, cause: e);
     } on MissingPluginException catch (e) {
-      throw NativeBridgeException('The Android notification service is not available.', cause: e);
+      throw NativeBridgeException(AppError.nativeServiceUnavailable, cause: e);
     }
   }
 }

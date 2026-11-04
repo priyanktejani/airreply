@@ -29,16 +29,16 @@ final class JoinPairingSession {
   final DateTime Function() _clock;
 
   Future<JoinedPairing> call({required String code, Uint8List? expectedSenderKey}) async {
-    if (!PairingInvite.isValidCode(code)) throw const ValidationException('Enter the 6-digit code shown on the phone.');
+    if (!PairingInvite.isValidCode(code)) throw const ValidationException(AppError.codeFormat);
 
     final existing = await _repository.fetchSession(code);
     if (existing == null || existing.status == PairingStatus.cancelled) {
-      throw const PairingException('No pairing code like that. Check the code on the other phone.');
+      throw const PairingException(AppError.codeNotFound);
     }
-    if (existing.isExpiredAt(_clock())) throw const PairingException('This code has expired. Make a new one.');
-    if (existing.status != PairingStatus.waiting) throw const PairingException('This code was already used.');
+    if (existing.isExpiredAt(_clock())) throw const PairingException(AppError.codeExpired);
+    if (existing.status != PairingStatus.waiting) throw const PairingException(AppError.codeAlreadyUsed);
     if (expectedSenderKey != null && !_sameBytes(existing.senderPublicKey, expectedSenderKey)) {
-      throw const PairingException('The QR code does not match this session. Pairing stopped for your safety.');
+      throw const PairingException(AppError.qrMismatch);
     }
 
     final keyPair = await _keys.generateKeyPair();
@@ -77,7 +77,7 @@ final class FinishReceiverPairing {
   Future<PairingCredentials> call(JoinedPairing joined, PairingSession confirmed) async {
     final pairId = confirmed.pairId;
     if (confirmed.status != PairingStatus.confirmed || pairId == null) {
-      throw const PairingException('The other phone has not confirmed yet.');
+      throw const PairingException(AppError.notConfirmedYet);
     }
     final credentials = PairingCredentials(
       pairId: pairId,

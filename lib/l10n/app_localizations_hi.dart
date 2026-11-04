@@ -512,7 +512,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get removeAllTitle => 'सभी डिवाइस हटाएँ';
 
   @override
-  String get removeAllSubtitle => 'हर जोड़ी खत्म करता है और कुंजियाँ व साझा इतिहास मिटाता है';
+  String get removeAllSubtitle => 'हर जोड़ी खत्म करता है; उनका इतिहास पिछले डिवाइस में रहता है';
 
   @override
   String get troubleshootingTitle => 'समस्या निवारण';
@@ -585,12 +585,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String removeAllConfirmOne(String name) {
-    return '$name के साथ सिंक बंद हो जाएगा, हर एन्क्रिप्शन कुंजी मिटा दी जाएगी, और साझा इतिहास हटा दिया जाएगा। आप बाद में फिर जोड़ सकते हैं।';
+    return '$name के साथ सिंक बंद हो जाएगा। उसका इतिहास इस डिवाइस पर पिछले डिवाइस में रहेगा, और फिर से जोड़ने पर वापस आ जाएगा।';
   }
 
   @override
   String removeAllConfirmMany(int count) {
-    return 'सभी $count डिवाइस के साथ सिंक बंद हो जाएगा, हर एन्क्रिप्शन कुंजी मिटा दी जाएगी, और साझा इतिहास हटा दिया जाएगा। आप बाद में फिर जोड़ सकते हैं।';
+    return 'सभी $count डिवाइस के साथ सिंक बंद हो जाएगा। उनका इतिहास इस डिवाइस पर पिछले डिवाइस में रहेगा, और फिर से जोड़ने पर वापस आ जाएगा।';
   }
 
   @override
@@ -714,7 +714,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get disclosureControlBody =>
-      'चुनें कि कौन से ऐप साझा हों, स्थिति सूचना से कभी भी रोकें, या साझा करना बंद करने और सिंक किया गया इतिहास मिटाने के लिए डिवाइस हटाएँ। सूचनाओं की सामग्री कभी बेची नहीं जाती, तीसरे पक्ष से साझा नहीं की जाती, और विज्ञापन या एनालिटिक्स के लिए उपयोग नहीं की जाती।';
+      'चुनें कि कौन से ऐप साझा हों, स्थिति सूचना से कभी भी रोकें, या साझा करना बंद करने के लिए डिवाइस हटाएँ; उसका इतिहास जब चाहें मिटाएँ। सूचनाओं की सामग्री कभी बेची नहीं जाती, तीसरे पक्ष से साझा नहीं की जाती, और विज्ञापन या एनालिटिक्स के लिए उपयोग नहीं की जाती।';
 
   @override
   String get actionAgreeAndContinue => 'सहमत हैं और आगे बढ़ें';
@@ -925,7 +925,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return '$name के साथ सिंक दोनों डिवाइस पर बंद हो जाएगा, उसकी एन्क्रिप्शन कुंजी मिटा दी जाएगी, और उसके साथ साझा इतिहास हटा दिया जाएगा। दूसरे डिवाइस पर कोई असर नहीं होगा।';
+    return '$name के साथ सिंक दोनों डिवाइस पर बंद हो जाएगा। उसका इतिहास इस डिवाइस पर सेटिंग → पिछले डिवाइस में तब तक रहेगा जब तक आप उसे मिटा नहीं देते। दूसरे डिवाइस पर कोई असर नहीं होगा।';
   }
 
   @override
@@ -1707,4 +1707,142 @@ class AppLocalizationsHi extends AppLocalizations {
   String languageSystemCurrent(String language) {
     return 'इस डिवाइस जैसी ($language)';
   }
+
+  @override
+  String get previousDevicesTitle => 'पिछले डिवाइस';
+
+  @override
+  String previousDevicesSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count हटाए गए डिवाइस, इतिहास सुरक्षित',
+      one: '1 हटाया गया डिवाइस, इतिहास सुरक्षित',
+      zero: 'हटाए गए डिवाइस का इतिहास यहाँ रहता है',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get previousDevicesIntro =>
+      'जब आप कोई डिवाइस हटाते हैं, तो उसका इतिहास इस डिवाइस पर रहता है। वहीं से जारी रखने के लिए उसी डिवाइस को फिर से जोड़ें, या इतिहास यहाँ मिटाएँ।';
+
+  @override
+  String get previousDevicesNone => 'कोई पिछला डिवाइस नहीं';
+
+  @override
+  String get previousDevicesNoneHint => 'आप जो डिवाइस हटाते हैं, उनका इतिहास यहाँ दिखता है।';
+
+  @override
+  String previousDeviceSummary(String date, String count) {
+    return '$date को हटाया गया · $count';
+  }
+
+  @override
+  String previousDeviceRemoved(String date) {
+    return '$date को हटाया गया';
+  }
+
+  @override
+  String previousDeviceContinue(String name) {
+    return 'यह इतिहास अपने इनबॉक्स में जारी रखने के लिए $name को फिर से जोड़ें।';
+  }
+
+  @override
+  String get actionDeleteHistory => 'इतिहास मिटाएँ';
+
+  @override
+  String deleteHistoryTitle(String name) {
+    return '$name का इतिहास मिटाएँ?';
+  }
+
+  @override
+  String get deleteHistoryMessage => 'इसकी सूचनाएँ और जवाब इस डिवाइस से मिटा दिए जाएँगे। इसे वापस नहीं लाया जा सकता।';
+
+  @override
+  String historyDeleted(String name) {
+    return '$name का इतिहास मिटाया गया';
+  }
+
+  @override
+  String get actionDeleteAll => 'सभी मिटाएँ';
+
+  @override
+  String get deleteAllHistoryTitle => 'पिछला पूरा इतिहास मिटाएँ?';
+
+  @override
+  String get deleteAllHistoryMessage =>
+      'हर हटाए गए डिवाइस का इतिहास इस डिवाइस से मिटा दिया जाएगा। इसे वापस नहीं लाया जा सकता।';
+
+  @override
+  String get allHistoryDeleted => 'पिछला इतिहास मिटाया गया';
+
+  @override
+  String get feedbackReportTitle => 'समस्या बताएँ';
+
+  @override
+  String get feedbackReportSubtitle => 'कुछ काम नहीं कर रहा? हमें बताएँ क्या हुआ';
+
+  @override
+  String get feedbackIdeaTitle => 'सुविधा सुझाएँ';
+
+  @override
+  String get feedbackIdeaSubtitle => 'ऐसा विचार जो AirReply को बेहतर बनाए';
+
+  @override
+  String get feedbackKindLabel => 'प्रकार';
+
+  @override
+  String get feedbackKindProblem => 'समस्या';
+
+  @override
+  String get feedbackKindIdea => 'सुविधा का विचार';
+
+  @override
+  String get feedbackAreaLabel => 'यह किस बारे में है?';
+
+  @override
+  String get feedbackAreaNotifications => 'सूचनाएँ';
+
+  @override
+  String get feedbackAreaReplies => 'जवाब';
+
+  @override
+  String get feedbackAreaPairing => 'जोड़ना';
+
+  @override
+  String get feedbackAreaAlerts => 'अलर्ट';
+
+  @override
+  String get feedbackAreaSync => 'सिंक';
+
+  @override
+  String get feedbackAreaDesign => 'रूप-रंग';
+
+  @override
+  String get feedbackAreaOther => 'कुछ और';
+
+  @override
+  String get feedbackMessageLabel => 'आपका संदेश';
+
+  @override
+  String get feedbackProblemHint => 'क्या हुआ, और आप क्या उम्मीद कर रहे थे? इसे दोबारा करने के चरण बहुत मदद करते हैं।';
+
+  @override
+  String get feedbackIdeaHint => 'आप AirReply से क्या करवाना चाहेंगे, और इससे आपको कैसे मदद मिलेगी?';
+
+  @override
+  String get feedbackTooShort => 'थोड़ा और लिखें (कम से कम 10 अक्षर)।';
+
+  @override
+  String get feedbackIncludeDetails => 'डिवाइस की जानकारी शामिल करें';
+
+  @override
+  String get feedbackDetailsSubtitle => 'सिस्टम, डिवाइस मॉडल, ऐप की भाषा और भूमिका। आपकी सूचनाएँ या कुंजियाँ कभी नहीं।';
+
+  @override
+  String get feedbackSent => 'धन्यवाद! आपका ईमेल ऐप तैयार है: पूरा करने के लिए वहाँ भेजें पर टैप करें।';
+
+  @override
+  String get feedbackNoEmailApp => 'इस डिवाइस पर कोई ईमेल ऐप सेट नहीं है।';
 }

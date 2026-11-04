@@ -495,7 +495,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get removeAllTitle => '移除所有设备';
 
   @override
-  String get removeAllSubtitle => '结束所有配对，并删除密钥和共享的历史记录';
+  String get removeAllSubtitle => '结束所有配对；它们的历史记录保留在“以前的设备”中';
 
   @override
   String get troubleshootingTitle => '故障排除';
@@ -558,12 +558,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String removeAllConfirmOne(String name) {
-    return '将停止与 $name 同步，删除所有加密密钥，并移除共享的历史记录。之后你可以重新配对。';
+    return '将停止与 $name 同步。它的历史记录会保留在这台设备的“以前的设备”中，重新配对后会恢复。';
   }
 
   @override
   String removeAllConfirmMany(int count) {
-    return '将停止与全部 $count 台设备同步，删除所有加密密钥，并移除共享的历史记录。之后你可以重新配对。';
+    return '将停止与全部 $count 台设备同步。它们的历史记录会保留在这台设备的“以前的设备”中，重新配对后会恢复。';
   }
 
   @override
@@ -676,7 +676,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get disclosureControlTitle => '一切由你掌控';
 
   @override
-  String get disclosureControlBody => '你可以选择共享哪些应用，随时在状态通知中暂停，或移除设备以停止共享并删除已同步的历史记录。通知内容绝不会被出售、与第三方共享，或用于广告和分析。';
+  String get disclosureControlBody => '你可以选择共享哪些应用，随时在状态通知中暂停，或移除设备以停止共享；历史记录可随时删除。通知内容绝不会被出售、与第三方共享，或用于广告和分析。';
 
   @override
   String get actionAgreeAndContinue => '同意并继续';
@@ -883,7 +883,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return '两台设备都会停止与 $name 同步，删除它的加密密钥，并移除与它共享的历史记录。其他设备不受影响。';
+    return '两台设备都会停止与 $name 同步。它的历史记录会保留在这台设备的“设置 → 以前的设备”中，直到你删除为止。其他设备不受影响。';
   }
 
   @override
@@ -1642,4 +1642,139 @@ class AppLocalizationsZh extends AppLocalizations {
   String languageSystemCurrent(String language) {
     return '跟随此设备（$language）';
   }
+
+  @override
+  String get previousDevicesTitle => '以前的设备';
+
+  @override
+  String previousDevicesSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 台已移除的设备，历史记录已保留',
+      zero: '已移除设备的历史记录会保留在这里',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get previousDevicesIntro => '移除设备后，它的历史记录仍保留在这台设备上。重新配对同一台设备即可从上次的地方继续，也可以在这里删除历史记录。';
+
+  @override
+  String get previousDevicesNone => '没有以前的设备';
+
+  @override
+  String get previousDevicesNoneHint => '你移除的设备的历史记录会显示在这里。';
+
+  @override
+  String previousDeviceSummary(String date, String count) {
+    return '移除于 $date · $count';
+  }
+
+  @override
+  String previousDeviceRemoved(String date) {
+    return '移除于 $date';
+  }
+
+  @override
+  String previousDeviceContinue(String name) {
+    return '重新配对 $name，即可在收件箱中继续这段历史记录。';
+  }
+
+  @override
+  String get actionDeleteHistory => '删除历史记录';
+
+  @override
+  String deleteHistoryTitle(String name) {
+    return '删除 $name 的历史记录？';
+  }
+
+  @override
+  String get deleteHistoryMessage => '它的通知和回复会从这台设备上删除。此操作无法撤销。';
+
+  @override
+  String historyDeleted(String name) {
+    return '已删除 $name 的历史记录';
+  }
+
+  @override
+  String get actionDeleteAll => '全部删除';
+
+  @override
+  String get deleteAllHistoryTitle => '删除所有以前的历史记录？';
+
+  @override
+  String get deleteAllHistoryMessage => '所有已移除设备的历史记录都会从这台设备上删除。此操作无法撤销。';
+
+  @override
+  String get allHistoryDeleted => '已删除以前的历史记录';
+
+  @override
+  String get feedbackReportTitle => '报告问题';
+
+  @override
+  String get feedbackReportSubtitle => '有地方不正常？告诉我们发生了什么';
+
+  @override
+  String get feedbackIdeaTitle => '建议新功能';
+
+  @override
+  String get feedbackIdeaSubtitle => '让 AirReply 变得更好的想法';
+
+  @override
+  String get feedbackKindLabel => '类型';
+
+  @override
+  String get feedbackKindProblem => '问题';
+
+  @override
+  String get feedbackKindIdea => '功能建议';
+
+  @override
+  String get feedbackAreaLabel => '关于哪方面？';
+
+  @override
+  String get feedbackAreaNotifications => '通知';
+
+  @override
+  String get feedbackAreaReplies => '回复';
+
+  @override
+  String get feedbackAreaPairing => '配对';
+
+  @override
+  String get feedbackAreaAlerts => '提醒';
+
+  @override
+  String get feedbackAreaSync => '同步';
+
+  @override
+  String get feedbackAreaDesign => '外观与体验';
+
+  @override
+  String get feedbackAreaOther => '其他';
+
+  @override
+  String get feedbackMessageLabel => '你的留言';
+
+  @override
+  String get feedbackProblemHint => '发生了什么？你原本期望怎样？如果能写出重现步骤会很有帮助。';
+
+  @override
+  String get feedbackIdeaHint => '你希望 AirReply 做什么？这对你有什么帮助？';
+
+  @override
+  String get feedbackTooShort => '请再多写一点（至少 10 个字符）。';
+
+  @override
+  String get feedbackIncludeDetails => '附上设备信息';
+
+  @override
+  String get feedbackDetailsSubtitle => '系统、设备型号、应用语言和角色。绝不包含你的通知或密钥。';
+
+  @override
+  String get feedbackSent => '谢谢！你的邮件应用已准备好：在那里点按发送即可完成。';
+
+  @override
+  String get feedbackNoEmailApp => '这台设备上没有设置邮件应用。';
 }

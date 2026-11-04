@@ -511,7 +511,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get removeAllTitle => 'Remove all devices';
 
   @override
-  String get removeAllSubtitle => 'Ends every pair and deletes the keys and shared history';
+  String get removeAllSubtitle => 'Ends every pair; their history stays under Previous devices';
 
   @override
   String get troubleshootingTitle => 'Troubleshooting';
@@ -584,12 +584,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String removeAllConfirmOne(String name) {
-    return 'Syncing stops with $name, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.';
+    return 'Syncing with $name stops. Its history stays on this device under Previous devices, and comes back if you pair it again.';
   }
 
   @override
   String removeAllConfirmMany(int count) {
-    return 'Syncing stops with all $count devices, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.';
+    return 'Syncing with all $count devices stops. Their history stays on this device under Previous devices, and comes back if you pair them again.';
   }
 
   @override
@@ -712,7 +712,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get disclosureControlBody =>
-      'Choose which apps are shared, pause from the status notification at any time, or remove a device to stop sharing and delete the synced history. Notification content is never sold, shared with third parties, or used for ads or analytics.';
+      'Choose which apps are shared, pause from the status notification at any time, or remove a device to stop sharing; delete its history whenever you like. Notification content is never sold, shared with third parties, or used for ads or analytics.';
 
   @override
   String get actionAgreeAndContinue => 'Agree and continue';
@@ -923,7 +923,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return 'Syncing with $name stops on both devices, its encryption key is deleted, and the history you share with it is removed. Other devices are not affected.';
+    return 'Syncing with $name stops on both devices. Its history stays on this device under Settings → Previous devices until you delete it. Other devices are not affected.';
   }
 
   @override
@@ -1727,4 +1727,144 @@ class AppLocalizationsEn extends AppLocalizations {
   String languageSystemCurrent(String language) {
     return 'Same as this device ($language)';
   }
+
+  @override
+  String get previousDevicesTitle => 'Previous devices';
+
+  @override
+  String previousDevicesSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count removed devices, history kept',
+      one: '1 removed device, history kept',
+      zero: 'History of removed devices stays here',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get previousDevicesIntro =>
+      'When you remove a device, its history stays on this device. Pair the same device again to continue where you left off, or delete the history here.';
+
+  @override
+  String get previousDevicesNone => 'No previous devices';
+
+  @override
+  String get previousDevicesNoneHint => 'The history of devices you remove appears here.';
+
+  @override
+  String previousDeviceSummary(String date, String count) {
+    return 'Removed $date · $count';
+  }
+
+  @override
+  String previousDeviceRemoved(String date) {
+    return 'Removed $date';
+  }
+
+  @override
+  String previousDeviceContinue(String name) {
+    return 'Pair $name again to continue this history in your inbox.';
+  }
+
+  @override
+  String get actionDeleteHistory => 'Delete history';
+
+  @override
+  String deleteHistoryTitle(String name) {
+    return 'Delete the history of $name?';
+  }
+
+  @override
+  String get deleteHistoryMessage =>
+      'Its notifications and replies are deleted from this device. This cannot be undone.';
+
+  @override
+  String historyDeleted(String name) {
+    return 'History of $name deleted';
+  }
+
+  @override
+  String get actionDeleteAll => 'Delete all';
+
+  @override
+  String get deleteAllHistoryTitle => 'Delete all previous history?';
+
+  @override
+  String get deleteAllHistoryMessage =>
+      'The history of every removed device is deleted from this device. This cannot be undone.';
+
+  @override
+  String get allHistoryDeleted => 'Previous history deleted';
+
+  @override
+  String get feedbackReportTitle => 'Report a problem';
+
+  @override
+  String get feedbackReportSubtitle => 'Something not working? Tell us what happened';
+
+  @override
+  String get feedbackIdeaTitle => 'Suggest a feature';
+
+  @override
+  String get feedbackIdeaSubtitle => 'An idea that would make AirReply better';
+
+  @override
+  String get feedbackKindLabel => 'Type';
+
+  @override
+  String get feedbackKindProblem => 'Problem';
+
+  @override
+  String get feedbackKindIdea => 'Feature idea';
+
+  @override
+  String get feedbackAreaLabel => 'What is it about?';
+
+  @override
+  String get feedbackAreaNotifications => 'Notifications';
+
+  @override
+  String get feedbackAreaReplies => 'Replies';
+
+  @override
+  String get feedbackAreaPairing => 'Pairing';
+
+  @override
+  String get feedbackAreaAlerts => 'Alerts';
+
+  @override
+  String get feedbackAreaSync => 'Sync';
+
+  @override
+  String get feedbackAreaDesign => 'Look and feel';
+
+  @override
+  String get feedbackAreaOther => 'Something else';
+
+  @override
+  String get feedbackMessageLabel => 'Your message';
+
+  @override
+  String get feedbackProblemHint => 'What happened, and what did you expect? Steps to make it happen again help a lot.';
+
+  @override
+  String get feedbackIdeaHint => 'What would you like AirReply to do, and how would it help you?';
+
+  @override
+  String get feedbackTooShort => 'Write a little more (at least 10 characters).';
+
+  @override
+  String get feedbackIncludeDetails => 'Include device details';
+
+  @override
+  String get feedbackDetailsSubtitle =>
+      'System, device model, app language and role. Never your notifications or keys.';
+
+  @override
+  String get feedbackSent => 'Thanks! Your email app is ready: tap send there to finish.';
+
+  @override
+  String get feedbackNoEmailApp => 'No email app is set up on this device.';
 }

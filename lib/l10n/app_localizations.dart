@@ -1030,7 +1030,7 @@ abstract class AppLocalizations {
   /// Settings row subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Ends every pair and deletes the keys and shared history'**
+  /// **'Ends every pair; their history stays under Previous devices'**
   String get removeAllSubtitle;
 
   /// Settings row title.
@@ -1126,13 +1126,13 @@ abstract class AppLocalizations {
   /// Confirm removing the only device.
   ///
   /// In en, this message translates to:
-  /// **'Syncing stops with {name}, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.'**
+  /// **'Syncing with {name} stops. Its history stays on this device under Previous devices, and comes back if you pair it again.'**
   String removeAllConfirmOne(String name);
 
   /// Confirm removing every device.
   ///
   /// In en, this message translates to:
-  /// **'Syncing stops with all {count} devices, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.'**
+  /// **'Syncing with all {count} devices stops. Their history stays on this device under Previous devices, and comes back if you pair them again.'**
   String removeAllConfirmMany(int count);
 
   /// How many notifications are unread.
@@ -1330,7 +1330,7 @@ abstract class AppLocalizations {
   /// Privacy disclosure point.
   ///
   /// In en, this message translates to:
-  /// **'Choose which apps are shared, pause from the status notification at any time, or remove a device to stop sharing and delete the synced history. Notification content is never sold, shared with third parties, or used for ads or analytics.'**
+  /// **'Choose which apps are shared, pause from the status notification at any time, or remove a device to stop sharing; delete its history whenever you like. Notification content is never sold, shared with third parties, or used for ads or analytics.'**
   String get disclosureControlBody;
 
   /// Button: accept the disclosure.
@@ -1702,7 +1702,7 @@ abstract class AppLocalizations {
   /// Confirm removing a device.
   ///
   /// In en, this message translates to:
-  /// **'Syncing with {name} stops on both devices, its encryption key is deleted, and the history you share with it is removed. Other devices are not affected.'**
+  /// **'Syncing with {name} stops on both devices. Its history stays on this device under Settings → Previous devices until you delete it. Other devices are not affected.'**
   String removeDeviceMessage(String name);
 
   /// Button: remove.
@@ -3018,6 +3018,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Same as this device ({language})'**
   String languageSystemCurrent(String language);
+
+  /// Settings row and screen: removed devices whose history is kept.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous devices'**
+  String get previousDevicesTitle;
+
+  /// Settings row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{History of removed devices stays here} =1{1 removed device, history kept} other{{count} removed devices, history kept}}'**
+  String previousDevicesSubtitle(int count);
+
+  /// Previous devices screen intro.
+  ///
+  /// In en, this message translates to:
+  /// **'When you remove a device, its history stays on this device. Pair the same device again to continue where you left off, or delete the history here.'**
+  String get previousDevicesIntro;
+
+  /// Empty state title.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous devices'**
+  String get previousDevicesNone;
+
+  /// Empty state description.
+  ///
+  /// In en, this message translates to:
+  /// **'The history of devices you remove appears here.'**
+  String get previousDevicesNoneHint;
+
+  /// A removed device: when, and how much history is kept.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {date} · {count}'**
+  String previousDeviceSummary(String date, String count);
+
+  /// When a device was removed.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {date}'**
+  String previousDeviceRemoved(String date);
+
+  /// Previous device history: how to get it back.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair {name} again to continue this history in your inbox.'**
+  String previousDeviceContinue(String name);
+
+  /// Button: delete a removed device's history.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete history'**
+  String get actionDeleteHistory;
+
+  /// Confirm title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete the history of {name}?'**
+  String deleteHistoryTitle(String name);
+
+  /// Confirm message.
+  ///
+  /// In en, this message translates to:
+  /// **'Its notifications and replies are deleted from this device. This cannot be undone.'**
+  String get deleteHistoryMessage;
+
+  /// Message after deleting.
+  ///
+  /// In en, this message translates to:
+  /// **'History of {name} deleted'**
+  String historyDeleted(String name);
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all'**
+  String get actionDeleteAll;
+
+  /// Confirm title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all previous history?'**
+  String get deleteAllHistoryTitle;
+
+  /// Confirm message.
+  ///
+  /// In en, this message translates to:
+  /// **'The history of every removed device is deleted from this device. This cannot be undone.'**
+  String get deleteAllHistoryMessage;
+
+  /// Message after deleting all.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous history deleted'**
+  String get allHistoryDeleted;
+
+  /// Settings row and form title.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a problem'**
+  String get feedbackReportTitle;
+
+  /// Settings row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something not working? Tell us what happened'**
+  String get feedbackReportSubtitle;
+
+  /// Settings row and form title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest a feature'**
+  String get feedbackIdeaTitle;
+
+  /// Settings row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An idea that would make AirReply better'**
+  String get feedbackIdeaSubtitle;
+
+  /// Feedback form: problem or idea.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get feedbackKindLabel;
+
+  /// Feedback type.
+  ///
+  /// In en, this message translates to:
+  /// **'Problem'**
+  String get feedbackKindProblem;
+
+  /// Feedback type.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature idea'**
+  String get feedbackKindIdea;
+
+  /// Feedback form: area of the app.
+  ///
+  /// In en, this message translates to:
+  /// **'What is it about?'**
+  String get feedbackAreaLabel;
+
+  /// Feedback area.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get feedbackAreaNotifications;
+
+  /// Feedback area.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get feedbackAreaReplies;
+
+  /// Feedback area.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing'**
+  String get feedbackAreaPairing;
+
+  /// Feedback area.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get feedbackAreaAlerts;
+
+  /// Feedback area.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get feedbackAreaSync;
+
+  /// Feedback area.
+  ///
+  /// In en, this message translates to:
+  /// **'Look and feel'**
+  String get feedbackAreaDesign;
+
+  /// Feedback area.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get feedbackAreaOther;
+
+  /// Feedback form field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Your message'**
+  String get feedbackMessageLabel;
+
+  /// Feedback field hint for a problem.
+  ///
+  /// In en, this message translates to:
+  /// **'What happened, and what did you expect? Steps to make it happen again help a lot.'**
+  String get feedbackProblemHint;
+
+  /// Feedback field hint for an idea.
+  ///
+  /// In en, this message translates to:
+  /// **'What would you like AirReply to do, and how would it help you?'**
+  String get feedbackIdeaHint;
+
+  /// Feedback validation.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a little more (at least 10 characters).'**
+  String get feedbackTooShort;
+
+  /// Feedback form switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Include device details'**
+  String get feedbackIncludeDetails;
+
+  /// What device details include.
+  ///
+  /// In en, this message translates to:
+  /// **'System, device model, app language and role. Never your notifications or keys.'**
+  String get feedbackDetailsSubtitle;
+
+  /// After the form opened the email app.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks! Your email app is ready: tap send there to finish.'**
+  String get feedbackSent;
+
+  /// The email app could not be opened.
+  ///
+  /// In en, this message translates to:
+  /// **'No email app is set up on this device.'**
+  String get feedbackNoEmailApp;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

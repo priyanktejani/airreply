@@ -198,6 +198,10 @@ final class InboxController extends AsyncNotifier<InboxState> {
         if (!kept.contains(ended.pairId)) unawaited(_update((s) => s.forgetPair(ended.pairId)));
       }
     });
+    // history that came back with a device paired again was read before it was removed
+    ref.listen(continuedHistoryProvider, (_, keys) {
+      if (keys.isNotEmpty) unawaited(markRead(keys));
+    });
     final store = ref.watch(inboxStateStoreProvider);
     final saved = await store.load();
     if (saved != null) return saved;

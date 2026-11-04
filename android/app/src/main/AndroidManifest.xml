@@ -93,6 +93,11 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- An email app, for sending a problem report or a feature idea from Settings. -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO"/>
+            <data android:scheme="mailto"/>
+        </intent>
         <!-- OEM "Autostart" screens (Xiaomi, Oppo, Vivo, Huawei, Asus...), opened from the setup checklist. -->
         <package android:name="com.miui.securitycenter" />
         <package android:name="com.coloros.safecenter" />

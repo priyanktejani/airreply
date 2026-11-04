@@ -4,9 +4,12 @@ import 'package:air_reply/features/mirror/cleanup_providers.dart';
 import 'package:air_reply/features/mirror/history_providers.dart';
 import 'package:air_reply/features/pairing/data/firestore_pairing_repository.dart';
 import 'package:air_reply/features/pairing/data/rest_pairing_repository.dart';
+import 'package:air_reply/features/pairing/data/secure_archived_pairs_store.dart';
 import 'package:air_reply/features/pairing/data/secure_pairing_credentials_store.dart';
+import 'package:air_reply/features/pairing/domain/repositories/archived_pairs_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_credentials_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_repository.dart';
+import 'package:air_reply/features/pairing/domain/usecases/continue_history.dart';
 import 'package:air_reply/features/pairing/domain/usecases/receiver_pairing_usecases.dart';
 import 'package:air_reply/features/pairing/domain/usecases/sender_pairing_usecases.dart';
 import 'package:air_reply/features/pairing/domain/usecases/unpair.dart';
@@ -28,6 +31,15 @@ final pairingRepositoryProvider = Provider<PairingRepository>(
 
 final pairingCredentialsStoreProvider = Provider<PairingCredentialsStore>(
   (ref) => SecurePairingCredentialsStore(ref.watch(secretStoreProvider)),
+);
+
+/// Removed devices whose history is kept on this device.
+final archivedPairsStoreProvider = Provider<ArchivedPairsStore>(
+  (ref) => SecureArchivedPairsStore(ref.watch(secretStoreProvider)),
+);
+
+final continueHistoryProvider = Provider(
+  (ref) => ContinueHistory(ref.watch(archivedPairsStoreProvider), moveHistory: ref.watch(moveHistoryProvider)),
 );
 
 final startPairingSessionProvider = Provider(
@@ -63,5 +75,7 @@ final unpairProvider = Provider(
     ref.watch(notificationBridgeProvider),
     eraseHistory: ref.watch(eraseHistoryProvider),
     removeDoorbell: ref.watch(removeDoorbellProvider),
+    archive: ref.watch(archivedPairsStoreProvider),
+    historySize: ref.watch(historySizeProvider),
   ),
 );

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
@@ -19,6 +22,7 @@ import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// First launch: does this device share its notifications, or show and answer another phone's?
 class WelcomeScreen extends ConsumerWidget {
@@ -49,6 +53,8 @@ class WelcomeScreen extends ConsumerWidget {
     );
     // the option this platform can use goes first
     final options = canShare ? [sender, receiver] : [receiver, sender];
+    // devices removed before left their history here: it stays reachable while nothing is paired
+    final previous = ref.watch(archivedPairsProvider).value?.length ?? 0;
 
     final sections = <Widget>[
       UnderlinedHeadline(first: l10n.welcomeHeadlineFirst, second: l10n.welcomeHeadlineSecond),
@@ -71,6 +77,14 @@ class WelcomeScreen extends ConsumerWidget {
           ),
         ),
       ),
+      if (previous > 0)
+        Center(
+          child: TextButton.icon(
+            icon: const Icon(AppIcons.history, size: AppDimensions.iconSm),
+            label: Text(l10n.previousDevicesSubtitle(previous)),
+            onPressed: () => unawaited(context.push(AppRoutes.previousDevices)),
+          ),
+        ),
     ];
 
     return Scaffold(

@@ -18,8 +18,10 @@ import 'package:air_reply/features/mirror/history_providers.dart';
 import 'package:air_reply/features/mirror/mirror_providers.dart';
 import 'package:air_reply/features/notifications/domain/inbox_state.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/pairing/domain/entities/archived_pair.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_session.dart';
+import 'package:air_reply/features/pairing/domain/repositories/archived_pairs_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_credentials_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_repository.dart';
 import 'package:air_reply/features/pairing/pairing_providers.dart';
@@ -43,6 +45,9 @@ List<Override> demoOverrides(String role) {
     mirrorRepositoryProvider.overrideWith((ref, pairId) => _DemoMirror.of(pairId)),
     // sample history lives in memory: removing a demo device leaves the real database alone
     eraseHistoryProvider.overrideWithValue((_) async {}),
+    // demo history lives in memory, not in the history database: removed devices keep nothing
+    historySizeProvider.overrideWithValue((_) async => (notifications: 0, replies: 0)),
+    archivedPairsStoreProvider.overrideWithValue(_DemoArchive()),
     removeDoorbellProvider.overrideWithValue((_) async {}),
     notificationBridgeProvider.overrideWithValue(_DemoBridge()),
     notificationPermissionProvider.overrideWithValue(_DemoPermission()),
@@ -111,6 +116,21 @@ final class _DemoPairs implements PairingCredentialsStore {
   Future<void> save(PairingCredentials credentials) async => _pairs
     ..removeWhere((p) => p.pairId == credentials.pairId)
     ..add(credentials);
+
+  @override
+  Future<void> remove(String pairId) async => _pairs.removeWhere((p) => p.pairId == pairId);
+}
+
+final class _DemoArchive implements ArchivedPairsStore {
+  final _pairs = <ArchivedPair>[];
+
+  @override
+  Future<List<ArchivedPair>> readAll() async => [..._pairs];
+
+  @override
+  Future<void> save(ArchivedPair pair) async => _pairs
+    ..removeWhere((p) => p.pairId == pair.pairId)
+    ..add(pair);
 
   @override
   Future<void> remove(String pairId) async => _pairs.removeWhere((p) => p.pairId == pairId);

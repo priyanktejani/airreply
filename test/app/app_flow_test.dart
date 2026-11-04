@@ -10,12 +10,18 @@ import 'package:air_reply/features/notifications/presentation/widgets/unread_cou
 import 'package:air_reply/features/push/push_registration.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 
 /// The real app (router, screens, controllers, use cases) on the in-memory demo backend.
-Future<void> launch(WidgetTester tester, {required String role, Size size = const Size(420, 900)}) async {
+Future<void> launch(
+  WidgetTester tester, {
+  required String role,
+  Size size = const Size(420, 900),
+  List<Override> overrides = const [],
+}) async {
   SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
   resetDemoData();
   tester.view
@@ -27,7 +33,7 @@ Future<void> launch(WidgetTester tester, {required String role, Size size = cons
   addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [...demoOverrides(role), pushRegistrationProvider.overrideWith((ref) async {})],
+      overrides: [...demoOverrides(role), pushRegistrationProvider.overrideWith((ref) async {}), ...overrides],
       child: const AirReplyApp(),
     ),
   );

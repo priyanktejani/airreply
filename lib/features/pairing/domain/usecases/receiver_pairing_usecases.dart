@@ -85,6 +85,7 @@ final class FinishReceiverPairing {
       sharedKey: joined.secrets.sharedKey,
       peerName: confirmed.senderName,
       pairedAt: _clock(),
+      peerUid: confirmed.senderUid,
     );
     await _store.save(credentials);
     return credentials;

@@ -520,7 +520,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get removeAllTitle => 'Alle Geräte entfernen';
 
   @override
-  String get removeAllSubtitle => 'Beendet jede Kopplung und löscht die Schlüssel und den geteilten Verlauf';
+  String get removeAllSubtitle => 'Beendet jede Kopplung; ihr Verlauf bleibt unter Frühere Geräte';
 
   @override
   String get troubleshootingTitle => 'Fehlerbehebung';
@@ -593,12 +593,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String removeAllConfirmOne(String name) {
-    return 'Die Synchronisierung mit $name endet, alle Verschlüsselungsschlüssel werden gelöscht und der geteilte Verlauf wird entfernt. Du kannst danach erneut koppeln.';
+    return 'Die Synchronisierung mit $name endet. Der Verlauf bleibt auf diesem Gerät unter Frühere Geräte und kommt zurück, wenn du es erneut koppelst.';
   }
 
   @override
   String removeAllConfirmMany(int count) {
-    return 'Die Synchronisierung mit allen $count Geräten endet, alle Verschlüsselungsschlüssel werden gelöscht und der geteilte Verlauf wird entfernt. Du kannst danach erneut koppeln.';
+    return 'Die Synchronisierung mit allen $count Geräten endet. Ihr Verlauf bleibt auf diesem Gerät unter Frühere Geräte und kommt zurück, wenn du sie erneut koppelst.';
   }
 
   @override
@@ -729,7 +729,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get disclosureControlBody =>
-      'Wähle, welche Apps geteilt werden, pausiere jederzeit über die Statusmitteilung oder entferne ein Gerät, um das Teilen zu beenden und den synchronisierten Verlauf zu löschen. Mitteilungsinhalte werden nie verkauft, an Dritte weitergegeben oder für Werbung oder Analysen genutzt.';
+      'Wähle, welche Apps geteilt werden, pausiere jederzeit über die Statusmitteilung oder entferne ein Gerät, um das Teilen zu beenden; seinen Verlauf löschst du, wann du willst. Mitteilungsinhalte werden nie verkauft, an Dritte weitergegeben oder für Werbung oder Analysen genutzt.';
 
   @override
   String get actionAgreeAndContinue => 'Zustimmen und weiter';
@@ -942,7 +942,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return 'Die Synchronisierung mit $name endet auf beiden Geräten, sein Verschlüsselungsschlüssel wird gelöscht und der mit ihm geteilte Verlauf wird entfernt. Andere Geräte sind nicht betroffen.';
+    return 'Die Synchronisierung mit $name endet auf beiden Geräten. Der Verlauf bleibt auf diesem Gerät unter Einstellungen → Frühere Geräte, bis du ihn löschst. Andere Geräte sind nicht betroffen.';
   }
 
   @override
@@ -1748,4 +1748,145 @@ class AppLocalizationsDe extends AppLocalizations {
   String languageSystemCurrent(String language) {
     return 'Wie dieses Gerät ($language)';
   }
+
+  @override
+  String get previousDevicesTitle => 'Frühere Geräte';
+
+  @override
+  String previousDevicesSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entfernte Geräte, Verlauf behalten',
+      one: '1 entferntes Gerät, Verlauf behalten',
+      zero: 'Der Verlauf entfernter Geräte bleibt hier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get previousDevicesIntro =>
+      'Wenn du ein Gerät entfernst, bleibt sein Verlauf auf diesem Gerät. Kopple dasselbe Gerät erneut, um dort weiterzumachen, wo du aufgehört hast, oder lösche den Verlauf hier.';
+
+  @override
+  String get previousDevicesNone => 'Keine früheren Geräte';
+
+  @override
+  String get previousDevicesNoneHint => 'Der Verlauf von Geräten, die du entfernst, erscheint hier.';
+
+  @override
+  String previousDeviceSummary(String date, String count) {
+    return 'Entfernt: $date · $count';
+  }
+
+  @override
+  String previousDeviceRemoved(String date) {
+    return 'Entfernt: $date';
+  }
+
+  @override
+  String previousDeviceContinue(String name) {
+    return 'Kopple $name erneut, um diesen Verlauf in deinen Mitteilungen fortzusetzen.';
+  }
+
+  @override
+  String get actionDeleteHistory => 'Verlauf löschen';
+
+  @override
+  String deleteHistoryTitle(String name) {
+    return 'Verlauf von $name löschen?';
+  }
+
+  @override
+  String get deleteHistoryMessage =>
+      'Seine Mitteilungen und Antworten werden von diesem Gerät gelöscht. Das kann nicht rückgängig gemacht werden.';
+
+  @override
+  String historyDeleted(String name) {
+    return 'Verlauf von $name gelöscht';
+  }
+
+  @override
+  String get actionDeleteAll => 'Alle löschen';
+
+  @override
+  String get deleteAllHistoryTitle => 'Gesamten früheren Verlauf löschen?';
+
+  @override
+  String get deleteAllHistoryMessage =>
+      'Der Verlauf aller entfernten Geräte wird von diesem Gerät gelöscht. Das kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get allHistoryDeleted => 'Früherer Verlauf gelöscht';
+
+  @override
+  String get feedbackReportTitle => 'Problem melden';
+
+  @override
+  String get feedbackReportSubtitle => 'Funktioniert etwas nicht? Erzähl uns, was passiert ist';
+
+  @override
+  String get feedbackIdeaTitle => 'Funktion vorschlagen';
+
+  @override
+  String get feedbackIdeaSubtitle => 'Eine Idee, die AirReply besser macht';
+
+  @override
+  String get feedbackKindLabel => 'Art';
+
+  @override
+  String get feedbackKindProblem => 'Problem';
+
+  @override
+  String get feedbackKindIdea => 'Funktionsidee';
+
+  @override
+  String get feedbackAreaLabel => 'Worum geht es?';
+
+  @override
+  String get feedbackAreaNotifications => 'Mitteilungen';
+
+  @override
+  String get feedbackAreaReplies => 'Antworten';
+
+  @override
+  String get feedbackAreaPairing => 'Kopplung';
+
+  @override
+  String get feedbackAreaAlerts => 'Hinweise';
+
+  @override
+  String get feedbackAreaSync => 'Synchronisierung';
+
+  @override
+  String get feedbackAreaDesign => 'Aussehen';
+
+  @override
+  String get feedbackAreaOther => 'Etwas anderes';
+
+  @override
+  String get feedbackMessageLabel => 'Deine Nachricht';
+
+  @override
+  String get feedbackProblemHint =>
+      'Was ist passiert, und was hast du erwartet? Schritte, um es nachzustellen, helfen sehr.';
+
+  @override
+  String get feedbackIdeaHint => 'Was soll AirReply können, und wie würde dir das helfen?';
+
+  @override
+  String get feedbackTooShort => 'Schreib etwas mehr (mindestens 10 Zeichen).';
+
+  @override
+  String get feedbackIncludeDetails => 'Gerätedetails mitsenden';
+
+  @override
+  String get feedbackDetailsSubtitle =>
+      'System, Gerätemodell, App-Sprache und Rolle. Nie deine Mitteilungen oder Schlüssel.';
+
+  @override
+  String get feedbackSent => 'Danke! Deine E-Mail-App ist bereit: Tippe dort auf Senden, um fertig zu werden.';
+
+  @override
+  String get feedbackNoEmailApp => 'Auf diesem Gerät ist keine E-Mail-App eingerichtet.';
 }

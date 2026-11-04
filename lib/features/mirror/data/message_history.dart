@@ -370,7 +370,84 @@ final class MessageHistory {
   /// Changes when another isolate or engine writes to the database; this one's own writes leave it as it is.
   Future<String> revision() async => '${await _db.dataVersion()}';
 
-  /// Deletes this pair's history: its key is gone, so it could never be read again.
+  /// How much of this pair's history is kept: notifications and replies.
+  Future<({int notifications, int replies})> size() async {
+    final row = await _db
+        .customSelect(
+          'SELECT (SELECT count(*) FROM history_notifications WHERE pair_id = ?1) AS n, '
+          '(SELECT count(*) FROM history_replies WHERE pair_id = ?1) AS r',
+          variables: [Variable.withString(pairId)],
+        )
+        .getSingle();
+    return (notifications: row.read<int>('n'), replies: row.read<int>('r'));
+  }
+
+  /// Moves this pair's history into the pair [target]: the same device, paired again. Each payload is opened with this
+  /// pair's key and sealed with the new one by [reseal] (null for one that cannot be opened, which is dropped). Rows
+  /// keep their rowid, so the search index still finds them. A batch at a time, so an interrupted move continues on the
+  /// next try. Returns the ids of the notifications moved.
+  Future<List<String>> moveTo(
+    String target, {
+    required Future<String?> Function(String payload, {required bool reply}) reseal,
+    int batch = 200,
+  }) async {
+    final moved = <String>[];
+    while (true) {
+      final rows =
+          await (_db.select(_db.historyNotifications)
+                ..where((n) => n.pairId.equals(pairId))
+                ..limit(batch))
+              .get();
+      if (rows.isEmpty) break;
+      final sealed = [for (final r in rows) (r.id, await reseal(r.payload, reply: false))];
+      await _db.transaction(() async {
+        for (final (id, payload) in sealed) {
+          final row = _db.update(_db.historyNotifications)..where((n) => n.pairId.equals(pairId) & n.id.equals(id));
+          if (payload == null) {
+            await _db.customUpdate(
+              'DELETE FROM history_fts WHERE rowid = (SELECT rowid FROM history_notifications WHERE pair_id = ? AND id = ?)',
+              variables: [Variable.withString(pairId), Variable.withString(id)],
+            );
+            await (_db.delete(_db.historyNotifications)..where((n) => n.pairId.equals(pairId) & n.id.equals(id))).go();
+          } else {
+            await row.write(HistoryNotificationsCompanion(pairId: Value(target), payload: Value(payload)));
+            moved.add(id);
+          }
+        }
+      });
+    }
+    while (true) {
+      final rows =
+          await (_db.select(_db.historyReplies)
+                ..where((r) => r.pairId.equals(pairId))
+                ..limit(batch))
+              .get();
+      if (rows.isEmpty) break;
+      final sealed = [for (final r in rows) (r.id, await reseal(r.payload, reply: true))];
+      await _db.transaction(() async {
+        for (final (id, payload) in sealed) {
+          final where = _db.historyReplies.pairId.equals(pairId) & _db.historyReplies.id.equals(id);
+          if (payload == null) {
+            await (_db.delete(_db.historyReplies)..where((_) => where)).go();
+          } else {
+            await (_db.update(
+              _db.historyReplies,
+            )..where((_) => where)).write(HistoryRepliesCompanion(pairId: Value(target), payload: Value(payload)));
+          }
+        }
+      });
+    }
+    // dismissals still match the moved notifications (both keep the old pair's key hashes); publish marks do not matter
+    await _db.customUpdate(
+      'UPDATE OR REPLACE history_dismissals SET pair_id = ? WHERE pair_id = ?',
+      variables: [Variable.withString(target), Variable.withString(pairId)],
+      updates: {_db.historyDismissals},
+    );
+    await (_db.delete(_db.historyPublished)..where((p) => p.pairId.equals(pairId))).go();
+    return moved;
+  }
+
+  /// Deletes this pair's history.
   Future<void> erase() => _db.transaction(() async {
     await _db.customUpdate(
       'DELETE FROM history_fts WHERE rowid IN (SELECT rowid FROM history_notifications WHERE pair_id = ?)',

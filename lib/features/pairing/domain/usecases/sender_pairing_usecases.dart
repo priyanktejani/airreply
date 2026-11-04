@@ -74,6 +74,7 @@ final class ConfirmSenderPairing {
       sharedKey: secrets.sharedKey,
       peerName: joined.receiverName ?? 'Paired device',
       pairedAt: _clock(),
+      peerUid: joined.receiverUid,
     );
     await _store.save(credentials);
     return credentials;

@@ -1,7 +1,10 @@
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
+import 'package:air_reply/features/mirror/history_providers.dart';
+import 'package:air_reply/features/pairing/domain/entities/archived_pair.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/pairing/pairing_providers.dart';
 import 'package:air_reply/features/session/data/preferences_device_settings_store.dart';
@@ -70,10 +73,21 @@ final class DeviceSessionController extends AsyncNotifier<DeviceSession> {
     state = AsyncData(_current.withDisclosureAccepted());
   }
 
-  /// Called by the pairing flows once the credentials are stored.
+  /// Called by the pairing flows once the credentials are stored. A device paired again first gets back the history
+  /// kept from before, so its screens open with it.
   Future<void> paired(PairingCredentials credentials) async {
+    var continued = const <String>[];
+    try {
+      continued = await ref.read(continueHistoryProvider).call(credentials);
+    } on Object catch (e) {
+      appLog('History not continued: $e', name: 'air_reply.pairing');
+    }
     await _settings.writeRole(credentials.role);
     state = AsyncData(_current.withPair(credentials));
+    ref.invalidate(archivedPairsProvider);
+    if (continued.isNotEmpty) {
+      ref.read(continuedHistoryProvider.notifier).add([for (final id in continued) '${credentials.pairId}/$id']);
+    }
   }
 
   /// Ends one pair. [notifyPeer] is false when the other device already ended it.
@@ -81,10 +95,46 @@ final class DeviceSessionController extends AsyncNotifier<DeviceSession> {
   /// or receiving); the privacy disclosure stays accepted.
   Future<void> unpair(String pairId, {bool notifyPeer = true}) async {
     await ref.read(unpairProvider).call(pairId, notifyPeer: notifyPeer);
+    ref.invalidate(archivedPairsProvider);
     final next = _current.withoutPair(pairId);
     if (!next.isPaired) await _settings.writeRole(null);
     state = AsyncData(next.isPaired ? next : next.withRole(null));
   }
 
   DeviceSession get _current => state.value ?? DeviceSession.fresh;
+}
+
+/// Notifications that came back with a device paired again (by entry key): they were read before, so the inbox marks
+/// them read rather than showing old history as new.
+final continuedHistoryProvider = NotifierProvider<ContinuedHistory, List<String>>(ContinuedHistory.new);
+
+final class ContinuedHistory extends Notifier<List<String>> {
+  @override
+  List<String> build() => const [];
+
+  void add(List<String> keys) => state = keys;
+}
+
+/// Removed devices whose history is kept on this device, newest removal first.
+final archivedPairsProvider = AsyncNotifierProvider.autoDispose<ArchivedPairsController, List<ArchivedPair>>(
+  ArchivedPairsController.new,
+);
+
+final class ArchivedPairsController extends AsyncNotifier<List<ArchivedPair>> {
+  @override
+  Future<List<ArchivedPair>> build() async =>
+      (await ref.watch(archivedPairsStoreProvider).readAll())..sort((a, b) => b.unpairedAt.compareTo(a.unpairedAt));
+
+  /// Deletes a removed device's history and its key: it can never be read again.
+  Future<void> delete(String pairId) async {
+    await ref.read(eraseHistoryProvider)(pairId);
+    await ref.read(archivedPairsStoreProvider).remove(pairId);
+    state = AsyncData([...?state.value?.where((p) => p.pairId != pairId)]);
+  }
+
+  Future<void> deleteAll() async {
+    for (final pair in [...?state.value]) {
+      await delete(pair.pairId);
+    }
+  }
 }

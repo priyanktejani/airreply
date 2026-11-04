@@ -5,6 +5,8 @@ import 'package:air_reply/core/animations/page_transitions.dart';
 import 'package:air_reply/features/app_management/presentation/app_management_screen.dart';
 import 'package:air_reply/features/devices/presentation/device_history_screen.dart';
 import 'package:air_reply/features/devices/presentation/devices_screen.dart';
+import 'package:air_reply/features/devices/presentation/previous_device_screen.dart';
+import 'package:air_reply/features/devices/presentation/previous_devices_screen.dart';
 import 'package:air_reply/features/home/presentation/home_screen.dart';
 import 'package:air_reply/features/notifications/presentation/app_conversations_screen.dart';
 import 'package:air_reply/features/notifications/presentation/conversation_screen.dart';
@@ -14,7 +16,9 @@ import 'package:air_reply/features/onboarding/presentation/welcome_screen.dart';
 import 'package:air_reply/features/pairing/presentation/pairing_screen.dart';
 import 'package:air_reply/features/permissions/presentation/setup_screen.dart';
 import 'package:air_reply/features/session/session_providers.dart';
+import 'package:air_reply/features/settings/domain/feedback.dart';
 import 'package:air_reply/features/settings/presentation/diagnostics_screen.dart';
+import 'package:air_reply/features/settings/presentation/feedback_screen.dart';
 import 'package:air_reply/features/settings/presentation/settings_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,6 +51,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.welcome, pageBuilder: (_, state) => AppTransitions.fade(state, const WelcomeScreen())),
       GoRoute(path: AppRoutes.setup, pageBuilder: (_, state) => AppTransitions.fade(state, const SetupScreen())),
       GoRoute(path: AppRoutes.pair, pageBuilder: (_, state) => AppTransitions.push(state, const PairingScreen())),
+      GoRoute(
+        path: AppRoutes.previousDevices,
+        pageBuilder: (_, state) => AppTransitions.push(state, const PreviousDevicesScreen()),
+        routes: [
+          GoRoute(
+            path: ':pairId',
+            pageBuilder: (_, state) =>
+                AppTransitions.push(state, PreviousDeviceScreen(pairId: state.pathParameters['pairId']!)),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.feedback,
+        pageBuilder: (_, state) => AppTransitions.push(
+          state,
+          FeedbackScreen(kind: state.uri.queryParameters['kind'] == 'idea' ? FeedbackKind.idea : FeedbackKind.problem),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (_, _, shell) => AppShell(shell: shell),
         branches: [

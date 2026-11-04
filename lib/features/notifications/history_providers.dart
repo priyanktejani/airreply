@@ -5,6 +5,7 @@ import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/features/mirror/domain/entities/history_query.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
+import 'package:air_reply/features/mirror/domain/repositories/mirror_repositories.dart';
 import 'package:air_reply/features/mirror/mirror_providers.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
@@ -22,6 +23,9 @@ typedef HistoryScope = ({String view, String? pairId});
 const inboxSearch = (view: 'inbox', pairId: null);
 const homeSearch = (view: 'home', pairId: null);
 HistoryScope deviceHistory(String pairId) => (view: 'device', pairId: pairId);
+
+/// A removed device's history, kept on this device (see `ArchivedPair`).
+HistoryScope previousDeviceHistory(String pairId) => (view: 'previous', pairId: pairId);
 
 /// One pair's pages so far.
 final class PairPages {
@@ -175,6 +179,11 @@ final class HistoryResultsController extends Notifier<HistoryResults> {
   var _generation = 0;
   List<String> _pairIds = const [];
 
+  /// Where each pair's history is read from, when not its live feed: a removed device's (see [open]).
+  Map<String, NotificationFeed> _feeds = const {};
+
+  NotificationFeed _feed(String pairId) => _feeds[pairId] ?? ref.read(notificationFeedProvider(pairId));
+
   @override
   HistoryResults build() {
     // The two searches follow what is typed into them; a phone's history is opened by its screen.
@@ -191,8 +200,9 @@ final class HistoryResultsController extends Notifier<HistoryResults> {
           scheduleMicrotask(() => _follow(FeedFilter(query: ref.read(homeSearchQueryProvider))));
         }
     }
-    // a pair that is removed leaves the results
+    // a pair that is removed leaves the results (a removed device's own history stays, of course)
     ref.listen(pairedDevicesProvider, (_, pairs) {
+      if (scope.view == 'previous') return;
       final ids = {for (final p in pairs) p.pairId};
       if (state.pages.keys.any((id) => !ids.contains(id))) {
         state = state.copyWith(
@@ -230,9 +240,10 @@ final class HistoryResultsController extends Notifier<HistoryResults> {
   }
 
   /// Shows [query] over [pairIds] (every paired device by default), from its first page: a snapshot of what had been
-  /// saved by then.
-  Future<void> open(HistoryQuery query, {List<String>? pairIds}) async {
+  /// saved by then. [feeds] reads a pair from somewhere other than its live feed (a removed device's history).
+  Future<void> open(HistoryQuery query, {List<String>? pairIds, Map<String, NotificationFeed>? feeds}) async {
     final generation = ++_generation;
+    if (feeds != null) _feeds = feeds;
     _pairIds = pairIds ?? [for (final p in ref.read(pairedDevicesProvider)) p.pairId];
     state = HistoryResults(query: query, pages: {for (final id in _pairIds) id: const PairPages()});
     await loadMore();
@@ -252,13 +263,11 @@ final class HistoryResultsController extends Notifier<HistoryResults> {
       ];
       final read = await Future.wait([
         for (final id in waiting)
-          ref
-              .read(notificationFeedProvider(id))
-              .browseHistory(
-                query.saved(upTo: state.pages[id]!.saved),
-                after: state.pages[id]!.next,
-                limit: pageSize,
-              ),
+          _feed(id).browseHistory(
+            query.saved(upTo: state.pages[id]!.saved),
+            after: state.pages[id]!.next,
+            limit: pageSize,
+          ),
       ]);
       if (generation != _generation) return; // a newer query took over
       state = state.copyWith(
@@ -283,7 +292,7 @@ final class HistoryResultsController extends Notifier<HistoryResults> {
       var added = 0;
       for (final id in _pairIds) {
         final current = pages[id] ?? const PairPages();
-        final feed = ref.read(notificationFeedProvider(id));
+        final feed = _feed(id);
         final read = <HistoryPage>[];
         int? upTo;
         HistoryCursor? cursor;
@@ -321,7 +330,7 @@ final class HistoryResultsController extends Notifier<HistoryResults> {
     try {
       var total = 0;
       for (final id in _pairIds) {
-        total += await ref.read(notificationFeedProvider(id)).countHistory(query.saved(upTo: state.pages[id]?.saved));
+        total += await _feed(id).countHistory(query.saved(upTo: state.pages[id]?.saved));
       }
       if (generation == _generation) state = state.copyWith(total: total, error: state.error);
     } on Object {

@@ -2,6 +2,7 @@ import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/crypto/pair_cipher.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
+import 'package:air_reply/features/mirror/data/closed_mailbox.dart';
 import 'package:air_reply/features/mirror/data/doorbell.dart';
 import 'package:air_reply/features/mirror/data/firestore_mailbox.dart';
 import 'package:air_reply/features/mirror/data/mirror_documents.dart';
@@ -9,6 +10,7 @@ import 'package:air_reply/features/mirror/data/mirror_sync_repository.dart';
 import 'package:air_reply/features/mirror/data/rest_mailbox.dart';
 import 'package:air_reply/features/mirror/domain/repositories/mirror_repositories.dart';
 import 'package:air_reply/features/mirror/history_providers.dart';
+import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -57,6 +59,18 @@ final mirrorRepositoryProvider = Provider.family<MirrorRepository, String>((ref,
   ref.onDispose(repository.dispose);
   return repository;
 });
+
+/// A removed device's history, read-only: the kept key opens it, and nothing reaches the server. The caller disposes
+/// the feed when done with it.
+final previousHistoryFeedProvider = Provider<MirrorSyncRepository Function(PairingCredentials pair)>(
+  (ref) =>
+      (pair) => MirrorSyncRepository(
+        const ClosedMailbox(),
+        MirrorDocuments(PairCipher(cipher: ref.read(payloadCipherProvider), pairId: pair.pairId, key: pair.sharedKey)),
+        ref.read(messageHistoryProvider(pair.pairId)),
+        collects: false,
+      ),
+);
 
 // The same repository, exposed per role so each consumer depends only on the slice it needs.
 

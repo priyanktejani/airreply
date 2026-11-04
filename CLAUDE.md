@@ -46,7 +46,7 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
 - `MessageHistory` keeps the still-encrypted payloads in a drift (SQLite) database, `HistoryDatabase`
   (`lib/features/mirror/history_providers.dart`): everything is kept, and the screens load the newest 2,000
   notifications and 1,000 replies per pair. The app and the sender's background engine (separate Flutter engines) each
-  open their own WAL connection; `PRAGMA data_version` tells one when the other wrote. Erased on unpair. History from
+  open their own WAL connection; `PRAGMA data_version` tells one when the other wrote. Kept on unpair (below). History from
   the first, SharedPreferences version is moved in on first load.
 - Search and browsing read the database, never only the loaded feed. `history_fts` (FTS5, trigram tokenizer, keyed by
   the notification's rowid) holds each notification's title, text and app name, lower-cased, in plain text beside the
@@ -74,9 +74,20 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
   screen's choice again; the privacy disclosure stays accepted. While nothing is paired, setup and pairing have a back
   button (and system back, via `OnboardingBack`) that returns to that choice.
 - Unpairing (`Unpair`) ends the pair on the server (`PairingRepository.endPair`: empties its mailboxes, marks it ended,
-  deletes it), removes its doorbell, then wipes its key and history here; the server part is capped at 10 seconds so
-  an offline unpair never hangs. The other device sees the pair gone and does the same locally. Read/hidden marks of
-  an ended pair are dropped by `InboxController`; the phone prunes its icon records when its sync engine starts.
+  deletes it) and removes its doorbell; the server part is capped at 10 seconds so an offline unpair never hangs. The
+  other device sees the pair gone and does the same locally. Read/hidden marks of an ended pair are dropped by
+  `InboxController`; the phone prunes its icon records when its sync engine starts.
+- History is kept when a device is removed, as in WhatsApp: a pair that left any history becomes an `ArchivedPair`
+  (`SecureArchivedPairsStore`, in the keystore with the pair's key, since its payloads stay sealed with it); one with
+  none is erased. Settings → Previous devices (`/previous`, reachable while unpaired too, and linked from the welcome
+  screen) lists them, opens each read-only (`previousDeviceHistory` scope, read through `ClosedMailbox`) and deletes
+  them (`archivedPairsProvider`).
+- The same device paired again continues its history (`ContinueHistory`, run by `DeviceSessionController.paired`
+  before the pair is shown): devices are recognised by the other side's sign-in uid, `PairingCredentials.peerUid`
+  (from the pairing session's `senderUid` / `receiverUid`; same role only). `MessageHistory.moveTo` re-seals each
+  payload with the new pair's key and moves the rows in place (rowids, so the search index, are kept), a batch at a
+  time; moved notifications are marked read (`continuedHistoryProvider`). Pairs made before `peerUid` existed stay
+  under Previous devices.
 - Delivery is at-least-once and idempotent: a document is saved (upsert by id) before its mailbox copy is deleted, so a
   failed delete or a server retry only redelivers it. Each receiver has its own pair, so its own mailbox.
 - Web needs `web/sqlite3.wasm` and `web/drift_worker.js`, matching the sqlite3 and drift versions in `pubspec.lock`;
@@ -103,8 +114,8 @@ Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configure
   `DeviceCondition`s (`DeviceStatusText`); feed periods are described by `FeedPeriodLabel`.
 - Times (`lib/core/utils/time_format.dart`) take the strings first: words from the ARB files, month and weekday names
   from intl in the same language.
-- Left in English on purpose: the diagnostics report (for whoever helps; the screen says so in other languages),
-  device names sent at pairing, demo data, and log messages.
+- Left in English on purpose: the diagnostics report (for whoever helps; the screen says so in other languages), the
+  feedback email's subject and device details, device names sent at pairing, demo data, and log messages.
 - `test/app/screen_sizes_test.dart` opens every tab in each language on a small phone, so a long translation that
   overflows fails a test.
 
@@ -161,6 +172,14 @@ The Mac app must be signed with a team (personal team `F9FQQ7JL29`, "Apple Devel
 signed-in device in the keychain, and an ad-hoc signed build fails sign-in (so pairing) with keychain error -34018.
 The development profile is "Mac Team Provisioning Profile: com.airreply.airReply"; a new Mac needs one build with
 `-allowProvisioningUpdates` (or opening the project in Xcode). Secure storage itself uses the legacy keychain.
+
+## Feedback
+
+Settings → Report a problem / Suggest a feature open `FeedbackScreen` (`/feedback?kind=problem|idea`, reachable while
+unpaired too): kind, area, message and optional device details (`deviceDetails`: system and model, never a device's
+own name, notifications or keys). Send opens the email app with it written out (`url_launcher`, approved; a `mailto:`
+`<queries>` entry in the Android manifest) to `supportEmail` in `lib/core/config/support.dart`, a placeholder address
+to replace before release.
 
 ## What not to do
 

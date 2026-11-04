@@ -526,7 +526,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get removeAllTitle => 'Retirer tous les appareils';
 
   @override
-  String get removeAllSubtitle => 'Met fin à toutes les associations et supprime les clés et l\'historique partagé';
+  String get removeAllSubtitle => 'Met fin à toutes les associations ; leur historique reste dans Appareils précédents';
 
   @override
   String get troubleshootingTitle => 'Dépannage';
@@ -601,12 +601,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String removeAllConfirmOne(String name) {
-    return 'La synchronisation avec $name s\'arrête, toutes les clés de chiffrement sont supprimées et l\'historique partagé est effacé. Vous pourrez de nouveau associer par la suite.';
+    return 'La synchronisation avec $name s\'arrête. Son historique reste sur cet appareil dans Appareils précédents, et revient si vous l\'associez de nouveau.';
   }
 
   @override
   String removeAllConfirmMany(int count) {
-    return 'La synchronisation avec les $count appareils s\'arrête, toutes les clés de chiffrement sont supprimées et l\'historique partagé est effacé. Vous pourrez de nouveau associer par la suite.';
+    return 'La synchronisation avec les $count appareils s\'arrête. Leur historique reste sur cet appareil dans Appareils précédents, et revient si vous les associez de nouveau.';
   }
 
   @override
@@ -740,7 +740,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get disclosureControlBody =>
-      'Choisissez les applis partagées, mettez en pause à tout moment depuis la notification d\'état, ou retirez un appareil pour arrêter le partage et supprimer l\'historique synchronisé. Le contenu des notifications n\'est jamais vendu, partagé avec des tiers, ni utilisé pour la publicité ou l\'analyse.';
+      'Choisissez les applis partagées, mettez en pause à tout moment depuis la notification d\'état, ou retirez un appareil pour arrêter le partage ; supprimez son historique quand vous voulez. Le contenu des notifications n\'est jamais vendu, partagé avec des tiers, ni utilisé pour la publicité ou l\'analyse.';
 
   @override
   String get actionAgreeAndContinue => 'Accepter et continuer';
@@ -954,7 +954,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return 'La synchronisation avec $name s\'arrête sur les deux appareils, sa clé de chiffrement est supprimée et l\'historique partagé avec lui est effacé. Les autres appareils ne sont pas concernés.';
+    return 'La synchronisation avec $name s\'arrête sur les deux appareils. Son historique reste sur cet appareil dans Réglages → Appareils précédents jusqu\'à ce que vous le supprimiez. Les autres appareils ne sont pas concernés.';
   }
 
   @override
@@ -1778,4 +1778,145 @@ class AppLocalizationsFr extends AppLocalizations {
   String languageSystemCurrent(String language) {
     return 'Comme cet appareil ($language)';
   }
+
+  @override
+  String get previousDevicesTitle => 'Appareils précédents';
+
+  @override
+  String previousDevicesSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count appareils retirés, historique conservé',
+      one: '1 appareil retiré, historique conservé',
+      zero: 'L\'historique des appareils retirés est conservé ici',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get previousDevicesIntro =>
+      'Quand vous retirez un appareil, son historique reste sur cet appareil. Associez de nouveau le même appareil pour reprendre là où vous en étiez, ou supprimez l\'historique ici.';
+
+  @override
+  String get previousDevicesNone => 'Aucun appareil précédent';
+
+  @override
+  String get previousDevicesNoneHint => 'L\'historique des appareils que vous retirez s\'affiche ici.';
+
+  @override
+  String previousDeviceSummary(String date, String count) {
+    return 'Retiré : $date · $count';
+  }
+
+  @override
+  String previousDeviceRemoved(String date) {
+    return 'Retiré : $date';
+  }
+
+  @override
+  String previousDeviceContinue(String name) {
+    return 'Associez de nouveau $name pour retrouver cet historique dans vos notifications.';
+  }
+
+  @override
+  String get actionDeleteHistory => 'Supprimer l\'historique';
+
+  @override
+  String deleteHistoryTitle(String name) {
+    return 'Supprimer l\'historique de $name ?';
+  }
+
+  @override
+  String get deleteHistoryMessage =>
+      'Ses notifications et réponses sont supprimées de cet appareil. Cette action est irréversible.';
+
+  @override
+  String historyDeleted(String name) {
+    return 'Historique de $name supprimé';
+  }
+
+  @override
+  String get actionDeleteAll => 'Tout supprimer';
+
+  @override
+  String get deleteAllHistoryTitle => 'Supprimer tout l\'historique précédent ?';
+
+  @override
+  String get deleteAllHistoryMessage =>
+      'L\'historique de chaque appareil retiré est supprimé de cet appareil. Cette action est irréversible.';
+
+  @override
+  String get allHistoryDeleted => 'Historique précédent supprimé';
+
+  @override
+  String get feedbackReportTitle => 'Signaler un problème';
+
+  @override
+  String get feedbackReportSubtitle => 'Quelque chose ne marche pas ? Dites-nous ce qui s\'est passé';
+
+  @override
+  String get feedbackIdeaTitle => 'Proposer une fonctionnalité';
+
+  @override
+  String get feedbackIdeaSubtitle => 'Une idée pour améliorer AirReply';
+
+  @override
+  String get feedbackKindLabel => 'Type';
+
+  @override
+  String get feedbackKindProblem => 'Problème';
+
+  @override
+  String get feedbackKindIdea => 'Idée de fonctionnalité';
+
+  @override
+  String get feedbackAreaLabel => 'De quoi s\'agit-il ?';
+
+  @override
+  String get feedbackAreaNotifications => 'Notifications';
+
+  @override
+  String get feedbackAreaReplies => 'Réponses';
+
+  @override
+  String get feedbackAreaPairing => 'Association';
+
+  @override
+  String get feedbackAreaAlerts => 'Alertes';
+
+  @override
+  String get feedbackAreaSync => 'Synchronisation';
+
+  @override
+  String get feedbackAreaDesign => 'Apparence';
+
+  @override
+  String get feedbackAreaOther => 'Autre chose';
+
+  @override
+  String get feedbackMessageLabel => 'Votre message';
+
+  @override
+  String get feedbackProblemHint =>
+      'Que s\'est-il passé, et qu\'attendiez-vous ? Les étapes pour reproduire le problème aident beaucoup.';
+
+  @override
+  String get feedbackIdeaHint => 'Que voudriez-vous qu\'AirReply fasse, et en quoi cela vous aiderait-il ?';
+
+  @override
+  String get feedbackTooShort => 'Écrivez-en un peu plus (au moins 10 caractères).';
+
+  @override
+  String get feedbackIncludeDetails => 'Joindre les détails de l\'appareil';
+
+  @override
+  String get feedbackDetailsSubtitle =>
+      'Système, modèle, langue de l\'appli et rôle. Jamais vos notifications ni vos clés.';
+
+  @override
+  String get feedbackSent => 'Merci ! Votre appli de messagerie est prête : touchez Envoyer pour terminer.';
+
+  @override
+  String get feedbackNoEmailApp => 'Aucune appli de messagerie n\'est configurée sur cet appareil.';
 }

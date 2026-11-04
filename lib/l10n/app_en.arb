@@ -673,7 +673,7 @@
   "@removeAllTitle": {
     "description": "Settings row title."
   },
-  "removeAllSubtitle": "Ends every pair and deletes the keys and shared history",
+  "removeAllSubtitle": "Ends every pair; their history stays under Previous devices",
   "@removeAllSubtitle": {
     "description": "Settings row subtitle."
   },
@@ -775,7 +775,7 @@
       }
     }
   },
-  "removeAllConfirmOne": "Syncing stops with {name}, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.",
+  "removeAllConfirmOne": "Syncing with {name} stops. Its history stays on this device under Previous devices, and comes back if you pair it again.",
   "@removeAllConfirmOne": {
     "description": "Confirm removing the only device.",
     "placeholders": {
@@ -785,7 +785,7 @@
       }
     }
   },
-  "removeAllConfirmMany": "Syncing stops with all {count} devices, every encryption key is deleted, and the shared history is removed. You can pair again afterwards.",
+  "removeAllConfirmMany": "Syncing with all {count} devices stops. Their history stays on this device under Previous devices, and comes back if you pair them again.",
   "@removeAllConfirmMany": {
     "description": "Confirm removing every device.",
     "placeholders": {
@@ -949,7 +949,7 @@
   "@disclosureControlTitle": {
     "description": "Privacy disclosure point."
   },
-  "disclosureControlBody": "Choose which apps are shared, pause from the status notification at any time, or remove a device to stop sharing and delete the synced history. Notification content is never sold, shared with third parties, or used for ads or analytics.",
+  "disclosureControlBody": "Choose which apps are shared, pause from the status notification at any time, or remove a device to stop sharing; delete its history whenever you like. Notification content is never sold, shared with third parties, or used for ads or analytics.",
   "@disclosureControlBody": {
     "description": "Privacy disclosure point."
   },
@@ -1269,7 +1269,7 @@
       }
     }
   },
-  "removeDeviceMessage": "Syncing with {name} stops on both devices, its encryption key is deleted, and the history you share with it is removed. Other devices are not affected.",
+  "removeDeviceMessage": "Syncing with {name} stops on both devices. Its history stays on this device under Settings → Previous devices until you delete it. Other devices are not affected.",
   "@removeDeviceMessage": {
     "description": "Confirm removing a device.",
     "placeholders": {
@@ -2399,5 +2399,197 @@
         "example": "English"
       }
     }
+  },
+  "previousDevicesTitle": "Previous devices",
+  "@previousDevicesTitle": {
+    "description": "Settings row and screen: removed devices whose history is kept."
+  },
+  "previousDevicesSubtitle": "{count, plural, =0{History of removed devices stays here} =1{1 removed device, history kept} other{{count} removed devices, history kept}}",
+  "@previousDevicesSubtitle": {
+    "description": "Settings row subtitle.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "previousDevicesIntro": "When you remove a device, its history stays on this device. Pair the same device again to continue where you left off, or delete the history here.",
+  "@previousDevicesIntro": {
+    "description": "Previous devices screen intro."
+  },
+  "previousDevicesNone": "No previous devices",
+  "@previousDevicesNone": {
+    "description": "Empty state title."
+  },
+  "previousDevicesNoneHint": "The history of devices you remove appears here.",
+  "@previousDevicesNoneHint": {
+    "description": "Empty state description."
+  },
+  "previousDeviceSummary": "Removed {date} · {count}",
+  "@previousDeviceSummary": {
+    "description": "A removed device: when, and how much history is kept.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "12 March"
+      },
+      "count": {
+        "type": "String",
+        "example": "240 notifications"
+      }
+    }
+  },
+  "previousDeviceRemoved": "Removed {date}",
+  "@previousDeviceRemoved": {
+    "description": "When a device was removed.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "12 March"
+      }
+    }
+  },
+  "previousDeviceContinue": "Pair {name} again to continue this history in your inbox.",
+  "@previousDeviceContinue": {
+    "description": "Previous device history: how to get it back.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "actionDeleteHistory": "Delete history",
+  "@actionDeleteHistory": {
+    "description": "Button: delete a removed device's history."
+  },
+  "deleteHistoryTitle": "Delete the history of {name}?",
+  "@deleteHistoryTitle": {
+    "description": "Confirm title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteHistoryMessage": "Its notifications and replies are deleted from this device. This cannot be undone.",
+  "@deleteHistoryMessage": {
+    "description": "Confirm message."
+  },
+  "historyDeleted": "History of {name} deleted",
+  "@historyDeleted": {
+    "description": "Message after deleting.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "actionDeleteAll": "Delete all",
+  "@actionDeleteAll": {
+    "description": "Button."
+  },
+  "deleteAllHistoryTitle": "Delete all previous history?",
+  "@deleteAllHistoryTitle": {
+    "description": "Confirm title."
+  },
+  "deleteAllHistoryMessage": "The history of every removed device is deleted from this device. This cannot be undone.",
+  "@deleteAllHistoryMessage": {
+    "description": "Confirm message."
+  },
+  "allHistoryDeleted": "Previous history deleted",
+  "@allHistoryDeleted": {
+    "description": "Message after deleting all."
+  },
+  "feedbackReportTitle": "Report a problem",
+  "@feedbackReportTitle": {
+    "description": "Settings row and form title."
+  },
+  "feedbackReportSubtitle": "Something not working? Tell us what happened",
+  "@feedbackReportSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "feedbackIdeaTitle": "Suggest a feature",
+  "@feedbackIdeaTitle": {
+    "description": "Settings row and form title."
+  },
+  "feedbackIdeaSubtitle": "An idea that would make AirReply better",
+  "@feedbackIdeaSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "feedbackKindLabel": "Type",
+  "@feedbackKindLabel": {
+    "description": "Feedback form: problem or idea."
+  },
+  "feedbackKindProblem": "Problem",
+  "@feedbackKindProblem": {
+    "description": "Feedback type."
+  },
+  "feedbackKindIdea": "Feature idea",
+  "@feedbackKindIdea": {
+    "description": "Feedback type."
+  },
+  "feedbackAreaLabel": "What is it about?",
+  "@feedbackAreaLabel": {
+    "description": "Feedback form: area of the app."
+  },
+  "feedbackAreaNotifications": "Notifications",
+  "@feedbackAreaNotifications": {
+    "description": "Feedback area."
+  },
+  "feedbackAreaReplies": "Replies",
+  "@feedbackAreaReplies": {
+    "description": "Feedback area."
+  },
+  "feedbackAreaPairing": "Pairing",
+  "@feedbackAreaPairing": {
+    "description": "Feedback area."
+  },
+  "feedbackAreaAlerts": "Alerts",
+  "@feedbackAreaAlerts": {
+    "description": "Feedback area."
+  },
+  "feedbackAreaSync": "Sync",
+  "@feedbackAreaSync": {
+    "description": "Feedback area."
+  },
+  "feedbackAreaDesign": "Look and feel",
+  "@feedbackAreaDesign": {
+    "description": "Feedback area."
+  },
+  "feedbackAreaOther": "Something else",
+  "@feedbackAreaOther": {
+    "description": "Feedback area."
+  },
+  "feedbackMessageLabel": "Your message",
+  "@feedbackMessageLabel": {
+    "description": "Feedback form field label."
+  },
+  "feedbackProblemHint": "What happened, and what did you expect? Steps to make it happen again help a lot.",
+  "@feedbackProblemHint": {
+    "description": "Feedback field hint for a problem."
+  },
+  "feedbackIdeaHint": "What would you like AirReply to do, and how would it help you?",
+  "@feedbackIdeaHint": {
+    "description": "Feedback field hint for an idea."
+  },
+  "feedbackTooShort": "Write a little more (at least 10 characters).",
+  "@feedbackTooShort": {
+    "description": "Feedback validation."
+  },
+  "feedbackIncludeDetails": "Include device details",
+  "@feedbackIncludeDetails": {
+    "description": "Feedback form switch."
+  },
+  "feedbackDetailsSubtitle": "System, device model, app language and role. Never your notifications or keys.",
+  "@feedbackDetailsSubtitle": {
+    "description": "What device details include."
+  },
+  "feedbackSent": "Thanks! Your email app is ready: tap send there to finish.",
+  "@feedbackSent": {
+    "description": "After the form opened the email app."
+  },
+  "feedbackNoEmailApp": "No email app is set up on this device.",
+  "@feedbackNoEmailApp": {
+    "description": "The email app could not be opened."
   }
 }

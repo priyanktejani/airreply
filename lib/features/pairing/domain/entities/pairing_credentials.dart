@@ -11,6 +11,7 @@ final class PairingCredentials {
     required this.sharedKey,
     required this.peerName,
     required this.pairedAt,
+    this.peerUid,
   });
 
   factory PairingCredentials.fromJson(Map<String, Object?> json) => PairingCredentials(
@@ -19,6 +20,7 @@ final class PairingCredentials {
     sharedKey: base64.decode(json['key']! as String),
     peerName: (json['peerName'] as String?) ?? 'Paired device',
     pairedAt: DateTime.fromMillisecondsSinceEpoch((json['pairedAt']! as num).toInt()),
+    peerUid: json['peerUid'] as String?,
   );
 
   final String pairId;
@@ -27,11 +29,16 @@ final class PairingCredentials {
   final String peerName;
   final DateTime pairedAt;
 
+  /// The other device's sign-in id, the same every time it pairs (until its app data is cleared): how pairing it again
+  /// finds the history kept from before. Null for pairs made before it was recorded.
+  final String? peerUid;
+
   Map<String, Object?> toJson() => {
     'pairId': pairId,
     'role': role.name,
     'key': base64.encode(sharedKey),
     'peerName': peerName,
     'pairedAt': pairedAt.millisecondsSinceEpoch,
+    'peerUid': ?peerUid,
   };
 }

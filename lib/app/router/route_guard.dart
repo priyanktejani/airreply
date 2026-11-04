@@ -23,6 +23,14 @@ abstract final class AppRoutes {
   static const apps = '/settings/apps';
   static const diagnostics = '/settings/diagnostics';
 
+  /// Removed devices whose history is kept, and one of them. Reachable while unpaired too.
+  static const previousDevices = '/previous';
+  static String previousDevice(String pairId) => '$previousDevices/${Uri.encodeComponent(pairId)}';
+
+  /// Report a problem ([idea] false) or suggest a feature. Reachable while unpaired too.
+  static const feedback = '/feedback';
+  static String feedbackAbout({required bool idea}) => '$feedback?kind=${idea ? 'idea' : 'problem'}';
+
   /// Every notification of one app. [source] is the pair id, or `*` for a sender's groups.
   static String appGroup(String source, String packageName) =>
       '$notifications/app/${Uri.encodeComponent(source)}/${Uri.encodeComponent(packageName)}';
@@ -57,6 +65,9 @@ String landingFor(DeviceSession session) => switch ((session.role, session.isPai
 
 bool isAllowed(DeviceSession session, String location) {
   if (location == landingFor(session)) return true;
+  // kept history and feedback do not depend on being paired
+  if (location == AppRoutes.feedback || location == AppRoutes.previousDevices) return true;
+  if (location.startsWith('${AppRoutes.previousDevices}/')) return true;
   return switch ((session.role, session.isPaired)) {
     (null, _) => false,
     // An unpaired sender can go back to the checklist from pairing.

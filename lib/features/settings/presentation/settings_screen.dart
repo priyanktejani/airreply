@@ -477,6 +477,7 @@ class _DataSettings extends ConsumerWidget {
     final unread = ref.watch(unreadCountProvider);
     final hidden = ref.watch(hiddenCountProvider);
     final devices = ref.watch(pairedDevicesProvider);
+    final previous = ref.watch(archivedPairsProvider).value?.length ?? 0;
     final inbox = ref.read(inboxStateProvider.notifier);
 
     Future<void> removeAll() async {
@@ -521,6 +522,13 @@ class _DataSettings extends ConsumerWidget {
           },
         ),
         InfoRow(
+          icon: AppIcons.history,
+          title: context.l10n.previousDevicesTitle,
+          subtitle: context.l10n.previousDevicesSubtitle(previous),
+          trailing: InfoRow.chevron,
+          onTap: () => unawaited(context.push(AppRoutes.previousDevices)),
+        ),
+        InfoRow(
           icon: AppIcons.linkOff,
           title: context.l10n.removeAllTitle,
           subtitle: context.l10n.removeAllSubtitle,
@@ -539,6 +547,20 @@ class _HelpSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => CardGroup(
     children: [
+      InfoRow(
+        icon: AppIcons.bug,
+        title: context.l10n.feedbackReportTitle,
+        subtitle: context.l10n.feedbackReportSubtitle,
+        trailing: InfoRow.chevron,
+        onTap: () => unawaited(context.push(AppRoutes.feedbackAbout(idea: false))),
+      ),
+      InfoRow(
+        icon: AppIcons.lightbulb,
+        title: context.l10n.feedbackIdeaTitle,
+        subtitle: context.l10n.feedbackIdeaSubtitle,
+        trailing: InfoRow.chevron,
+        onTap: () => unawaited(context.push(AppRoutes.feedbackAbout(idea: true))),
+      ),
       InfoRow(
         icon: AppIcons.helpOutline,
         title: context.l10n.troubleshootingTitle,

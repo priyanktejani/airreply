@@ -57,6 +57,8 @@ flutter:
     - assets/fonts/OFL-Geist.txt
     # MIT licence of the Phosphor icons, likewise
     - assets/fonts/MIT-Phosphor.txt
+    # the app icon, for the in-app logo (AppLogo); drawn by tool/make_app_icon.py
+    - assets/icon/app_logo.png
 
   # Geist for the interface and Geist Mono for the small green labels, as in the iFixxer app. Bundled so text never
   # shifts while fonts download, and the app looks the same offline.

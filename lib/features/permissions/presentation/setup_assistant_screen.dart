@@ -14,6 +14,8 @@ import 'package:air_reply/core/widgets/empty_state.dart';
 import 'package:air_reply/core/widgets/glass_scroll_page.dart';
 import 'package:air_reply/core/widgets/page_intro.dart';
 import 'package:air_reply/core/widgets/status_badge.dart';
+import 'package:air_reply/features/notifications/alert_delivery_provider.dart';
+import 'package:air_reply/features/notifications/presentation/widgets/alert_delivery.dart';
 import 'package:air_reply/features/permissions/domain/setup_tasks.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
 import 'package:air_reply/features/permissions/presentation/setup_tasks_provider.dart';
@@ -57,6 +59,7 @@ class _SetupAssistantScreenState extends ConsumerState<SetupAssistantScreen> {
       ref.invalidate(syncStatusProvider);
     } else {
       unawaited(ref.read(alertPermissionProvider.notifier).refresh());
+      unawaited(ref.read(alertDeliveryProvider.notifier).refresh().catchError((Object _) => null));
     }
   }
 
@@ -169,6 +172,14 @@ class _TaskRow extends ConsumerWidget {
         AppPlatform.isWeb ? l10n.permissionAlertsBrowser : l10n.taskAlertsText,
         [open(l10n.actionAllow, ref.read(alertPermissionProvider.notifier).request)],
       ),
+      SetupTaskId.popUps => switch (ref.watch(alertDeliveryProvider).value) {
+        final delivery? => (
+          alertDeliveryTitle(l10n, delivery),
+          alertDeliveryHelp(l10n, delivery),
+          [open(l10n.actionOpenAlertSettings, () => fixAlertDelivery(context, ref))],
+        ),
+        null => (l10n.popUpsTitle, l10n.popUpsWhyGeneric, const <Widget>[]),
+      },
       SetupTaskId.pairDevice => (
         isSender ? l10n.pairADevice : l10n.pairWithYourPhone,
         isSender ? l10n.taskPairSender : l10n.taskPairReceiver,

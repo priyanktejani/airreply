@@ -183,9 +183,14 @@ class _DeviceChip extends ConsumerWidget {
           children: [
             Icon(deviceIcon(name, isPhone: true), size: 16, color: c.ink),
             const SizedBox(width: AppSpacing.xs + 2),
-            Text(
-              name,
-              style: AppType.supporting.copyWith(color: c.ink, fontWeight: FontWeight.w600),
+            // a long name, or large text, shortens rather than running off the card
+            Flexible(
+              child: Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppType.supporting.copyWith(color: c.ink, fontWeight: FontWeight.w600),
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             LiveDot(color: dot, live: state == DeviceState.connected, size: 7),

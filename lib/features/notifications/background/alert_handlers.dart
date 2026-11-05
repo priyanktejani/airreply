@@ -7,6 +7,7 @@ import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/mirror_providers.dart';
+import 'package:air_reply/features/notifications/background/arrival_alerts.dart';
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
@@ -18,7 +19,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Shows the alert for a `type: notification` push, unless that app is muted on this device. [data] is the FCM
 /// data map.
-Future<void> presentMirroredPush(ProviderContainer container, Map<String, dynamic> data) async {
+/// Whether a push that the server sent at [sentAt] reaches the device too late to alert: it waited while the device was
+/// offline (FCM keeps them for an hour), and arrives with the others that waited. Those still land in the app, as
+/// the open app's do (`ArrivalAlerts.window`); one late burst never rings for each of them.
+bool isLatePush(DateTime? sentAt, DateTime now) => sentAt != null && now.difference(sentAt) > ArrivalAlerts.window;
+
+Future<void> presentMirroredPush(ProviderContainer container, Map<String, dynamic> data, {DateTime? sentAt}) async {
+  if (isLatePush(sentAt, DateTime.now())) {
+    appLog('Push delivered late: kept without an alert', name: 'air_reply.push');
+    return;
+  }
   final session = await container.read(deviceSessionProvider.future);
   final pairId = data['pairId'] as String?;
   final pair = pairId == null ? null : session.pair(pairId);
@@ -58,6 +68,12 @@ Future<void> sendAlertReply(ProviderContainer container, AlertReply reply) async
     if (session.pair(reply.pairId) == null) throw const NotPairedException();
     await container.read(sendReplyProvider(reply.pairId)).call(reply.notification, reply.text);
     appLog('Reply from alert queued for ${reply.pairId}', name: 'air_reply.alerts');
+    // answered: the alert leaves the panel (else it keeps a spinner, or the old message, there)
+    try {
+      await container.read(mirroredAlertsProvider).dismiss([reply.notification.id]);
+    } on Object catch (e) {
+      appLog('Answered alert not taken down: $e', name: 'air_reply.alerts');
+    }
   } on Object catch (e, st) {
     appLog('Reply from alert not sent', error: e, stackTrace: st, name: 'air_reply.alerts');
     try {

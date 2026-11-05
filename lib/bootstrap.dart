@@ -14,6 +14,7 @@ import 'package:air_reply/core/theme/theme_mode.dart';
 import 'package:air_reply/demo/demo_mode.dart';
 import 'package:air_reply/features/notifications/background/alert_handlers.dart';
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
+import 'package:air_reply/features/notifications/domain/alert_style.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/settings/erase_everything.dart';
 import 'package:air_reply/firebase_options.dart';
@@ -79,6 +80,11 @@ Future<void> bootstrap() async {
           // it is suspended. Push or not: without this the reply is dropped.
           onBackgroundResponse: AppPlatform.isAndroid || AppPlatform.isIOS ? onAlertActionInBackground : null,
         );
+    // Android: only the two channels alerts use now ("Messages", "Other notifications") stay in the system's
+    // settings; the per-choice ones of earlier versions go (each person's settings on these two are kept).
+    if (AppPlatform.isAndroid) {
+      unawaited(container.read(mirroredAlertsProvider).tidyChannels(const AlertStyle()).catchError((Object _) {}));
+    }
     // a reply typed into an alert that started the app: sent now, not lost as a plain tap
     if (await container.read(mirroredAlertsProvider).launchReply() case final reply?) {
       unawaited(sendAlertReply(container, reply));

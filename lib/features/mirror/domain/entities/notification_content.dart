@@ -74,6 +74,22 @@ final class NotificationContent {
     iconPng: icon,
   );
 
+  /// The same notification with a shorter [title] or [text] (to fit the payload limit).
+  NotificationContent withWords({String? title, String? text}) => NotificationContent(
+    key: key,
+    packageName: packageName,
+    appName: appName,
+    title: title ?? this.title,
+    text: text ?? this.text,
+    postedAt: postedAt,
+    conversationTitle: conversationTitle,
+    isGroupConversation: isGroupConversation,
+    sender: sender,
+    conversationId: conversationId,
+    isMessage: isMessage,
+    iconPng: iconPng,
+  );
+
   static Uint8List? _decodeIcon(String b64) {
     try {
       return base64.decode(b64);

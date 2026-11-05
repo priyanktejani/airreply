@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
@@ -24,14 +26,18 @@ import 'package:air_reply/features/home/presentation/widgets/home_search_results
 import 'package:air_reply/features/home/presentation/widgets/how_it_works.dart';
 import 'package:air_reply/features/home/presentation/widgets/sharing_shortcuts.dart';
 import 'package:air_reply/features/home/presentation/widgets/status_card.dart';
+import 'package:air_reply/features/notifications/alert_delivery_provider.dart';
+import 'package:air_reply/features/notifications/domain/alert_delivery.dart';
 import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/notifications/presentation/widgets/alert_delivery.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_widgets.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
 import 'package:air_reply/features/permissions/presentation/setup_assistant_screen.dart';
 import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
+import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,6 +54,43 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle;
+    // A phone that holds alerts back (no pop-up, no sound): asked once, here, as soon as it is known.
+    ref.listenManual(alertDeliveryProvider, (_, next) {
+      if (next.value case final delivery? when !delivery.works) unawaited(_promptAlerts(delivery));
+    }, fireImmediately: true);
+  }
+
+  /// Back in front (from the system settings, or after the phone changed what it allows): check again.
+  late final _lifecycle = AppLifecycleListener(
+    onResume: () {
+      if (ref.read(deviceRoleProvider) == DeviceRole.receiver) {
+        unawaited(ref.read(alertDeliveryProvider.notifier).refresh().catchError((Object _) => null));
+      }
+    },
+  );
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  var _prompting = false;
+
+  Future<void> _promptAlerts(AlertDelivery delivery) async {
+    final preferences = await ref.read(appPreferencesProvider.future);
+    if (_prompting || preferences.alertPromptShown || !mounted) return;
+    // not over another page (a pairing, a conversation): Home must be what the person is looking at
+    if (!(ModalRoute.of(context)?.isCurrent ?? false)) return;
+    _prompting = true;
+    await ref.read(appPreferencesProvider.notifier).setAlertPromptShown();
+    if (mounted) await showAlertDeliveryPrompt(context, ref, delivery);
+  }
+
   Future<void> _refresh() async {
     for (final pair in ref.read(pairedDevicesProvider)) {
       refreshPair(ref, pair.pairId);
@@ -98,6 +141,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             sliver: SliverList.list(
               children: [
                 UnderlinedHeadline(
+                  // as the app opens; not again on each visit back to Home
+                  playOnce: 'home',
                   first: context.l10n.welcomeHeadlineFirst,
                   second: isSender ? context.l10n.homeHeadlineSender : context.l10n.welcomeHeadlineSecond,
                 ),

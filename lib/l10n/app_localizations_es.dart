@@ -328,16 +328,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsPermissionsTitle => 'Permisos';
 
   @override
-  String get settingsFilterEyebrow => 'Filtro';
-
-  @override
-  String get settingsAppsTitle => 'Apps';
-
-  @override
   String get settingsPrivacyEyebrow => 'Privacidad';
-
-  @override
-  String get settingsPrivacyTitle => 'Reenvío y privacidad';
 
   @override
   String get settingsConnectionEyebrow => 'Conexión';
@@ -352,10 +343,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsAppearanceTitle => 'Apariencia y accesibilidad';
 
   @override
-  String get settingsDataEyebrow => 'Datos';
-
-  @override
-  String get settingsDataTitle => 'Tus datos';
+  String get settingsDataTitle => 'Privacidad y datos';
 
   @override
   String get settingsHelpEyebrow => 'Ayuda';
@@ -398,9 +386,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get permissionAlertsBrowser => 'Permite que este navegador muestre las notificaciones nuevas';
-
-  @override
-  String get permissionAlertsDevice => 'Permite que este dispositivo te avise de las notificaciones nuevas';
 
   @override
   String get loading => 'Cargando…';
@@ -1726,7 +1711,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appsReading => 'Leyendo las apps instaladas…';
 
   @override
-  String get alertChannelName => 'Notificaciones reenviadas';
+  String get alertChannelName => 'Otras notificaciones';
 
   @override
   String get alertChannelDescription => 'Notificaciones reenviadas desde tu teléfono vinculado';
@@ -1895,7 +1880,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get feedbackNoEmailApp => 'No hay ninguna app de correo configurada en este dispositivo.';
 
   @override
-  String get alertChannelPopUp => 'Avisos emergentes';
+  String get alertChannelPopUp => 'Mensajes';
 
   @override
   String get alertChannelSilent => 'Notificaciones silenciosas';
@@ -1913,76 +1898,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get alertStyleTitle => 'Cómo aparecen los avisos';
-
-  @override
-  String alertStyleSummary(String messages, String others) {
-    return 'Mensajes: $messages · Otras: $others';
-  }
-
-  @override
-  String get alertStyleIntro =>
-      'Elige cómo te avisan en este dispositivo las notificaciones de tu teléfono. Elijas lo que elijas, siempre llegan a Notificaciones.';
-
-  @override
-  String get alertStyleMessages => 'Mensajes';
-
-  @override
-  String get alertStyleOthers => 'Otras notificaciones';
-
-  @override
-  String get alertModePopUp => 'Emergente';
-
-  @override
-  String get alertModePopUpHint => 'En pantalla, con sonido';
-
-  @override
-  String get alertModeNormal => 'En la lista';
-
-  @override
-  String get alertModeNormalHint => 'Con sonido, sin tapar la pantalla';
-
-  @override
-  String get alertModeSilent => 'Silencioso';
-
-  @override
-  String get alertModeSilentHint => 'Solo en la lista: sin sonido ni vibración';
-
-  @override
-  String get alertModeOff => 'Desactivado';
-
-  @override
-  String get alertModeOffHint => 'Sin aviso: solo en Notificaciones';
-
-  @override
-  String get alertStyleSoundTitle => 'Sonido y vibración';
-
-  @override
-  String get alertStyleSound => 'Sonido';
-
-  @override
-  String get alertStyleVibration => 'Vibración';
-
-  @override
-  String get alertStyleSoundHint => 'Para los avisos emergentes o en la lista';
-
-  @override
-  String get alertStyleLockScreen => 'En la pantalla de bloqueo';
-
-  @override
-  String get lockScreenShow => 'Mostrar todo';
-
-  @override
-  String get lockScreenHideContent => 'Ocultar lo que dice el mensaje';
-
-  @override
-  String get lockScreenHide => 'No mostrar nada hasta desbloquear';
-
-  @override
   String get alertStyleTest => 'Enviar un aviso de prueba';
-
-  @override
-  String get alertStyleTestHint => 'Usa lo que elegiste arriba para los mensajes.';
 
   @override
   String get alertStyleTestTitle => 'AirReply';
@@ -2127,5 +2043,112 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get receiveWhenClosedText =>
-      'Para teléfonos que retienen las alertas con AirReply cerrada: la mantiene recibiendo también en segundo plano. Mientras funciona, Android muestra una pequeña notificación de estado.';
+      'Un respaldo para teléfonos que retienen las alertas. Muestra una pequeña notificación de estado.';
+
+  @override
+  String get popUpsTitle => 'Deja que las alertas aparezcan';
+
+  @override
+  String get actionOpenAlertSettings => 'Abrir ajustes de alertas';
+
+  @override
+  String get popUpsPromptTitle => 'Haz que las alertas aparezcan';
+
+  @override
+  String get alertSoundOffTitle => 'Activa el sonido de las alertas';
+
+  @override
+  String popUpsWhy(String maker) {
+    return '$maker solo deja que unas pocas apps, como WhatsApp, aparezcan en pantalla y suenen hasta que lo permitas. Ninguna app puede activarlo sola; basta con un interruptor.';
+  }
+
+  @override
+  String get popUpsWhyGeneric =>
+      'Este teléfono deja las alertas de AirReply en la lista de notificaciones, sin mostrarlas ni sonar. Ninguna app puede activarlo sola; basta con un interruptor.';
+
+  @override
+  String popUpsStepsOppo(String category) {
+    return 'Toca Abrir ajustes de alertas. En la página de AirReply, activa Banner, Sonar y Vibrar. Después, en Categorías, abre $category y activa Banner también ahí.';
+  }
+
+  @override
+  String get popUpsStepsXiaomi =>
+      'Toca Abrir ajustes de alertas, activa Notificaciones flotantes y después Sonido y Vibración.';
+
+  @override
+  String get popUpsStepsSamsung => 'Toca Abrir ajustes de alertas, elige Alertar y activa Mostrar como emergente.';
+
+  @override
+  String get popUpsStepsGeneric => 'Toca Abrir ajustes de alertas, activa Mostrar en pantalla y elige un sonido.';
+
+  @override
+  String get popUpsFixed => 'Listo: las alertas ahora aparecerán y sonarán.';
+
+  @override
+  String get settingsAlertsEyebrow => 'Notificaciones';
+
+  @override
+  String get settingsAlertsTitle => 'Alertas';
+
+  @override
+  String get settingsSharingEyebrow => 'Teléfono';
+
+  @override
+  String get settingsSharingTitle => 'Compartir';
+
+  @override
+  String get systemAlertSettingsTitle => 'Ajustes de notificaciones';
+
+  @override
+  String get systemAlertSettingsSubtitle =>
+      'Ventanas emergentes, sonido, vibración y pantalla de bloqueo, según este dispositivo';
+
+  @override
+  String get testAlertSubtitle => 'Mira cómo te avisa un mensaje ahora mismo';
+
+  @override
+  String get expectAlertsOffText =>
+      'Las notificaciones siguen llegando a AirReply, pero este dispositivo no te avisará. Permite las alertas para enterarte.';
+
+  @override
+  String get expectMessagesPopUp => 'Los mensajes aparecen en pantalla con sonido';
+
+  @override
+  String get expectMessagesPopUpSilent => 'Los mensajes aparecen en pantalla sin sonido';
+
+  @override
+  String get expectMessagesList => 'Los mensajes esperan en la lista de notificaciones';
+
+  @override
+  String get expectMessagesQuiet => 'Los mensajes llegan en silencio';
+
+  @override
+  String get expectMessagesOff => 'Las alertas de mensajes están desactivadas';
+
+  @override
+  String expectOthers(String how) {
+    return 'Otras notificaciones: $how.';
+  }
+
+  @override
+  String get expectOthersPopUp => 'aparecen con sonido';
+
+  @override
+  String get expectOthersPopUpSilent => 'aparecen sin sonido';
+
+  @override
+  String get expectOthersList => 'en la lista, con sonido';
+
+  @override
+  String get expectOthersQuiet => 'en la lista, en silencio';
+
+  @override
+  String get expectOthersOff => 'sin alerta';
+
+  @override
+  String get expectChangeHint => 'Para cambiar algo, abre Ajustes de notificaciones abajo.';
+
+  @override
+  String get expectOffHelp =>
+      'Están desactivadas en los ajustes de notificaciones de este dispositivo. Toca Abrir ajustes de alertas y actívalas.';
 }

@@ -22,7 +22,6 @@ abstract final class AppRoutes {
 
   static const apps = '/settings/apps';
   static const diagnostics = '/settings/diagnostics';
-  static const alertStyle = '/settings/alerts';
   static const setupAssistant = '/settings/setup';
 
   /// Removed devices whose history is kept, and one of them. Reachable while unpaired too.

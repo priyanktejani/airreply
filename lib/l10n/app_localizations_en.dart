@@ -323,16 +323,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPermissionsTitle => 'Permissions';
 
   @override
-  String get settingsFilterEyebrow => 'Filter';
-
-  @override
-  String get settingsAppsTitle => 'Apps';
-
-  @override
   String get settingsPrivacyEyebrow => 'Privacy';
-
-  @override
-  String get settingsPrivacyTitle => 'Mirroring and privacy';
 
   @override
   String get settingsConnectionEyebrow => 'Connection';
@@ -347,10 +338,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAppearanceTitle => 'Appearance and accessibility';
 
   @override
-  String get settingsDataEyebrow => 'Data';
-
-  @override
-  String get settingsDataTitle => 'Your data';
+  String get settingsDataTitle => 'Privacy and data';
 
   @override
   String get settingsHelpEyebrow => 'Help';
@@ -393,9 +381,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permissionAlertsBrowser => 'Lets this browser show new notifications';
-
-  @override
-  String get permissionAlertsDevice => 'Lets this device alert you to new notifications';
 
   @override
   String get loading => 'Loading…';
@@ -1700,7 +1685,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appsReading => 'Reading installed apps…';
 
   @override
-  String get alertChannelName => 'Mirrored notifications';
+  String get alertChannelName => 'Other notifications';
 
   @override
   String get alertChannelDescription => 'Notifications mirrored from your paired phone';
@@ -1869,7 +1854,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedbackNoEmailApp => 'No email app is set up on this device.';
 
   @override
-  String get alertChannelPopUp => 'Pop-up alerts';
+  String get alertChannelPopUp => 'Messages';
 
   @override
   String get alertChannelSilent => 'Silent notifications';
@@ -1886,76 +1871,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get alertStyleTitle => 'How alerts appear';
-
-  @override
-  String alertStyleSummary(String messages, String others) {
-    return 'Messages: $messages · Other: $others';
-  }
-
-  @override
-  String get alertStyleIntro =>
-      'Choose how notifications from your phone alert you on this device. Whatever you choose, they always arrive in Notifications.';
-
-  @override
-  String get alertStyleMessages => 'Messages';
-
-  @override
-  String get alertStyleOthers => 'Other notifications';
-
-  @override
-  String get alertModePopUp => 'Pop up';
-
-  @override
-  String get alertModePopUpHint => 'On screen, with sound';
-
-  @override
-  String get alertModeNormal => 'In the list';
-
-  @override
-  String get alertModeNormalHint => 'With sound, without covering the screen';
-
-  @override
-  String get alertModeSilent => 'Silent';
-
-  @override
-  String get alertModeSilentHint => 'In the list only: no sound, no vibration';
-
-  @override
-  String get alertModeOff => 'Off';
-
-  @override
-  String get alertModeOffHint => 'No alert: only in Notifications';
-
-  @override
-  String get alertStyleSoundTitle => 'Sound and vibration';
-
-  @override
-  String get alertStyleSound => 'Sound';
-
-  @override
-  String get alertStyleVibration => 'Vibration';
-
-  @override
-  String get alertStyleSoundHint => 'For alerts that pop up or show in the list';
-
-  @override
-  String get alertStyleLockScreen => 'On the lock screen';
-
-  @override
-  String get lockScreenShow => 'Show everything';
-
-  @override
-  String get lockScreenHideContent => 'Hide what the message says';
-
-  @override
-  String get lockScreenHide => 'Show nothing until unlocked';
-
-  @override
   String get alertStyleTest => 'Send a test alert';
-
-  @override
-  String get alertStyleTestHint => 'It uses the choices for messages above.';
 
   @override
   String get alertStyleTestTitle => 'AirReply';
@@ -2099,6 +2015,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String get receiveWhenClosedTitle => 'Receive when AirReply is closed';
 
   @override
-  String get receiveWhenClosedText =>
-      'For phones that hold back alerts once AirReply is closed: keeps it receiving in the background too. Android shows a small status notification while it runs.';
+  String get receiveWhenClosedText => 'A backup for phones that hold back alerts. Shows a small status notification.';
+
+  @override
+  String get popUpsTitle => 'Let alerts pop up';
+
+  @override
+  String get actionOpenAlertSettings => 'Open alert settings';
+
+  @override
+  String get popUpsPromptTitle => 'Make alerts pop up';
+
+  @override
+  String get alertSoundOffTitle => 'Turn on alert sound';
+
+  @override
+  String popUpsWhy(String maker) {
+    return '$maker lets only a few apps, like WhatsApp, pop up and ring until you allow them. No app can switch this on itself; it takes one switch.';
+  }
+
+  @override
+  String get popUpsWhyGeneric =>
+      'This phone keeps AirReply\'s alerts in the notification list, without popping up or ringing. No app can switch this on itself; it takes one switch.';
+
+  @override
+  String popUpsStepsOppo(String category) {
+    return 'Tap Open alert settings. On AirReply\'s page, turn on Banner, Ring and Vibrate. Then, under Categories, open $category and turn on Banner there too.';
+  }
+
+  @override
+  String get popUpsStepsXiaomi => 'Tap Open alert settings, turn on Floating notifications, then Sound and Vibration.';
+
+  @override
+  String get popUpsStepsSamsung => 'Tap Open alert settings, choose Alert, then turn on Show as pop-up.';
+
+  @override
+  String get popUpsStepsGeneric => 'Tap Open alert settings, turn on Pop on screen, and choose a sound.';
+
+  @override
+  String get popUpsFixed => 'Done: alerts will now pop up and ring.';
+
+  @override
+  String get settingsAlertsEyebrow => 'Notifications';
+
+  @override
+  String get settingsAlertsTitle => 'Alerts';
+
+  @override
+  String get settingsSharingEyebrow => 'Phone';
+
+  @override
+  String get settingsSharingTitle => 'Sharing';
+
+  @override
+  String get systemAlertSettingsTitle => 'Notification settings';
+
+  @override
+  String get systemAlertSettingsSubtitle => 'Pop-up, sound, vibration and lock screen, set by this device';
+
+  @override
+  String get testAlertSubtitle => 'See how a message alerts you right now';
+
+  @override
+  String get expectAlertsOffText =>
+      'Notifications still arrive in AirReply, but this device won\'t tell you. Allow alerts to hear about them.';
+
+  @override
+  String get expectMessagesPopUp => 'Messages pop up with sound';
+
+  @override
+  String get expectMessagesPopUpSilent => 'Messages pop up silently';
+
+  @override
+  String get expectMessagesList => 'Messages wait in the notification list';
+
+  @override
+  String get expectMessagesQuiet => 'Messages arrive silently';
+
+  @override
+  String get expectMessagesOff => 'Message alerts are off';
+
+  @override
+  String expectOthers(String how) {
+    return 'Other notifications: $how.';
+  }
+
+  @override
+  String get expectOthersPopUp => 'pop up with sound';
+
+  @override
+  String get expectOthersPopUpSilent => 'pop up silently';
+
+  @override
+  String get expectOthersList => 'in the list, with a sound';
+
+  @override
+  String get expectOthersQuiet => 'in the list, silently';
+
+  @override
+  String get expectOthersOff => 'no alert';
+
+  @override
+  String get expectChangeHint => 'To change any of it, open Notification settings below.';
+
+  @override
+  String get expectOffHelp =>
+      'They are switched off in this device\'s notification settings. Tap Open alert settings and turn them on.';
 }

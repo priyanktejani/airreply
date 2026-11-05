@@ -425,21 +425,9 @@
   "@settingsPermissionsTitle": {
     "description": "Settings section title."
   },
-  "settingsFilterEyebrow": "Filter",
-  "@settingsFilterEyebrow": {
-    "description": "Settings section eyebrow."
-  },
-  "settingsAppsTitle": "Apps",
-  "@settingsAppsTitle": {
-    "description": "Settings section title."
-  },
   "settingsPrivacyEyebrow": "Privacy",
   "@settingsPrivacyEyebrow": {
     "description": "Settings section eyebrow."
-  },
-  "settingsPrivacyTitle": "Mirroring and privacy",
-  "@settingsPrivacyTitle": {
-    "description": "Settings section title."
   },
   "settingsConnectionEyebrow": "Connection",
   "@settingsConnectionEyebrow": {
@@ -457,11 +445,7 @@
   "@settingsAppearanceTitle": {
     "description": "Settings section title."
   },
-  "settingsDataEyebrow": "Data",
-  "@settingsDataEyebrow": {
-    "description": "Settings section eyebrow."
-  },
-  "settingsDataTitle": "Your data",
+  "settingsDataTitle": "Privacy and data",
   "@settingsDataTitle": {
     "description": "Settings section title."
   },
@@ -520,10 +504,6 @@
   "permissionAlertsBrowser": "Lets this browser show new notifications",
   "@permissionAlertsBrowser": {
     "description": "Alerts permission on the web."
-  },
-  "permissionAlertsDevice": "Lets this device alert you to new notifications",
-  "@permissionAlertsDevice": {
-    "description": "Alerts permission."
   },
   "loading": "Loading…",
   "@loading": {
@@ -2358,7 +2338,7 @@
   "@appsReading": {
     "description": "Loading message."
   },
-  "alertChannelName": "Mirrored notifications",
+  "alertChannelName": "Other notifications",
   "@alertChannelName": {
     "description": "Android notification channel name."
   },
@@ -2592,7 +2572,7 @@
   "@feedbackNoEmailApp": {
     "description": "The email app could not be opened."
   },
-  "alertChannelPopUp": "Pop-up alerts",
+  "alertChannelPopUp": "Messages",
   "@alertChannelPopUp": {
     "description": "Android notification channel: alerts that pop up."
   },
@@ -2618,105 +2598,9 @@
       }
     }
   },
-  "alertStyleTitle": "How alerts appear",
-  "@alertStyleTitle": {
-    "description": "Settings row and screen title."
-  },
-  "alertStyleSummary": "Messages: {messages} · Other: {others}",
-  "@alertStyleSummary": {
-    "description": "Settings row subtitle.",
-    "placeholders": {
-      "messages": {
-        "type": "String"
-      },
-      "others": {
-        "type": "String"
-      }
-    }
-  },
-  "alertStyleIntro": "Choose how notifications from your phone alert you on this device. Whatever you choose, they always arrive in Notifications.",
-  "@alertStyleIntro": {
-    "description": "Alert style screen intro."
-  },
-  "alertStyleMessages": "Messages",
-  "@alertStyleMessages": {
-    "description": "Section: chats that can be answered."
-  },
-  "alertStyleOthers": "Other notifications",
-  "@alertStyleOthers": {
-    "description": "Section: everything that is not a message."
-  },
-  "alertModePopUp": "Pop up",
-  "@alertModePopUp": {
-    "description": "Alert mode."
-  },
-  "alertModePopUpHint": "On screen, with sound",
-  "@alertModePopUpHint": {
-    "description": "Alert mode description."
-  },
-  "alertModeNormal": "In the list",
-  "@alertModeNormal": {
-    "description": "Alert mode."
-  },
-  "alertModeNormalHint": "With sound, without covering the screen",
-  "@alertModeNormalHint": {
-    "description": "Alert mode description."
-  },
-  "alertModeSilent": "Silent",
-  "@alertModeSilent": {
-    "description": "Alert mode."
-  },
-  "alertModeSilentHint": "In the list only: no sound, no vibration",
-  "@alertModeSilentHint": {
-    "description": "Alert mode description."
-  },
-  "alertModeOff": "Off",
-  "@alertModeOff": {
-    "description": "Alert mode."
-  },
-  "alertModeOffHint": "No alert: only in Notifications",
-  "@alertModeOffHint": {
-    "description": "Alert mode description."
-  },
-  "alertStyleSoundTitle": "Sound and vibration",
-  "@alertStyleSoundTitle": {
-    "description": "Section title."
-  },
-  "alertStyleSound": "Sound",
-  "@alertStyleSound": {
-    "description": "Switch."
-  },
-  "alertStyleVibration": "Vibration",
-  "@alertStyleVibration": {
-    "description": "Switch."
-  },
-  "alertStyleSoundHint": "For alerts that pop up or show in the list",
-  "@alertStyleSoundHint": {
-    "description": "Switch description."
-  },
-  "alertStyleLockScreen": "On the lock screen",
-  "@alertStyleLockScreen": {
-    "description": "Section title."
-  },
-  "lockScreenShow": "Show everything",
-  "@lockScreenShow": {
-    "description": "Lock screen choice."
-  },
-  "lockScreenHideContent": "Hide what the message says",
-  "@lockScreenHideContent": {
-    "description": "Lock screen choice."
-  },
-  "lockScreenHide": "Show nothing until unlocked",
-  "@lockScreenHide": {
-    "description": "Lock screen choice."
-  },
   "alertStyleTest": "Send a test alert",
   "@alertStyleTest": {
     "description": "Button."
-  },
-  "alertStyleTestHint": "It uses the choices for messages above.",
-  "@alertStyleTestHint": {
-    "description": "Below the test button."
   },
   "alertStyleTestTitle": "AirReply",
   "@alertStyleTestTitle": {
@@ -2907,11 +2791,157 @@
     "description": "Button."
   },
   "receiveWhenClosedTitle": "Receive when AirReply is closed",
-  "receiveWhenClosedText": "For phones that hold back alerts once AirReply is closed: keeps it receiving in the background too. Android shows a small status notification while it runs.",
+  "receiveWhenClosedText": "A backup for phones that hold back alerts. Shows a small status notification.",
   "@receiveWhenClosedTitle": {
     "description": "Android receivers: switch and setup step that keeps receiving alerts while the app is closed."
   },
   "@receiveWhenClosedText": {
     "description": "Explains the receive-when-closed switch."
+  },
+  "popUpsTitle": "Let alerts pop up",
+  "actionOpenAlertSettings": "Open alert settings",
+  "@popUpsTitle": {
+    "description": "Setup step: let mirrored alerts pop up over the screen."
+  },
+  "@actionOpenAlertSettings": {
+    "description": "Button: opens the system settings of AirReply's pop-up alerts."
+  },
+  "popUpsPromptTitle": "Make alerts pop up",
+  "alertSoundOffTitle": "Turn on alert sound",
+  "popUpsWhy": "{maker} lets only a few apps, like WhatsApp, pop up and ring until you allow them. No app can switch this on itself; it takes one switch.",
+  "popUpsWhyGeneric": "This phone keeps AirReply's alerts in the notification list, without popping up or ringing. No app can switch this on itself; it takes one switch.",
+  "popUpsStepsOppo": "Tap Open alert settings. On AirReply's page, turn on Banner, Ring and Vibrate. Then, under Categories, open {category} and turn on Banner there too.",
+  "popUpsStepsXiaomi": "Tap Open alert settings, turn on Floating notifications, then Sound and Vibration.",
+  "popUpsStepsSamsung": "Tap Open alert settings, choose Alert, then turn on Show as pop-up.",
+  "popUpsStepsGeneric": "Tap Open alert settings, turn on Pop on screen, and choose a sound.",
+  "popUpsFixed": "Done: alerts will now pop up and ring.",
+  "@popUpsPromptTitle": {
+    "description": "Home's one-time prompt to let alerts pop up."
+  },
+  "@alertSoundOffTitle": {
+    "description": "Title when the phone took away the alerts' sound."
+  },
+  "@popUpsWhy": {
+    "description": "Why AirReply cannot turn pop-ups on itself; {maker} is the phone maker's name.",
+    "placeholders": {
+      "maker": {
+        "type": "String",
+        "example": "OnePlus"
+      }
+    }
+  },
+  "@popUpsWhyGeneric": {
+    "description": "Same, when the maker is unknown."
+  },
+  "@popUpsStepsOppo": {
+    "description": "Steps on OnePlus, OPPO and realme phones: the app's notification page, then its pop-up category; {category} is that category's name (alertChannelPopUp).",
+    "placeholders": {
+      "category": {
+        "type": "String",
+        "example": "Pop-up alerts"
+      }
+    }
+  },
+  "@popUpsStepsXiaomi": {
+    "description": "Steps on Xiaomi, Redmi and POCO phones."
+  },
+  "@popUpsStepsSamsung": {
+    "description": "Steps on Samsung phones."
+  },
+  "@popUpsStepsGeneric": {
+    "description": "Steps on other phones."
+  },
+  "@popUpsFixed": {
+    "description": "Confirmation after coming back with pop-ups on."
+  },
+  "settingsAlertsEyebrow": "Notifications",
+  "settingsAlertsTitle": "Alerts",
+  "settingsSharingEyebrow": "Phone",
+  "settingsSharingTitle": "Sharing",
+  "systemAlertSettingsTitle": "Notification settings",
+  "systemAlertSettingsSubtitle": "Pop-up, sound, vibration and lock screen, set by this device",
+  "testAlertSubtitle": "See how a message alerts you right now",
+  "expectAlertsOffText": "Notifications still arrive in AirReply, but this device won't tell you. Allow alerts to hear about them.",
+  "expectMessagesPopUp": "Messages pop up with sound",
+  "expectMessagesPopUpSilent": "Messages pop up silently",
+  "expectMessagesList": "Messages wait in the notification list",
+  "expectMessagesQuiet": "Messages arrive silently",
+  "expectMessagesOff": "Message alerts are off",
+  "expectOthers": "Other notifications: {how}.",
+  "expectOthersPopUp": "pop up with sound",
+  "expectOthersPopUpSilent": "pop up silently",
+  "expectOthersList": "in the list, with a sound",
+  "expectOthersQuiet": "in the list, silently",
+  "expectOthersOff": "no alert",
+  "expectChangeHint": "To change any of it, open Notification settings below.",
+  "@settingsAlertsEyebrow": {
+    "description": "Settings eyebrow above the Alerts section (a device that shows notifications)."
+  },
+  "@settingsAlertsTitle": {
+    "description": "Settings section: alerts."
+  },
+  "@settingsSharingEyebrow": {
+    "description": "Settings eyebrow above the Sharing section (the phone that shares)."
+  },
+  "@settingsSharingTitle": {
+    "description": "Settings section: sharing."
+  },
+  "@systemAlertSettingsTitle": {
+    "description": "Row that opens the system's notification settings for AirReply."
+  },
+  "@systemAlertSettingsSubtitle": {
+    "description": "Under it: what is chosen there."
+  },
+  "@testAlertSubtitle": {
+    "description": "Under Send a test alert."
+  },
+  "@expectAlertsOffText": {
+    "description": "Banner when alerts are not allowed."
+  },
+  "@expectMessagesPopUp": {
+    "description": "Banner title: what a message does now."
+  },
+  "@expectMessagesPopUpSilent": {
+    "description": "Banner title."
+  },
+  "@expectMessagesList": {
+    "description": "Banner title."
+  },
+  "@expectMessagesQuiet": {
+    "description": "Banner title."
+  },
+  "@expectMessagesOff": {
+    "description": "Banner title."
+  },
+  "@expectOthersPopUp": {
+    "description": "Phrase in expectOthers."
+  },
+  "@expectOthersPopUpSilent": {
+    "description": "Phrase in expectOthers."
+  },
+  "@expectOthersList": {
+    "description": "Phrase in expectOthers."
+  },
+  "@expectOthersQuiet": {
+    "description": "Phrase in expectOthers."
+  },
+  "@expectOthersOff": {
+    "description": "Phrase in expectOthers."
+  },
+  "@expectChangeHint": {
+    "description": "Banner line when everything works."
+  },
+  "@expectOthers": {
+    "description": "Banner line: what other notifications do; {how} is one of the expectOthers* phrases.",
+    "placeholders": {
+      "how": {
+        "type": "String",
+        "example": "in the list, with a sound"
+      }
+    }
+  },
+  "expectOffHelp": "They are switched off in this device's notification settings. Tap Open alert settings and turn them on.",
+  "@expectOffHelp": {
+    "description": "Banner line when message alerts are switched off in the system's settings."
   }
 }

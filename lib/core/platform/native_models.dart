@@ -187,3 +187,7 @@ final class SyncStateEvent extends NativeEvent {
   const SyncStateEvent(this.status);
   final SyncStatus status;
 }
+
+/// What the system does with an Android alert channel: whether its alerts show at all, pop up over the screen and
+/// make a sound.
+typedef AlertChannelState = ({bool shown, bool popsUp, bool sounds});

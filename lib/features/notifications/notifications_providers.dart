@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/core/utils/clock_provider.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/reply_command.dart';
@@ -210,13 +211,39 @@ final class InboxController extends AsyncNotifier<InboxState> {
     return fresh;
   }
 
-  Future<void> markRead(Iterable<String> keys) => _update((s) => s.markRead(keys));
+  /// Read in AirReply, so their alerts leave the system's notification panel too.
+  Future<void> markRead(Iterable<String> keys) async {
+    await _update((s) => s.markRead(keys));
+    _dismissAlerts(keys);
+  }
 
   Future<void> markUnread(Iterable<String> keys) => _update((s) => s.markUnread(keys));
 
-  Future<void> markAllRead() => _update((s) => s.markAllRead(DateTime.now()));
+  Future<void> markAllRead() async {
+    await _update((s) => s.markAllRead(DateTime.now()));
+    unawaited(_alerts((alerts) => alerts.dismissAll()));
+  }
 
-  Future<void> hide(Iterable<String> keys) => _update((s) => s.hide(keys));
+  Future<void> hide(Iterable<String> keys) async {
+    await _update((s) => s.hide(keys));
+    _dismissAlerts(keys);
+  }
+
+  /// Entry keys are `pairId/notificationId`; alerts are named by the notification.
+  void _dismissAlerts(Iterable<String> keys) {
+    final ids = [for (final key in keys) key.substring(key.indexOf('/') + 1)];
+    if (ids.isNotEmpty) unawaited(_alerts((alerts) => alerts.dismiss(ids)));
+  }
+
+  /// Alerts are a courtesy here: where the system has none (tests, a Linux desktop without a notification daemon)
+  /// reading still works.
+  Future<void> _alerts(Future<void> Function(MirroredAlerts alerts) action) async {
+    try {
+      await action(ref.read(mirroredAlertsProvider));
+    } on Object catch (e) {
+      appLog('Alerts not taken down: $e', name: 'air_reply.alerts');
+    }
+  }
 
   Future<void> unhide(Iterable<String> keys) => _update((s) => s.unhide(keys));
 

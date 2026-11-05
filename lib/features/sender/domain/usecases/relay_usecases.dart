@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:air_reply/core/error/app_exception.dart';
@@ -26,6 +27,42 @@ final class PublishCapturedNotification {
 
   /// Larger icons are skipped rather than risk the payload limit.
   static const maxIconBytes = 6000;
+
+  /// The largest notification, as clear JSON, that still fits firestore.rules' 16 KB once sealed (12-byte nonce,
+  /// 16-byte tag) and base64-encoded (4/3 of it), with room to spare.
+  static const maxPayloadBytes = 11500;
+
+  /// [content] made to fit [maxPayloadBytes]: text in Hindi, Chinese or emoji takes three or four bytes a character,
+  /// so a long one with an icon could pass the character limit yet be refused by the server, and never arrive. The
+  /// icon goes first (it is sent again with a later notification); then the text, and at worst the title, are
+  /// shortened by bytes, at a character boundary, with an ellipsis.
+  static NotificationContent fit(NotificationContent content) {
+    int size(NotificationContent c) => utf8.encode(jsonEncode(c.toJson())).length;
+    var c = content;
+    if (size(c) <= maxPayloadBytes) return c;
+    if (c.iconPng != null) {
+      c = c.withIcon(null);
+      if (size(c) <= maxPayloadBytes) return c;
+    }
+    String shorten(String s, int over) {
+      // room for the ellipsis (3 bytes) and JSON escapes the cut might not save
+      final keep = utf8.encode(s).length - over - 16;
+      if (keep <= 0) return '';
+      final out = StringBuffer();
+      var bytes = 0;
+      for (final rune in s.runes) {
+        final ch = String.fromCharCode(rune);
+        bytes += utf8.encode(ch).length;
+        if (bytes > keep) break;
+        out.write(ch);
+      }
+      return '$out…';
+    }
+
+    c = c.withWords(text: shorten(c.text, size(c) - maxPayloadBytes));
+    if (size(c) > maxPayloadBytes) c = c.withWords(title: shorten(c.title, size(c) - maxPayloadBytes));
+    return c;
+  }
 
   final List<PublishTarget> _targets;
   final AppIconSource? _icons;
@@ -62,6 +99,7 @@ final class PublishCapturedNotification {
         final png = await loadIcon();
         if (png != null && png.length <= maxIconBytes) copy = content.withIcon(png);
       }
+      copy = fit(copy);
       await target.publisher.publish(copy, canReply: captured.canReply);
       if (copy.iconPng != null) await iconLog?.recordSent(target.pairId, captured.packageName);
     });

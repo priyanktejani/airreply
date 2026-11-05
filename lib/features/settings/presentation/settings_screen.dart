@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
+import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/l10n/app_language.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/platform/native_models.dart';
+import 'package:air_reply/core/platform/system_notification_settings.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -25,8 +27,10 @@ import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/devices/presentation/device_status_text.dart';
-import 'package:air_reply/features/notifications/domain/alert_style.dart';
+import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
+import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/notifications/presentation/widgets/alert_delivery.dart';
 import 'package:air_reply/features/permissions/domain/setup_tasks.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
@@ -34,7 +38,6 @@ import 'package:air_reply/features/permissions/presentation/setup_tasks_provider
 import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/erase_everything.dart';
-import 'package:air_reply/features/settings/presentation/alert_style_screen.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,22 +49,25 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
+    // What this device does first (sharing, or alerting), then how it stays connected, how it looks, its data, help.
     final sections = [
-      _Section(
-        eyebrow: context.l10n.settingsAccessEyebrow,
-        title: context.l10n.settingsPermissionsTitle,
-        child: isSender ? const _SenderPermissions() : const _ReceiverPermissions(),
-      ),
-      _Section(
-        eyebrow: context.l10n.settingsFilterEyebrow,
-        title: context.l10n.settingsAppsTitle,
-        child: const _AppsRow(),
-      ),
-      _Section(
-        eyebrow: context.l10n.settingsPrivacyEyebrow,
-        title: context.l10n.settingsPrivacyTitle,
-        child: isSender ? const _SharingSettings() : const _AlertSettings(),
-      ),
+      if (isSender) ...[
+        _Section(
+          eyebrow: context.l10n.settingsSharingEyebrow,
+          title: context.l10n.settingsSharingTitle,
+          child: const _SharingSettings(),
+        ),
+        _Section(
+          eyebrow: context.l10n.settingsAccessEyebrow,
+          title: context.l10n.settingsPermissionsTitle,
+          child: const _SenderPermissions(),
+        ),
+      ] else
+        _Section(
+          eyebrow: context.l10n.settingsAlertsEyebrow,
+          title: context.l10n.settingsAlertsTitle,
+          child: const _AlertSettings(),
+        ),
       _Section(
         eyebrow: context.l10n.settingsConnectionEyebrow,
         title: context.l10n.settingsSyncTitle,
@@ -73,7 +79,7 @@ class SettingsScreen extends ConsumerWidget {
         child: const _AppearanceSettings(),
       ),
       _Section(
-        eyebrow: context.l10n.settingsDataEyebrow,
+        eyebrow: context.l10n.settingsPrivacyEyebrow,
         title: context.l10n.settingsDataTitle,
         child: const _DataSettings(),
       ),
@@ -200,64 +206,6 @@ class _SenderPermissions extends ConsumerWidget {
   }
 }
 
-class _ReceiverPermissions extends ConsumerWidget {
-  const _ReceiverPermissions();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final allowed = ref.watch(alertPermissionProvider).value;
-    final request = ref.read(alertPermissionProvider.notifier).request;
-    return CardGroup(
-      children: [
-        InfoRow(
-          icon: AppIcons.notificationsActive,
-          title: context.l10n.permissionAlertsTitle,
-          subtitle: AppPlatform.isWeb ? context.l10n.permissionAlertsBrowser : context.l10n.permissionAlertsDevice,
-          onTap: allowed == true ? null : guarded(context, request),
-          trailing: _permissionTrailing(
-            context,
-            granted: allowed,
-            fix: context.l10n.actionAllow,
-            onFix: guarded(context, request),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _AppsRow extends ConsumerWidget {
-  const _AppsRow();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
-    final String subtitle;
-    if (isSender) {
-      subtitle = switch (ref.watch(appFilterProvider).value) {
-        null => context.l10n.loading,
-        AppFilter(mode: AppFilterMode.all) => context.l10n.appsAllShared,
-        AppFilter(:final packages) when packages.isEmpty => context.l10n.appsNoneShared,
-        AppFilter(:final packages) => context.l10n.appsSomeShared(packages.length),
-      };
-    } else {
-      final muted = ref.watch(appPreferencesProvider).value?.mutedApps.length ?? 0;
-      subtitle = context.l10n.appsMuted(muted);
-    }
-    return CardGroup(
-      children: [
-        InfoRow(
-          icon: isSender ? AppIcons.apps : AppIcons.notificationsOff,
-          title: isSender ? context.l10n.appsToShareTitle : context.l10n.appsMutedTitle,
-          subtitle: subtitle,
-          trailing: InfoRow.chevron,
-          onTap: () => context.push(AppRoutes.apps),
-        ),
-      ],
-    );
-  }
-}
-
 Widget _encryption(BuildContext context) =>
     InfoRow(icon: AppIcons.lockOutline, title: context.l10n.encryptionTitle, subtitle: context.l10n.encryptionDetail);
 
@@ -282,72 +230,134 @@ class _SharingSettings extends ConsumerWidget {
                 }
               : null,
         ),
-        _encryption(context),
+        InfoRow(
+          icon: AppIcons.apps,
+          title: context.l10n.appsToShareTitle,
+          subtitle: switch (ref.watch(appFilterProvider).value) {
+            null => context.l10n.loading,
+            AppFilter(mode: AppFilterMode.all) => context.l10n.appsAllShared,
+            AppFilter(:final packages) when packages.isEmpty => context.l10n.appsNoneShared,
+            AppFilter(:final packages) => context.l10n.appsSomeShared(packages.length),
+          },
+          trailing: InfoRow.chevron,
+          onTap: () => context.push(AppRoutes.apps),
+        ),
       ],
     );
   }
 }
 
+/// A device that shows notifications: what its alerts will do (as the system has them), where to change that, and
+/// what only AirReply decides (muted apps, message text, receiving while closed).
 class _AlertSettings extends ConsumerWidget {
   const _AlertSettings();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final preferences = ref.watch(appPreferencesProvider).value;
-    final style = preferences?.alertStyle ?? const AlertStyle();
-    return CardGroup(
+    final muted = preferences?.mutedApps.length ?? 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        InfoRow(
-          icon: AppIcons.notificationsActive,
-          title: context.l10n.alertStyleTitle,
-          subtitle: context.l10n.alertStyleSummary(
-            alertModeName(context.l10n, style.messages),
-            alertModeName(context.l10n, style.others),
-          ),
-          trailing: InfoRow.chevron,
-          onTap: () => unawaited(context.push(AppRoutes.alertStyle)),
+        const AlertExpectationBanner(),
+        CardGroup(
+          children: [
+            // pop-up, sound, vibration and lock screen are the system's, as in other messaging apps
+            if (canOpenSystemNotificationSettings)
+              InfoRow(
+                icon: AppIcons.tune,
+                title: l10n.systemAlertSettingsTitle,
+                subtitle: l10n.systemAlertSettingsSubtitle,
+                trailing: InfoRow.chevron,
+                onTap: guarded(context, () => openSystemNotificationSettings(ref.read(notificationBridgeProvider))),
+              ),
+            InfoRow(
+              icon: AppIcons.notificationsOff,
+              title: l10n.appsMutedTitle,
+              subtitle: l10n.appsMuted(muted),
+              trailing: InfoRow.chevron,
+              onTap: () => context.push(AppRoutes.apps),
+            ),
+            SwitchRow(
+              icon: AppIcons.visibility,
+              title: l10n.alertTextTitle,
+              subtitle: l10n.alertTextSubtitle,
+              value: preferences?.alertShowsContent ?? true,
+              onChanged: preferences == null
+                  ? null
+                  : (on) {
+                      ref.tick();
+                      unawaited(ref.read(appPreferencesProvider.notifier).setAlertShowsContent(on));
+                    },
+            ),
+            // Android: the background service keeps alerts coming while AirReply is closed
+            if (AppPlatform.isAndroid)
+              SwitchRow(
+                icon: AppIcons.notificationsPaused,
+                title: l10n.receiveWhenClosedTitle,
+                subtitle: l10n.receiveWhenClosedText,
+                value: ref.watch(syncStatusProvider).value?.enabled ?? false,
+                onChanged: preferences == null
+                    ? null
+                    : (on) {
+                        ref.tick();
+                        unawaited(
+                          runGuarded(context, () async {
+                            await ref.read(appPreferencesProvider.notifier).setReceiveWhenClosed(on);
+                            await ref.read(syncStatusProvider.notifier).setEnabled(on);
+                          }),
+                        );
+                      },
+              ),
+            // computers and browsers alert only while AirReply runs (phones also get pushes)
+            if (AppPlatform.isDesktop || AppPlatform.isWeb)
+              InfoRow(
+                icon: AppIcons.desktopWindows,
+                title: AppPlatform.isWeb ? l10n.alertsBrowserTitle : l10n.alertsComputerTitle,
+                subtitle: l10n.alertsWhileOpen,
+              ),
+            InfoRow(
+              icon: AppIcons.notificationsActive,
+              title: l10n.alertStyleTest,
+              subtitle: l10n.testAlertSubtitle,
+              onTap: guarded(context, () => _sendTestAlert(context, ref)),
+            ),
+          ],
         ),
-        SwitchRow(
-          icon: AppIcons.visibility,
-          title: context.l10n.alertTextTitle,
-          subtitle: context.l10n.alertTextSubtitle,
-          value: preferences?.alertShowsContent ?? true,
-          onChanged: preferences == null
-              ? null
-              : (on) {
-                  ref.tick();
-                  unawaited(ref.read(appPreferencesProvider.notifier).setAlertShowsContent(on));
-                },
-        ),
-        // Android: the background service keeps alerts coming while AirReply is closed
-        if (AppPlatform.isAndroid)
-          SwitchRow(
-            icon: AppIcons.notificationsPaused,
-            title: context.l10n.receiveWhenClosedTitle,
-            subtitle: context.l10n.receiveWhenClosedText,
-            value: ref.watch(syncStatusProvider).value?.enabled ?? false,
-            onChanged: preferences == null
-                ? null
-                : (on) {
-                    ref.tick();
-                    unawaited(
-                      runGuarded(context, () async {
-                        await ref.read(appPreferencesProvider.notifier).setReceiveWhenClosed(on);
-                        await ref.read(syncStatusProvider.notifier).setEnabled(on);
-                      }),
-                    );
-                  },
-          ),
-        // computers and browsers alert only while AirReply runs (phones also get pushes)
-        if (AppPlatform.isDesktop || AppPlatform.isWeb)
-          InfoRow(
-            icon: AppIcons.desktopWindows,
-            title: AppPlatform.isWeb ? context.l10n.alertsBrowserTitle : context.l10n.alertsComputerTitle,
-            subtitle: context.l10n.alertsWhileOpen,
-          ),
-        _encryption(context),
       ],
     );
+  }
+
+  /// A message that looks like a real one, alerting as a real one would; it cannot be answered.
+  static Future<void> _sendTestAlert(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final permission = ref.read(alertPermissionProvider.notifier);
+    if (!(ref.read(alertPermissionProvider).value ?? false)) await permission.request();
+    if (!(ref.read(alertPermissionProvider).value ?? false)) {
+      if (context.mounted) context.showMessage(l10n.noticeAlertsOffTitle, icon: AppIcons.notificationsOff);
+      return;
+    }
+    await ref
+        .read(mirroredAlertsProvider)
+        .show(
+          MirroredNotification(
+            id: 'test-${DateTime.now().millisecondsSinceEpoch}',
+            content: NotificationContent(
+              key: 'airreply-test',
+              packageName: 'com.airreply.test',
+              appName: l10n.appTitle,
+              title: l10n.alertStyleTestTitle,
+              text: l10n.alertStyleTestText,
+              postedAt: DateTime.now(),
+              isMessage: true,
+            ),
+            canReply: false,
+            dismissedOnSender: false,
+          ),
+          pairId: 'test',
+          showContent: ref.read(appPreferencesProvider).value?.alertShowsContent ?? true,
+        );
   }
 }
 
@@ -532,8 +542,9 @@ class _DataSettings extends ConsumerWidget {
       });
     }
 
-    return CardGroup(
+    final everyday = CardGroup(
       children: [
+        _encryption(context),
         InfoRow(
           icon: AppIcons.doneAll,
           title: context.l10n.markAllReadTitle,
@@ -556,6 +567,11 @@ class _DataSettings extends ConsumerWidget {
             context.showMessage(context.l10n.hiddenRestored);
           },
         ),
+      ],
+    );
+    // what cannot be undone, in a card of its own
+    final destructive = CardGroup(
+      children: [
         InfoRow(
           icon: AppIcons.linkOff,
           title: context.l10n.removeAllTitle,
@@ -582,6 +598,14 @@ class _DataSettings extends ConsumerWidget {
         ),
       ],
     );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        everyday,
+        const SizedBox(height: AppSpacing.md),
+        destructive,
+      ],
+    );
   }
 }
 
@@ -601,20 +625,6 @@ class _HelpSettings extends ConsumerWidget {
         onTap: () => unawaited(context.push(AppRoutes.setupAssistant)),
       ),
       InfoRow(
-        icon: AppIcons.bug,
-        title: context.l10n.feedbackReportTitle,
-        subtitle: context.l10n.feedbackReportSubtitle,
-        trailing: InfoRow.chevron,
-        onTap: () => unawaited(context.push(AppRoutes.feedbackAbout(idea: false))),
-      ),
-      InfoRow(
-        icon: AppIcons.lightbulb,
-        title: context.l10n.feedbackIdeaTitle,
-        subtitle: context.l10n.feedbackIdeaSubtitle,
-        trailing: InfoRow.chevron,
-        onTap: () => unawaited(context.push(AppRoutes.feedbackAbout(idea: true))),
-      ),
-      InfoRow(
         icon: AppIcons.helpOutline,
         title: context.l10n.troubleshootingTitle,
         subtitle: context.l10n.troubleshootingSubtitle,
@@ -627,6 +637,20 @@ class _HelpSettings extends ConsumerWidget {
         subtitle: context.l10n.diagnosticsSubtitle,
         trailing: InfoRow.chevron,
         onTap: () => context.push(AppRoutes.diagnostics),
+      ),
+      InfoRow(
+        icon: AppIcons.bug,
+        title: context.l10n.feedbackReportTitle,
+        subtitle: context.l10n.feedbackReportSubtitle,
+        trailing: InfoRow.chevron,
+        onTap: () => unawaited(context.push(AppRoutes.feedbackAbout(idea: false))),
+      ),
+      InfoRow(
+        icon: AppIcons.lightbulb,
+        title: context.l10n.feedbackIdeaTitle,
+        subtitle: context.l10n.feedbackIdeaSubtitle,
+        trailing: InfoRow.chevron,
+        onTap: () => unawaited(context.push(AppRoutes.feedbackAbout(idea: true))),
       ),
       InfoRow(
         icon: AppIcons.description,

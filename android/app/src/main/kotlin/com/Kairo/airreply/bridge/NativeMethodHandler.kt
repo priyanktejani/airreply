@@ -10,6 +10,7 @@ import android.os.Looper
 import android.provider.Settings
 import com.Kairo.airreply.apps.BackgroundRestrictions
 import com.Kairo.airreply.apps.InstalledAppsRepository
+import com.Kairo.airreply.notifications.AlertChannels
 import com.Kairo.airreply.notifications.ListenerHealth
 import com.Kairo.airreply.notifications.NotificationMirrorService
 import com.Kairo.airreply.notifications.ReplyExecutor
@@ -89,6 +90,23 @@ class NativeMethodHandler(private val context: Context) : MethodChannel.MethodCa
                     result.success(null)
                 }
                 "isAppVisible" -> result.success(AppVisibility.visible)
+                "getAlertChannel" -> {
+                    val id = call.argument<String>("id")
+                    if (id == null) result.error("bad_args", "id is required", null)
+                    else result.success(AlertChannels.state(context, id))
+                }
+                "openAppNotificationSettings" -> {
+                    AlertChannels.openAppSettings(context)
+                    result.success(null)
+                }
+                "openAlertChannelSettings" -> {
+                    val id = call.argument<String>("id")
+                    if (id == null) result.error("bad_args", "id is required", null)
+                    else {
+                        AlertChannels.openSettings(context, id, appPage = call.argument<Boolean>("appPage") == true)
+                        result.success(null)
+                    }
+                }
                 "stopSync" -> {
                     // Answer first: when the headless engine itself asks to stop, disabling destroys that engine.
                     result.success(null)

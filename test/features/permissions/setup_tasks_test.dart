@@ -140,4 +140,14 @@ void main() {
       );
     });
   });
+
+  test('a phone that holds pop-ups back (OnePlus): asked for, once alerts are allowed at all', () {
+    final held = setupTasks(role: DeviceRole.receiver, paired: true, alertsAllowed: true, popUpsWork: false);
+    expect(states(held)[SetupTaskId.popUps], SetupState.todo);
+    expect(held.firstWhere((t) => t.id == SetupTaskId.popUps).importance, SetupImportance.recommended);
+    final fine = setupTasks(role: DeviceRole.receiver, paired: true, alertsAllowed: true, popUpsWork: true);
+    expect(states(fine)[SetupTaskId.popUps], SetupState.done);
+    final refused = setupTasks(role: DeviceRole.receiver, paired: true, alertsAllowed: false, popUpsWork: false);
+    expect(states(refused), isNot(contains(SetupTaskId.popUps)), reason: 'allowing alerts comes first');
+  });
 }

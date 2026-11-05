@@ -15,6 +15,9 @@ enum SetupTaskId {
   // a device that shows them
   alerts,
 
+  /// Android: the phone lets alerts pop up and sound (some makers hold new apps' alerts back).
+  popUps,
+
   // both
   pairDevice,
 }
@@ -67,6 +70,7 @@ List<SetupTask> setupTasks({
   SenderGrants? sender,
   SyncStatus? sharing,
   bool? alertsAllowed,
+  bool? popUpsWork,
   BackgroundRestrictions? receiverRestrictions,
   bool autostartConfirmed = false,
 }) {
@@ -97,6 +101,10 @@ List<SetupTask> setupTasks({
       }
     case DeviceRole.receiver:
       if (alertsAllowed != null) tasks.add(SetupTask(SetupTaskId.alerts, recommended, state(alertsAllowed)));
+      // only once alerts are allowed at all: until then that is the step to take
+      if (popUpsWork != null && alertsAllowed != false) {
+        tasks.add(SetupTask(SetupTaskId.popUps, recommended, state(popUpsWork)));
+      }
       // An Android device that shows notifications: what lets a push wake it once AirReply is closed (a restricted
       // or stopped app gets none on some phones).
       if (receiverRestrictions != null && paired) {

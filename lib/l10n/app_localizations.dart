@@ -658,26 +658,8 @@ abstract class AppLocalizations {
   /// Settings section eyebrow.
   ///
   /// In en, this message translates to:
-  /// **'Filter'**
-  String get settingsFilterEyebrow;
-
-  /// Settings section title.
-  ///
-  /// In en, this message translates to:
-  /// **'Apps'**
-  String get settingsAppsTitle;
-
-  /// Settings section eyebrow.
-  ///
-  /// In en, this message translates to:
   /// **'Privacy'**
   String get settingsPrivacyEyebrow;
-
-  /// Settings section title.
-  ///
-  /// In en, this message translates to:
-  /// **'Mirroring and privacy'**
-  String get settingsPrivacyTitle;
 
   /// Settings section eyebrow.
   ///
@@ -703,16 +685,10 @@ abstract class AppLocalizations {
   /// **'Appearance and accessibility'**
   String get settingsAppearanceTitle;
 
-  /// Settings section eyebrow.
-  ///
-  /// In en, this message translates to:
-  /// **'Data'**
-  String get settingsDataEyebrow;
-
   /// Settings section title.
   ///
   /// In en, this message translates to:
-  /// **'Your data'**
+  /// **'Privacy and data'**
   String get settingsDataTitle;
 
   /// Settings section eyebrow.
@@ -798,12 +774,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lets this browser show new notifications'**
   String get permissionAlertsBrowser;
-
-  /// Alerts permission.
-  ///
-  /// In en, this message translates to:
-  /// **'Lets this device alert you to new notifications'**
-  String get permissionAlertsDevice;
 
   /// Something is loading.
   ///
@@ -2968,7 +2938,7 @@ abstract class AppLocalizations {
   /// Android notification channel name.
   ///
   /// In en, this message translates to:
-  /// **'Mirrored notifications'**
+  /// **'Other notifications'**
   String get alertChannelName;
 
   /// Android notification channel description.
@@ -3256,7 +3226,7 @@ abstract class AppLocalizations {
   /// Android notification channel: alerts that pop up.
   ///
   /// In en, this message translates to:
-  /// **'Pop-up alerts'**
+  /// **'Messages'**
   String get alertChannelPopUp;
 
   /// Android notification channel: quiet ones.
@@ -3283,143 +3253,11 @@ abstract class AppLocalizations {
   /// **'Reply to {name} not sent'**
   String alertReplyNotSent(String name);
 
-  /// Settings row and screen title.
-  ///
-  /// In en, this message translates to:
-  /// **'How alerts appear'**
-  String get alertStyleTitle;
-
-  /// Settings row subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Messages: {messages} · Other: {others}'**
-  String alertStyleSummary(String messages, String others);
-
-  /// Alert style screen intro.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose how notifications from your phone alert you on this device. Whatever you choose, they always arrive in Notifications.'**
-  String get alertStyleIntro;
-
-  /// Section: chats that can be answered.
-  ///
-  /// In en, this message translates to:
-  /// **'Messages'**
-  String get alertStyleMessages;
-
-  /// Section: everything that is not a message.
-  ///
-  /// In en, this message translates to:
-  /// **'Other notifications'**
-  String get alertStyleOthers;
-
-  /// Alert mode.
-  ///
-  /// In en, this message translates to:
-  /// **'Pop up'**
-  String get alertModePopUp;
-
-  /// Alert mode description.
-  ///
-  /// In en, this message translates to:
-  /// **'On screen, with sound'**
-  String get alertModePopUpHint;
-
-  /// Alert mode.
-  ///
-  /// In en, this message translates to:
-  /// **'In the list'**
-  String get alertModeNormal;
-
-  /// Alert mode description.
-  ///
-  /// In en, this message translates to:
-  /// **'With sound, without covering the screen'**
-  String get alertModeNormalHint;
-
-  /// Alert mode.
-  ///
-  /// In en, this message translates to:
-  /// **'Silent'**
-  String get alertModeSilent;
-
-  /// Alert mode description.
-  ///
-  /// In en, this message translates to:
-  /// **'In the list only: no sound, no vibration'**
-  String get alertModeSilentHint;
-
-  /// Alert mode.
-  ///
-  /// In en, this message translates to:
-  /// **'Off'**
-  String get alertModeOff;
-
-  /// Alert mode description.
-  ///
-  /// In en, this message translates to:
-  /// **'No alert: only in Notifications'**
-  String get alertModeOffHint;
-
-  /// Section title.
-  ///
-  /// In en, this message translates to:
-  /// **'Sound and vibration'**
-  String get alertStyleSoundTitle;
-
-  /// Switch.
-  ///
-  /// In en, this message translates to:
-  /// **'Sound'**
-  String get alertStyleSound;
-
-  /// Switch.
-  ///
-  /// In en, this message translates to:
-  /// **'Vibration'**
-  String get alertStyleVibration;
-
-  /// Switch description.
-  ///
-  /// In en, this message translates to:
-  /// **'For alerts that pop up or show in the list'**
-  String get alertStyleSoundHint;
-
-  /// Section title.
-  ///
-  /// In en, this message translates to:
-  /// **'On the lock screen'**
-  String get alertStyleLockScreen;
-
-  /// Lock screen choice.
-  ///
-  /// In en, this message translates to:
-  /// **'Show everything'**
-  String get lockScreenShow;
-
-  /// Lock screen choice.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide what the message says'**
-  String get lockScreenHideContent;
-
-  /// Lock screen choice.
-  ///
-  /// In en, this message translates to:
-  /// **'Show nothing until unlocked'**
-  String get lockScreenHide;
-
   /// Button.
   ///
   /// In en, this message translates to:
   /// **'Send a test alert'**
   String get alertStyleTest;
-
-  /// Below the test button.
-  ///
-  /// In en, this message translates to:
-  /// **'It uses the choices for messages above.'**
-  String get alertStyleTestHint;
 
   /// Test alert title.
   ///
@@ -3664,8 +3502,200 @@ abstract class AppLocalizations {
   /// Explains the receive-when-closed switch.
   ///
   /// In en, this message translates to:
-  /// **'For phones that hold back alerts once AirReply is closed: keeps it receiving in the background too. Android shows a small status notification while it runs.'**
+  /// **'A backup for phones that hold back alerts. Shows a small status notification.'**
   String get receiveWhenClosedText;
+
+  /// Setup step: let mirrored alerts pop up over the screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Let alerts pop up'**
+  String get popUpsTitle;
+
+  /// Button: opens the system settings of AirReply's pop-up alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Open alert settings'**
+  String get actionOpenAlertSettings;
+
+  /// Home's one-time prompt to let alerts pop up.
+  ///
+  /// In en, this message translates to:
+  /// **'Make alerts pop up'**
+  String get popUpsPromptTitle;
+
+  /// Title when the phone took away the alerts' sound.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on alert sound'**
+  String get alertSoundOffTitle;
+
+  /// Why AirReply cannot turn pop-ups on itself; {maker} is the phone maker's name.
+  ///
+  /// In en, this message translates to:
+  /// **'{maker} lets only a few apps, like WhatsApp, pop up and ring until you allow them. No app can switch this on itself; it takes one switch.'**
+  String popUpsWhy(String maker);
+
+  /// Same, when the maker is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'This phone keeps AirReply\'s alerts in the notification list, without popping up or ringing. No app can switch this on itself; it takes one switch.'**
+  String get popUpsWhyGeneric;
+
+  /// Steps on OnePlus, OPPO and realme phones: the app's notification page, then its pop-up category; {category} is that category's name (alertChannelPopUp).
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Open alert settings. On AirReply\'s page, turn on Banner, Ring and Vibrate. Then, under Categories, open {category} and turn on Banner there too.'**
+  String popUpsStepsOppo(String category);
+
+  /// Steps on Xiaomi, Redmi and POCO phones.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Open alert settings, turn on Floating notifications, then Sound and Vibration.'**
+  String get popUpsStepsXiaomi;
+
+  /// Steps on Samsung phones.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Open alert settings, choose Alert, then turn on Show as pop-up.'**
+  String get popUpsStepsSamsung;
+
+  /// Steps on other phones.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Open alert settings, turn on Pop on screen, and choose a sound.'**
+  String get popUpsStepsGeneric;
+
+  /// Confirmation after coming back with pop-ups on.
+  ///
+  /// In en, this message translates to:
+  /// **'Done: alerts will now pop up and ring.'**
+  String get popUpsFixed;
+
+  /// Settings eyebrow above the Alerts section (a device that shows notifications).
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsAlertsEyebrow;
+
+  /// Settings section: alerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get settingsAlertsTitle;
+
+  /// Settings eyebrow above the Sharing section (the phone that shares).
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get settingsSharingEyebrow;
+
+  /// Settings section: sharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing'**
+  String get settingsSharingTitle;
+
+  /// Row that opens the system's notification settings for AirReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings'**
+  String get systemAlertSettingsTitle;
+
+  /// Under it: what is chosen there.
+  ///
+  /// In en, this message translates to:
+  /// **'Pop-up, sound, vibration and lock screen, set by this device'**
+  String get systemAlertSettingsSubtitle;
+
+  /// Under Send a test alert.
+  ///
+  /// In en, this message translates to:
+  /// **'See how a message alerts you right now'**
+  String get testAlertSubtitle;
+
+  /// Banner when alerts are not allowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications still arrive in AirReply, but this device won\'t tell you. Allow alerts to hear about them.'**
+  String get expectAlertsOffText;
+
+  /// Banner title: what a message does now.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages pop up with sound'**
+  String get expectMessagesPopUp;
+
+  /// Banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages pop up silently'**
+  String get expectMessagesPopUpSilent;
+
+  /// Banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages wait in the notification list'**
+  String get expectMessagesList;
+
+  /// Banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages arrive silently'**
+  String get expectMessagesQuiet;
+
+  /// Banner title.
+  ///
+  /// In en, this message translates to:
+  /// **'Message alerts are off'**
+  String get expectMessagesOff;
+
+  /// Banner line: what other notifications do; {how} is one of the expectOthers* phrases.
+  ///
+  /// In en, this message translates to:
+  /// **'Other notifications: {how}.'**
+  String expectOthers(String how);
+
+  /// Phrase in expectOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'pop up with sound'**
+  String get expectOthersPopUp;
+
+  /// Phrase in expectOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'pop up silently'**
+  String get expectOthersPopUpSilent;
+
+  /// Phrase in expectOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'in the list, with a sound'**
+  String get expectOthersList;
+
+  /// Phrase in expectOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'in the list, silently'**
+  String get expectOthersQuiet;
+
+  /// Phrase in expectOthers.
+  ///
+  /// In en, this message translates to:
+  /// **'no alert'**
+  String get expectOthersOff;
+
+  /// Banner line when everything works.
+  ///
+  /// In en, this message translates to:
+  /// **'To change any of it, open Notification settings below.'**
+  String get expectChangeHint;
+
+  /// Banner line when message alerts are switched off in the system's settings.
+  ///
+  /// In en, this message translates to:
+  /// **'They are switched off in this device\'s notification settings. Tap Open alert settings and turn them on.'**
+  String get expectOffHelp;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

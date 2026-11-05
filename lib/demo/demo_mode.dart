@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/error/app_exception.dart';
+import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
 import 'package:air_reply/core/platform/notification_permission.dart';
@@ -555,7 +556,10 @@ final class _DemoMirror implements MirrorRepository {
 
 /// The sender's native layer, simulated: sharing is on, and a notification is "captured" every few seconds.
 final class _DemoBridge implements NotificationBridge {
-  var _status = const SyncStatus(enabled: true, running: true, listenerConnected: true);
+  // A phone shares; a demo receiver has no background service (the open app raises its alerts), so it is off there.
+  var _status = AppPlatform.demo == 'receiver'
+      ? SyncStatus.off
+      : const SyncStatus(enabled: true, running: true, listenerConnected: true);
   var _filter = const AppFilter(mode: AppFilterMode.selected, packages: {'com.whatsapp', 'org.telegram.messenger'});
   final _statusChanges = StreamController<NativeEvent>.broadcast();
 
@@ -623,6 +627,19 @@ final class _DemoBridge implements NotificationBridge {
 
   @override
   Future<bool> isAppVisible() async => false;
+
+  // Alerts are real in the demo (AIRREPLY_DEMO_ARRIVALS), so is what the phone does with them.
+  final _device = MethodChannelNotificationBridge();
+
+  @override
+  Future<AlertChannelState?> alertChannel(String id) => _device.alertChannel(id);
+
+  @override
+  Future<void> openAlertChannelSettings(String id, {bool appPage = false}) =>
+      _device.openAlertChannelSettings(id, appPage: appPage);
+
+  @override
+  Future<void> openAppNotificationSettings() => _device.openAppNotificationSettings();
 
   @override
   Future<void> clearNativeData() async {}

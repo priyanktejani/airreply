@@ -18,7 +18,6 @@ import 'package:air_reply/features/permissions/presentation/setup_assistant_scre
 import 'package:air_reply/features/permissions/presentation/setup_screen.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/domain/feedback.dart';
-import 'package:air_reply/features/settings/presentation/alert_style_screen.dart';
 import 'package:air_reply/features/settings/presentation/diagnostics_screen.dart';
 import 'package:air_reply/features/settings/presentation/feedback_screen.dart';
 import 'package:air_reply/features/settings/presentation/settings_screen.dart';
@@ -129,7 +128,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   overTabs('apps', (_) => const AppManagementScreen()),
                   overTabs('diagnostics', (_) => const DiagnosticsScreen()),
-                  overTabs('alerts', (_) => const AlertStyleScreen()),
                   overTabs('setup', (_) => const SetupAssistantScreen()),
                 ],
               ),

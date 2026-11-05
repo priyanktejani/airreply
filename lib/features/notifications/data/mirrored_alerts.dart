@@ -112,7 +112,7 @@ final class MirroredAlerts {
     );
 
     return _plugin.show(
-      id: notification.id.hashCode & 0x7fffffff,
+      id: alertId(notification.id),
       title: title,
       body: body,
       payload: payload,
@@ -226,6 +226,53 @@ final class MirroredAlerts {
     for (final id in {...allChannelIds, _statusChannelId}) {
       await android.deleteNotificationChannel(channelId: id);
     }
+  }
+
+  /// The system's id for the alert of the mirrored notification [notificationId]: the same in every isolate and on
+  /// every start, so the app can take down an alert a push handler raised.
+  static int alertId(String notificationId) => notificationId.hashCode & 0x7fffffff;
+
+  /// Takes the alerts of these mirrored notifications out of the system's notification panel: they have been read
+  /// (opened, marked, hidden or answered) in AirReply. Alerts no longer showing are ignored.
+  Future<void> dismiss(Iterable<String> notificationIds) async {
+    for (final id in notificationIds.toSet()) {
+      await _plugin.cancel(id: alertId(id));
+    }
+  }
+
+  /// Takes every mirrored alert out of the panel ("Mark all as read"). On Android only those of the alert channels: the
+  /// sharing service's status notification and a "Reply not sent" stay.
+  Future<void> dismissAll() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return _plugin.cancelAll();
+    for (final active in await android.getActiveNotifications()) {
+      final id = active.id;
+      if (id != null && (active.channelId?.startsWith('mirrored') ?? false)) {
+        await _plugin.cancel(id: id, tag: active.tag);
+      }
+    }
+  }
+
+  /// Creates the Android channel [show] uses for [mode] with [style], before any alert needs it, so its system
+  /// settings can be checked and opened. A channel that exists keeps the person's (or the phone's) settings.
+  Future<void> ensureChannel(AlertMode mode, AlertStyle style) async {
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return;
+    final l10n = appL10n();
+    await android.createNotificationChannel(
+      AndroidNotificationChannel(
+        channelFor(mode, style),
+        _channelName(l10n, mode),
+        description: l10n.alertChannelDescription,
+        importance: switch (mode) {
+          AlertMode.popUp => Importance.high,
+          AlertMode.normal => Importance.defaultImportance,
+          _ => Importance.low,
+        },
+        playSound: style.soundFor(mode),
+        enableVibration: style.vibrationFor(mode),
+      ),
+    );
   }
 
   /// The Android channel for alerts of [mode] with [style]'s sound and vibration. A channel's importance, sound and

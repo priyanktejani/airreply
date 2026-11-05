@@ -117,6 +117,27 @@ void main() {
       expect(alertCalls, contains('cancelAll'));
       expect((await SharedPreferencesAsync().getKeys()), {installedKey});
     });
+
+    test('stops the background service even with nothing paired left to stop it', () async {
+      final bridge = FakeNotificationBridge();
+      final container = ProviderContainer(
+        overrides: [
+          secretStoreProvider.overrideWithValue(secrets),
+          authGatewayProvider.overrideWithValue(auth),
+          pairingRepositoryProvider.overrideWithValue(InMemoryPairingRepository()),
+          pairingCredentialsStoreProvider.overrideWithValue(InMemoryCredentialsStore()),
+          archivedPairsStoreProvider.overrideWithValue(SecureArchivedPairsStore(MemorySecretStore())),
+          historyDatabaseProvider.overrideWithValue(db),
+          notificationBridgeProvider.overrideWithValue(bridge),
+          removeDoorbellProvider.overrideWithValue((_) async {}),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(eraseEverythingProvider)();
+
+      expect(bridge.syncStopped, isTrue);
+    });
   });
 }
 

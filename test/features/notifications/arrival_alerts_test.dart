@@ -1,5 +1,6 @@
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
+import 'package:air_reply/features/notifications/background/alert_handlers.dart';
 import 'package:air_reply/features/notifications/background/arrival_alerts.dart';
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
 import 'package:air_reply/features/settings/domain/app_preferences.dart';
@@ -61,5 +62,12 @@ void main() {
     const preferences = AppPreferences(mutedApps: {'com.whatsapp'});
     expect(ArrivalAlerts.alertable(_n('a'), preferences), isFalse);
     expect(ArrivalAlerts.alertable(_n('a', app: 'org.telegram'), preferences), isTrue);
+  });
+
+  test('a push that waited while the device was offline arrives without ringing; a fresh one rings', () {
+    final now = DateTime(2026, 11, 5, 19);
+    expect(isLatePush(now.subtract(const Duration(minutes: 40)), now), isTrue, reason: 'one of a late burst');
+    expect(isLatePush(now.subtract(const Duration(seconds: 3)), now), isFalse);
+    expect(isLatePush(null, now), isFalse, reason: 'no send time: alert as before');
   });
 }

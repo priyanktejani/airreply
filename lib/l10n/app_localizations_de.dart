@@ -330,16 +330,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsPermissionsTitle => 'Berechtigungen';
 
   @override
-  String get settingsFilterEyebrow => 'Filter';
-
-  @override
-  String get settingsAppsTitle => 'Apps';
-
-  @override
   String get settingsPrivacyEyebrow => 'Datenschutz';
-
-  @override
-  String get settingsPrivacyTitle => 'Spiegeln und Datenschutz';
 
   @override
   String get settingsConnectionEyebrow => 'Verbindung';
@@ -354,10 +345,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsAppearanceTitle => 'Darstellung und Bedienungshilfen';
 
   @override
-  String get settingsDataEyebrow => 'Daten';
-
-  @override
-  String get settingsDataTitle => 'Deine Daten';
+  String get settingsDataTitle => 'Datenschutz und Daten';
 
   @override
   String get settingsHelpEyebrow => 'Hilfe';
@@ -400,9 +388,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get permissionAlertsBrowser => 'Lässt diesen Browser neue Mitteilungen anzeigen';
-
-  @override
-  String get permissionAlertsDevice => 'Lässt dieses Gerät dich auf neue Mitteilungen hinweisen';
 
   @override
   String get loading => 'Wird geladen…';
@@ -1721,7 +1706,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appsReading => 'Installierte Apps werden gelesen…';
 
   @override
-  String get alertChannelName => 'Gespiegelte Mitteilungen';
+  String get alertChannelName => 'Andere Benachrichtigungen';
 
   @override
   String get alertChannelDescription => 'Von deinem gekoppelten Handy gespiegelte Mitteilungen';
@@ -1891,7 +1876,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get feedbackNoEmailApp => 'Auf diesem Gerät ist keine E-Mail-App eingerichtet.';
 
   @override
-  String get alertChannelPopUp => 'Pop-up-Hinweise';
+  String get alertChannelPopUp => 'Nachrichten';
 
   @override
   String get alertChannelSilent => 'Lautlose Mitteilungen';
@@ -1909,76 +1894,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get alertStyleTitle => 'So erscheinen Hinweise';
-
-  @override
-  String alertStyleSummary(String messages, String others) {
-    return 'Nachrichten: $messages · Andere: $others';
-  }
-
-  @override
-  String get alertStyleIntro =>
-      'Wähle, wie dich die Mitteilungen deines Handys auf diesem Gerät hinweisen. Egal was du wählst, sie kommen immer unter Mitteilungen an.';
-
-  @override
-  String get alertStyleMessages => 'Nachrichten';
-
-  @override
-  String get alertStyleOthers => 'Andere Mitteilungen';
-
-  @override
-  String get alertModePopUp => 'Pop-up';
-
-  @override
-  String get alertModePopUpHint => 'Auf dem Bildschirm, mit Ton';
-
-  @override
-  String get alertModeNormal => 'In der Liste';
-
-  @override
-  String get alertModeNormalHint => 'Mit Ton, ohne den Bildschirm zu verdecken';
-
-  @override
-  String get alertModeSilent => 'Lautlos';
-
-  @override
-  String get alertModeSilentHint => 'Nur in der Liste: kein Ton, keine Vibration';
-
-  @override
-  String get alertModeOff => 'Aus';
-
-  @override
-  String get alertModeOffHint => 'Kein Hinweis: nur unter Mitteilungen';
-
-  @override
-  String get alertStyleSoundTitle => 'Ton und Vibration';
-
-  @override
-  String get alertStyleSound => 'Ton';
-
-  @override
-  String get alertStyleVibration => 'Vibration';
-
-  @override
-  String get alertStyleSoundHint => 'Für Hinweise, die aufpoppen oder in der Liste erscheinen';
-
-  @override
-  String get alertStyleLockScreen => 'Auf dem Sperrbildschirm';
-
-  @override
-  String get lockScreenShow => 'Alles zeigen';
-
-  @override
-  String get lockScreenHideContent => 'Nachrichteninhalt ausblenden';
-
-  @override
-  String get lockScreenHide => 'Nichts zeigen bis zum Entsperren';
-
-  @override
   String get alertStyleTest => 'Testhinweis senden';
-
-  @override
-  String get alertStyleTestHint => 'Er nutzt die Auswahl für Nachrichten oben.';
 
   @override
   String get alertStyleTestTitle => 'AirReply';
@@ -2123,5 +2039,113 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get receiveWhenClosedText =>
-      'Für Handys, die Benachrichtigungen zurückhalten, wenn AirReply geschlossen ist: empfängt zusätzlich im Hintergrund. Android zeigt dabei eine kleine Statusbenachrichtigung.';
+      'Eine Absicherung für Handys, die Benachrichtigungen zurückhalten. Zeigt eine kleine Statusbenachrichtigung.';
+
+  @override
+  String get popUpsTitle => 'Benachrichtigungen einblenden';
+
+  @override
+  String get actionOpenAlertSettings => 'Benachrichtigungseinstellungen öffnen';
+
+  @override
+  String get popUpsPromptTitle => 'Benachrichtigungen einblenden';
+
+  @override
+  String get alertSoundOffTitle => 'Benachrichtigungston einschalten';
+
+  @override
+  String popUpsWhy(String maker) {
+    return '$maker lässt nur wenige Apps wie WhatsApp einblenden und klingeln, bis du es erlaubst. Keine App kann das selbst einschalten; es braucht nur einen Schalter.';
+  }
+
+  @override
+  String get popUpsWhyGeneric =>
+      'Dieses Handy hält AirReplys Benachrichtigungen in der Liste fest, ohne Einblendung und Ton. Keine App kann das selbst einschalten; es braucht nur einen Schalter.';
+
+  @override
+  String popUpsStepsOppo(String category) {
+    return 'Tippe auf Benachrichtigungseinstellungen öffnen. Schalte auf der Seite von AirReply Banner, Klingeln und Vibrieren ein. Öffne dann unter Kategorien die $category und schalte auch dort Banner ein.';
+  }
+
+  @override
+  String get popUpsStepsXiaomi =>
+      'Tippe auf Benachrichtigungseinstellungen öffnen, schalte Schwebende Benachrichtigungen ein, dann Ton und Vibration.';
+
+  @override
+  String get popUpsStepsSamsung =>
+      'Tippe auf Benachrichtigungseinstellungen öffnen, wähle Benachrichtigen und schalte Als Pop-up anzeigen ein.';
+
+  @override
+  String get popUpsStepsGeneric =>
+      'Tippe auf Benachrichtigungseinstellungen öffnen, schalte Auf dem Bildschirm einblenden ein und wähle einen Ton.';
+
+  @override
+  String get popUpsFixed => 'Erledigt: Benachrichtigungen werden jetzt eingeblendet und klingeln.';
+
+  @override
+  String get settingsAlertsEyebrow => 'Benachrichtigungen';
+
+  @override
+  String get settingsAlertsTitle => 'Hinweise';
+
+  @override
+  String get settingsSharingEyebrow => 'Handy';
+
+  @override
+  String get settingsSharingTitle => 'Teilen';
+
+  @override
+  String get systemAlertSettingsTitle => 'Benachrichtigungseinstellungen';
+
+  @override
+  String get systemAlertSettingsSubtitle => 'Pop-up, Ton, Vibration und Sperrbildschirm, eingestellt auf diesem Gerät';
+
+  @override
+  String get testAlertSubtitle => 'Sieh, wie dich eine Nachricht gerade benachrichtigt';
+
+  @override
+  String get expectAlertsOffText =>
+      'Benachrichtigungen kommen weiter in AirReply an, aber dieses Gerät meldet sie nicht. Erlaube Hinweise, um davon zu erfahren.';
+
+  @override
+  String get expectMessagesPopUp => 'Nachrichten erscheinen mit Ton';
+
+  @override
+  String get expectMessagesPopUpSilent => 'Nachrichten erscheinen ohne Ton';
+
+  @override
+  String get expectMessagesList => 'Nachrichten warten in der Benachrichtigungsliste';
+
+  @override
+  String get expectMessagesQuiet => 'Nachrichten kommen lautlos an';
+
+  @override
+  String get expectMessagesOff => 'Hinweise für Nachrichten sind aus';
+
+  @override
+  String expectOthers(String how) {
+    return 'Andere Benachrichtigungen: $how.';
+  }
+
+  @override
+  String get expectOthersPopUp => 'erscheinen mit Ton';
+
+  @override
+  String get expectOthersPopUpSilent => 'erscheinen ohne Ton';
+
+  @override
+  String get expectOthersList => 'in der Liste, mit Ton';
+
+  @override
+  String get expectOthersQuiet => 'in der Liste, lautlos';
+
+  @override
+  String get expectOthersOff => 'kein Hinweis';
+
+  @override
+  String get expectChangeHint => 'Um etwas zu ändern, öffne unten die Benachrichtigungseinstellungen.';
+
+  @override
+  String get expectOffHelp =>
+      'Sie sind in den Benachrichtigungseinstellungen dieses Geräts ausgeschaltet. Tippe auf Benachrichtigungseinstellungen öffnen und schalte sie ein.';
 }

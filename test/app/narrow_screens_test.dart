@@ -42,7 +42,7 @@ Future<void> scrollAll(WidgetTester tester) async {
 /// screen's edge fails the test (Flutter reports overflow as an error).
 void main() {
   for (final role in ['receiver', 'sender']) {
-    for (final (width, textScale) in [(320.0, 1.0), (360.0, 1.0), (360.0, 1.3)]) {
+    for (final (width, textScale) in [(320.0, 1.0), (360.0, 1.0), (360.0, 1.3), (390.0, 2.0)]) {
       testWidgets('nothing overflows for a $role at $width px, text at ${(textScale * 100).round()}%', (tester) async {
         await go(tester, role, width, textScale: textScale);
         await scrollAll(tester);

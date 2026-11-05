@@ -281,11 +281,31 @@ final class FakeNotificationBridge implements NotificationBridge {
   @override
   Future<bool> isAppVisible() async => false;
 
+  /// What [alertChannel] answers, for every channel.
+  AlertChannelState? channelState;
+
+  @override
+  Future<AlertChannelState?> alertChannel(String id) async => channelState;
+
+  /// What [openAlertChannelSettings] was asked to open: the channel, and whether the app's page.
+  final settingsOpened = <(String, bool)>[];
+
+  @override
+  Future<void> openAlertChannelSettings(String id, {bool appPage = false}) async => settingsOpened.add((id, appPage));
+
+  var appNotificationSettingsOpened = 0;
+
+  @override
+  Future<void> openAppNotificationSettings() async => appNotificationSettingsOpened++;
+
   @override
   Future<void> clearNativeData() async {}
 
+  /// What [backgroundRestrictions] answers (the phone's maker among it).
+  var restrictions = BackgroundRestrictions.none;
+
   @override
-  Future<BackgroundRestrictions> backgroundRestrictions() async => BackgroundRestrictions.none;
+  Future<BackgroundRestrictions> backgroundRestrictions() async => restrictions;
 
   @override
   Future<void> requestListenerRebind() async {}

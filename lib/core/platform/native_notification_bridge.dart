@@ -48,6 +48,17 @@ abstract interface class NotificationBridge {
   /// Whether the app's window is in front (Android): the background engine leaves alerts to the app then.
   Future<bool> isAppVisible();
 
+  /// Whether alerts on Android channel [id] really pop up and make a sound, as the system has it now (the person or
+  /// the phone's maker may have lowered what the app asked for). Null where there is no such channel (yet).
+  Future<AlertChannelState?> alertChannel(String id);
+
+  /// That channel's page in the system settings, where only the person can turn pop-ups and sound back on; with
+  /// [appPage], the app's notification page instead (where some makers keep the switches that decide it).
+  Future<void> openAlertChannelSettings(String id, {bool appPage = false});
+
+  /// This app's notification page in the system settings: pop-up, sound, vibration, lock screen.
+  Future<void> openAppNotificationSettings();
+
   Future<void> stopSync();
 
   /// Restarts the sync engine if sharing is on, so it picks up added or removed pairs.
@@ -132,6 +143,22 @@ final class MethodChannelNotificationBridge implements NotificationBridge {
 
   @override
   Future<bool> isAppVisible() async => await _invoke<bool>('isAppVisible') ?? false;
+
+  @override
+  Future<AlertChannelState?> alertChannel(String id) async {
+    if (!isSupported) return null;
+    final map = await _invoke<Map<Object?, Object?>>('getAlertChannel', {'id': id});
+    return map == null
+        ? null
+        : (shown: map['shown'] != false, popsUp: map['popsUp'] == true, sounds: map['sounds'] == true);
+  }
+
+  @override
+  Future<void> openAlertChannelSettings(String id, {bool appPage = false}) =>
+      _invoke<void>('openAlertChannelSettings', {'id': id, 'appPage': appPage});
+
+  @override
+  Future<void> openAppNotificationSettings() => _invoke<void>('openAppNotificationSettings');
 
   @override
   Future<void> stopSync() => _invoke<void>('stopSync');

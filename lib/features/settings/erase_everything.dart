@@ -43,7 +43,10 @@ final eraseEverythingProvider = Provider<Future<void> Function()>(
     await step('alerts', () => ref.read(mirroredAlertsProvider).clearAll());
     await step('native data', () async {
       final bridge = ref.read(notificationBridgeProvider);
-      if (bridge.isSupported) await bridge.clearNativeData();
+      if (!bridge.isSupported) return;
+      // the sharing or receiving service, even if no pair was left to stop it
+      await bridge.stopSync();
+      await bridge.clearNativeData();
     });
     if (AppPlatform.usesPush) await step('push token', () => FirebaseMessaging.instance.unregister());
     await step('account', () => ref.read(authGatewayProvider).signOut(deleteAccount: true));

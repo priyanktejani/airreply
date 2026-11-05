@@ -7,6 +7,7 @@ import 'package:air_reply/features/mirror/data/history_key.dart';
 import 'package:air_reply/features/mirror/data/message_history.dart';
 import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/fakes.dart';
@@ -62,6 +63,37 @@ void main() {
     expect(fileMentions('parcel arrives tuesday'), isFalse);
     expect(fileMentions('SQLite format 3'), isFalse);
   });
+
+  test(
+    'a file the other engine holds mid-write is waited for, never wiped (the sharing phone lost its history)',
+    () async {
+      // the background engine: writes, and holds the file locked as a write does
+      final engine = HistoryDatabase(NativeDatabase(File(path), setup: historyOptions(key, busyTimeoutMs: 100).setup));
+      final history = MessageHistory(engine, 'pixel');
+      await history.putNotifications([StoredNotification(id: 'n1', payload: 'sealed', postedAt: DateTime(2026))]);
+      await engine.customStatement('PRAGMA locking_mode = EXCLUSIVE');
+      await history.putNotifications([StoredNotification(id: 'n2', payload: 'sealed', postedAt: DateTime(2026))]);
+
+      // the app opens the same file meanwhile: it finds it busy, and must not take that for a lost key
+      final logs = <String>[];
+      final print = debugPrint;
+      debugPrint = (message, {wrapWidth}) => logs.add(message ?? '');
+      addTearDown(() => debugPrint = print);
+      final app = HistoryDatabase(NativeDatabase(File(path), setup: historyOptions(key, busyTimeoutMs: 100).setup));
+      await expectLater(MessageHistory(app, 'pixel').load(), throwsA(anything), reason: 'busy: not opened yet');
+      debugPrint = print;
+      expect(logs.where((l) => l.contains('started afresh')), isEmpty, reason: 'a busy file was emptied');
+
+      // the engine's history is all there, and it keeps writing
+      await history.putNotifications([StoredNotification(id: 'n3', payload: 'sealed', postedAt: DateTime(2026))]);
+      expect((await history.load()).notifications.keys, unorderedEquals(['n1', 'n2', 'n3']));
+      await engine.close();
+
+      // once it is free, the same connection opens on its next use and reads it all
+      expect((await MessageHistory(app, 'pixel').load()).notifications.keys, unorderedEquals(['n1', 'n2', 'n3']));
+      await app.close();
+    },
+  );
 
   test('a file whose key is gone is started afresh rather than breaking the app', () async {
     await keep(open(hexKey: key), 'old secret');

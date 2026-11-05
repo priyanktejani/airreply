@@ -19,7 +19,7 @@ Future<void> onBackgroundPush(RemoteMessage message) async {
       final container = await bootstrapBackgroundIsolate();
       try {
         await container.read(mirroredAlertsProvider).initialize(onBackgroundResponse: onAlertActionInBackground);
-        await presentMirroredPush(container, message.data);
+        await presentMirroredPush(container, message.data, sentAt: message.sentTime);
       } on Object catch (e, st) {
         appLog('Could not show mirrored alert', error: e, stackTrace: st, name: 'air_reply.push');
       } finally {

@@ -54,6 +54,11 @@ void main() {
       return switch (call.method) {
         'getNotificationChannels' => <Object?>[],
         'getNotificationAppLaunchDetails' => null,
+        // what the panel shows: a mirrored alert, and the sharing service's status notification
+        'getActiveNotifications' => <Object?>[
+          <Object?, Object?>{'id': 7, 'channelId': 'mirrored_popUp_sound_vibrate', 'tag': null},
+          <Object?, Object?>{'id': 4201, 'channelId': 'air_reply_sync', 'tag': null},
+        ],
         _ => null,
       };
     });
@@ -231,6 +236,39 @@ void main() {
       });
       final reply = await container.read(mirroredAlertsProvider).launchReply();
       expect(reply?.text, 'Coming!');
+    });
+  });
+
+  group('read in AirReply: its alert leaves the notification panel', () {
+    final alerts = MirroredAlerts(FlutterLocalNotificationsPlugin());
+
+    List<Object?> cancelled() => [for (final c in calls.where((c) => c.method == 'cancel')) (c.arguments as Map)['id']];
+
+    test('the alert is taken down by the id it was raised with', () async {
+      await alerts.show(_notification(), pairId: 'p', style: const AlertStyle());
+      final raised = (calls.singleWhere((c) => c.method == 'show').arguments as Map)['id'];
+      await alerts.dismiss(['n1', 'n1']);
+      expect(cancelled(), [raised], reason: 'once, by the same id');
+      expect(raised, MirroredAlerts.alertId('n1'));
+    });
+
+    test('"Mark all as read" takes down every mirrored alert, never the sharing status notification', () async {
+      await alerts.dismissAll();
+      expect(cancelled(), [7]);
+    });
+
+    test('opening, marking or hiding in the inbox takes the alerts down', () async {
+      SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.listen(inboxStateProvider, (_, _) {});
+      await container.read(inboxStateProvider.future);
+      final inbox = container.read(inboxStateProvider.notifier);
+
+      await inbox.markRead(['pixel/n1']);
+      await inbox.hide(['pixel/n2']);
+      await pumpEventQueue();
+      expect(cancelled(), [MirroredAlerts.alertId('n1'), MirroredAlerts.alertId('n2')]);
     });
   });
 }

@@ -308,16 +308,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPermissionsTitle => '权限';
 
   @override
-  String get settingsFilterEyebrow => '筛选';
-
-  @override
-  String get settingsAppsTitle => '应用';
-
-  @override
   String get settingsPrivacyEyebrow => '隐私';
-
-  @override
-  String get settingsPrivacyTitle => '镜像与隐私';
 
   @override
   String get settingsConnectionEyebrow => '连接';
@@ -332,10 +323,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAppearanceTitle => '外观与辅助功能';
 
   @override
-  String get settingsDataEyebrow => '数据';
-
-  @override
-  String get settingsDataTitle => '你的数据';
+  String get settingsDataTitle => '隐私与数据';
 
   @override
   String get settingsHelpEyebrow => '帮助';
@@ -378,9 +366,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get permissionAlertsBrowser => '允许此浏览器显示新通知';
-
-  @override
-  String get permissionAlertsDevice => '允许这台设备提醒你新通知';
 
   @override
   String get loading => '正在加载…';
@@ -1615,7 +1600,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appsReading => '正在读取已安装的应用…';
 
   @override
-  String get alertChannelName => '镜像通知';
+  String get alertChannelName => '其他通知';
 
   @override
   String get alertChannelDescription => '从已配对手机镜像过来的通知';
@@ -1779,7 +1764,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get feedbackNoEmailApp => '这台设备上没有设置邮件应用。';
 
   @override
-  String get alertChannelPopUp => '弹出提醒';
+  String get alertChannelPopUp => '消息';
 
   @override
   String get alertChannelSilent => '静默通知';
@@ -1796,75 +1781,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get alertStyleTitle => '提醒方式';
-
-  @override
-  String alertStyleSummary(String messages, String others) {
-    return '消息：$messages · 其他：$others';
-  }
-
-  @override
-  String get alertStyleIntro => '选择手机的通知在这台设备上如何提醒你。无论怎么选，它们都会出现在“通知”中。';
-
-  @override
-  String get alertStyleMessages => '消息';
-
-  @override
-  String get alertStyleOthers => '其他通知';
-
-  @override
-  String get alertModePopUp => '弹出';
-
-  @override
-  String get alertModePopUpHint => '显示在屏幕上，有声音';
-
-  @override
-  String get alertModeNormal => '在列表中';
-
-  @override
-  String get alertModeNormalHint => '有声音，但不遮挡屏幕';
-
-  @override
-  String get alertModeSilent => '静默';
-
-  @override
-  String get alertModeSilentHint => '只在列表中：没有声音和振动';
-
-  @override
-  String get alertModeOff => '关闭';
-
-  @override
-  String get alertModeOffHint => '不提醒：只在“通知”中';
-
-  @override
-  String get alertStyleSoundTitle => '声音和振动';
-
-  @override
-  String get alertStyleSound => '声音';
-
-  @override
-  String get alertStyleVibration => '振动';
-
-  @override
-  String get alertStyleSoundHint => '用于弹出或在列表中显示的提醒';
-
-  @override
-  String get alertStyleLockScreen => '锁定屏幕上';
-
-  @override
-  String get lockScreenShow => '显示全部内容';
-
-  @override
-  String get lockScreenHideContent => '隐藏消息内容';
-
-  @override
-  String get lockScreenHide => '解锁前不显示';
-
-  @override
   String get alertStyleTest => '发送测试提醒';
-
-  @override
-  String get alertStyleTestHint => '使用上面为消息选择的设置。';
 
   @override
   String get alertStyleTestTitle => 'AirReply';
@@ -1997,5 +1914,107 @@ class AppLocalizationsZh extends AppLocalizations {
   String get receiveWhenClosedTitle => 'AirReply 关闭时也接收';
 
   @override
-  String get receiveWhenClosedText => '适用于 AirReply 关闭后会拦截提醒的手机：让它在后台也继续接收。运行时 Android 会显示一条小的状态通知。';
+  String get receiveWhenClosedText => '为会拦截提醒的手机提供备用方式。会显示一条小的状态通知。';
+
+  @override
+  String get popUpsTitle => '允许提醒弹出';
+
+  @override
+  String get actionOpenAlertSettings => '打开提醒设置';
+
+  @override
+  String get popUpsPromptTitle => '让提醒弹出';
+
+  @override
+  String get alertSoundOffTitle => '开启提醒声音';
+
+  @override
+  String popUpsWhy(String maker) {
+    return '$maker 只允许少数应用（例如 WhatsApp）弹出和响铃，其他应用需要你允许。任何应用都无法自行开启，只需打开一个开关。';
+  }
+
+  @override
+  String get popUpsWhyGeneric => '此手机只把 AirReply 的提醒放在通知列表中，不弹出也不响铃。任何应用都无法自行开启，只需打开一个开关。';
+
+  @override
+  String popUpsStepsOppo(String category) {
+    return '点按“打开提醒设置”。在 AirReply 页面开启“横幅”、“响铃”和“振动”。然后在“类别”中打开“$category”，也在那里开启“横幅”。';
+  }
+
+  @override
+  String get popUpsStepsXiaomi => '点按“打开提醒设置”，开启“悬浮通知”，再开启“声音”和“振动”。';
+
+  @override
+  String get popUpsStepsSamsung => '点按“打开提醒设置”，选择“提醒”，再开启“以弹出窗口显示”。';
+
+  @override
+  String get popUpsStepsGeneric => '点按“打开提醒设置”，开启“在屏幕上弹出”，并选择提示音。';
+
+  @override
+  String get popUpsFixed => '完成：提醒现在会弹出并响铃。';
+
+  @override
+  String get settingsAlertsEyebrow => '通知';
+
+  @override
+  String get settingsAlertsTitle => '提醒';
+
+  @override
+  String get settingsSharingEyebrow => '手机';
+
+  @override
+  String get settingsSharingTitle => '共享';
+
+  @override
+  String get systemAlertSettingsTitle => '通知设置';
+
+  @override
+  String get systemAlertSettingsSubtitle => '弹出、声音、振动和锁屏，由此设备设置';
+
+  @override
+  String get testAlertSubtitle => '看看消息现在会怎样提醒你';
+
+  @override
+  String get expectAlertsOffText => '通知仍会出现在 AirReply 中，但此设备不会提醒你。请允许提醒以便知道新通知。';
+
+  @override
+  String get expectMessagesPopUp => '消息会弹出并响铃';
+
+  @override
+  String get expectMessagesPopUpSilent => '消息会静音弹出';
+
+  @override
+  String get expectMessagesList => '消息停留在通知列表中';
+
+  @override
+  String get expectMessagesQuiet => '消息静默到达';
+
+  @override
+  String get expectMessagesOff => '消息提醒已关闭';
+
+  @override
+  String expectOthers(String how) {
+    return '其他通知：$how。';
+  }
+
+  @override
+  String get expectOthersPopUp => '弹出并响铃';
+
+  @override
+  String get expectOthersPopUpSilent => '静音弹出';
+
+  @override
+  String get expectOthersList => '在列表中，有提示音';
+
+  @override
+  String get expectOthersQuiet => '在列表中，静音';
+
+  @override
+  String get expectOthersOff => '不提醒';
+
+  @override
+  String get expectChangeHint => '如需更改，请打开下方的“通知设置”。';
+
+  @override
+  String get expectOffHelp => '它们在此设备的通知设置中已关闭。点按“打开提醒设置”并将其开启。';
 }

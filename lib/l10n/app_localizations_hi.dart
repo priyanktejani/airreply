@@ -323,16 +323,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsPermissionsTitle => 'अनुमतियाँ';
 
   @override
-  String get settingsFilterEyebrow => 'फ़िल्टर';
-
-  @override
-  String get settingsAppsTitle => 'ऐप्स';
-
-  @override
   String get settingsPrivacyEyebrow => 'निजता';
-
-  @override
-  String get settingsPrivacyTitle => 'मिररिंग और निजता';
 
   @override
   String get settingsConnectionEyebrow => 'कनेक्शन';
@@ -347,10 +338,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get settingsAppearanceTitle => 'रूप और सुलभता';
 
   @override
-  String get settingsDataEyebrow => 'डेटा';
-
-  @override
-  String get settingsDataTitle => 'आपका डेटा';
+  String get settingsDataTitle => 'निजता और डेटा';
 
   @override
   String get settingsHelpEyebrow => 'मदद';
@@ -393,9 +381,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get permissionAlertsBrowser => 'यह ब्राउज़र नई सूचनाएँ दिखा सकेगा';
-
-  @override
-  String get permissionAlertsDevice => 'यह डिवाइस आपको नई सूचनाओं के अलर्ट दे सकेगा';
 
   @override
   String get loading => 'लोड हो रहा है…';
@@ -1680,7 +1665,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get appsReading => 'इंस्टॉल किए गए ऐप्स पढ़ रहे हैं…';
 
   @override
-  String get alertChannelName => 'मिरर की गई सूचनाएँ';
+  String get alertChannelName => 'अन्य सूचनाएँ';
 
   @override
   String get alertChannelDescription => 'आपके जोड़े गए फ़ोन से मिरर की गई सूचनाएँ';
@@ -1847,7 +1832,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get feedbackNoEmailApp => 'इस डिवाइस पर कोई ईमेल ऐप सेट नहीं है।';
 
   @override
-  String get alertChannelPopUp => 'पॉप-अप अलर्ट';
+  String get alertChannelPopUp => 'संदेश';
 
   @override
   String get alertChannelSilent => 'बिना आवाज़ की सूचनाएँ';
@@ -1864,76 +1849,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get alertStyleTitle => 'अलर्ट कैसे दिखें';
-
-  @override
-  String alertStyleSummary(String messages, String others) {
-    return 'संदेश: $messages · अन्य: $others';
-  }
-
-  @override
-  String get alertStyleIntro =>
-      'चुनें कि आपके फ़ोन की सूचनाएँ इस डिवाइस पर आपको कैसे अलर्ट करें। आप जो भी चुनें, वे हमेशा सूचनाएँ टैब में पहुँचती हैं।';
-
-  @override
-  String get alertStyleMessages => 'संदेश';
-
-  @override
-  String get alertStyleOthers => 'अन्य सूचनाएँ';
-
-  @override
-  String get alertModePopUp => 'पॉप-अप';
-
-  @override
-  String get alertModePopUpHint => 'स्क्रीन पर, आवाज़ के साथ';
-
-  @override
-  String get alertModeNormal => 'सूची में';
-
-  @override
-  String get alertModeNormalHint => 'आवाज़ के साथ, स्क्रीन ढके बिना';
-
-  @override
-  String get alertModeSilent => 'बिना आवाज़';
-
-  @override
-  String get alertModeSilentHint => 'केवल सूची में: न आवाज़, न कंपन';
-
-  @override
-  String get alertModeOff => 'बंद';
-
-  @override
-  String get alertModeOffHint => 'कोई अलर्ट नहीं: केवल सूचनाएँ टैब में';
-
-  @override
-  String get alertStyleSoundTitle => 'आवाज़ और कंपन';
-
-  @override
-  String get alertStyleSound => 'आवाज़';
-
-  @override
-  String get alertStyleVibration => 'कंपन';
-
-  @override
-  String get alertStyleSoundHint => 'पॉप-अप या सूची में दिखने वाले अलर्ट के लिए';
-
-  @override
-  String get alertStyleLockScreen => 'लॉक स्क्रीन पर';
-
-  @override
-  String get lockScreenShow => 'सब कुछ दिखाएँ';
-
-  @override
-  String get lockScreenHideContent => 'संदेश की बात छिपाएँ';
-
-  @override
-  String get lockScreenHide => 'अनलॉक होने तक कुछ न दिखाएँ';
-
-  @override
   String get alertStyleTest => 'टेस्ट अलर्ट भेजें';
-
-  @override
-  String get alertStyleTestHint => 'यह ऊपर संदेशों के लिए चुनी गई सेटिंग का उपयोग करता है।';
 
   @override
   String get alertStyleTestTitle => 'AirReply';
@@ -2076,6 +1992,112 @@ class AppLocalizationsHi extends AppLocalizations {
   String get receiveWhenClosedTitle => 'AirReply बंद होने पर भी पाएँ';
 
   @override
-  String get receiveWhenClosedText =>
-      'उन फ़ोन के लिए जो AirReply बंद होने पर अलर्ट रोक देते हैं: इसे बैकग्राउंड में भी पाते रहने देता है। चलते समय Android एक छोटी स्थिति सूचना दिखाता है।';
+  String get receiveWhenClosedText => 'उन फ़ोन के लिए बैकअप जो अलर्ट रोक देते हैं। एक छोटी स्थिति सूचना दिखती है।';
+
+  @override
+  String get popUpsTitle => 'अलर्ट को पॉप-अप होने दें';
+
+  @override
+  String get actionOpenAlertSettings => 'अलर्ट सेटिंग खोलें';
+
+  @override
+  String get popUpsPromptTitle => 'अलर्ट को पॉप-अप करें';
+
+  @override
+  String get alertSoundOffTitle => 'अलर्ट की आवाज़ चालू करें';
+
+  @override
+  String popUpsWhy(String maker) {
+    return '$maker आपकी अनुमति तक केवल WhatsApp जैसे कुछ ऐप को ही पॉप-अप और रिंग करने देता है। कोई ऐप इसे खुद चालू नहीं कर सकता; बस एक स्विच चाहिए।';
+  }
+
+  @override
+  String get popUpsWhyGeneric =>
+      'यह फ़ोन AirReply के अलर्ट को बिना पॉप-अप या रिंग के सूचना सूची में रखता है। कोई ऐप इसे खुद चालू नहीं कर सकता; बस एक स्विच चाहिए।';
+
+  @override
+  String popUpsStepsOppo(String category) {
+    return 'अलर्ट सेटिंग खोलें पर टैप करें। AirReply के पेज पर बैनर, रिंग और वाइब्रेट चालू करें। फिर श्रेणियों में $category खोलें और वहाँ भी बैनर चालू करें।';
+  }
+
+  @override
+  String get popUpsStepsXiaomi =>
+      'अलर्ट सेटिंग खोलें पर टैप करें, फ़्लोटिंग नोटिफ़िकेशन चालू करें, फिर साउंड और वाइब्रेशन।';
+
+  @override
+  String get popUpsStepsSamsung =>
+      'अलर्ट सेटिंग खोलें पर टैप करें, अलर्ट चुनें, फिर पॉप-अप के रूप में दिखाएँ चालू करें।';
+
+  @override
+  String get popUpsStepsGeneric => 'अलर्ट सेटिंग खोलें पर टैप करें, स्क्रीन पर पॉप-अप चालू करें और एक आवाज़ चुनें।';
+
+  @override
+  String get popUpsFixed => 'हो गया: अब अलर्ट पॉप-अप होंगे और रिंग करेंगे।';
+
+  @override
+  String get settingsAlertsEyebrow => 'सूचनाएँ';
+
+  @override
+  String get settingsAlertsTitle => 'अलर्ट';
+
+  @override
+  String get settingsSharingEyebrow => 'फ़ोन';
+
+  @override
+  String get settingsSharingTitle => 'शेयरिंग';
+
+  @override
+  String get systemAlertSettingsTitle => 'सूचना सेटिंग';
+
+  @override
+  String get systemAlertSettingsSubtitle => 'पॉप-अप, आवाज़, वाइब्रेशन और लॉक स्क्रीन, इस डिवाइस की सेटिंग में';
+
+  @override
+  String get testAlertSubtitle => 'देखें कि अभी कोई संदेश आपको कैसे अलर्ट करता है';
+
+  @override
+  String get expectAlertsOffText =>
+      'सूचनाएँ AirReply में आती रहेंगी, पर यह डिवाइस आपको नहीं बताएगा। उनके बारे में जानने के लिए अलर्ट की अनुमति दें।';
+
+  @override
+  String get expectMessagesPopUp => 'संदेश आवाज़ के साथ पॉप-अप होते हैं';
+
+  @override
+  String get expectMessagesPopUpSilent => 'संदेश बिना आवाज़ के पॉप-अप होते हैं';
+
+  @override
+  String get expectMessagesList => 'संदेश सूचना सूची में रहते हैं';
+
+  @override
+  String get expectMessagesQuiet => 'संदेश चुपचाप आते हैं';
+
+  @override
+  String get expectMessagesOff => 'संदेश अलर्ट बंद हैं';
+
+  @override
+  String expectOthers(String how) {
+    return 'अन्य सूचनाएँ: $how।';
+  }
+
+  @override
+  String get expectOthersPopUp => 'आवाज़ के साथ पॉप-अप';
+
+  @override
+  String get expectOthersPopUpSilent => 'बिना आवाज़ पॉप-अप';
+
+  @override
+  String get expectOthersList => 'सूची में, आवाज़ के साथ';
+
+  @override
+  String get expectOthersQuiet => 'सूची में, चुपचाप';
+
+  @override
+  String get expectOthersOff => 'कोई अलर्ट नहीं';
+
+  @override
+  String get expectChangeHint => 'इनमें से कुछ भी बदलने के लिए नीचे सूचना सेटिंग खोलें।';
+
+  @override
+  String get expectOffHelp =>
+      'वे इस डिवाइस की सूचना सेटिंग में बंद हैं। अलर्ट सेटिंग खोलें पर टैप करके उन्हें चालू करें।';
 }

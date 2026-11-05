@@ -1,39 +1,34 @@
-import 'package:air_reply/features/notifications/domain/alert_style.dart';
-import 'package:air_reply/features/settings/domain/app_preferences.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_flow_test.dart';
 
 void main() {
-  testWidgets('a receiver chooses how alerts appear: other notifications silent, messages still pop up', (
+  testWidgets("a receiver's Settings: alerts first, the system's settings for how they appear, then the rest", (
     tester,
   ) async {
     await launch(tester, role: 'receiver');
     await openTab(tester, 'Settings');
-    await reveal(tester, find.text('How alerts appear'));
-    expect(find.text('Messages: Pop up · Other: In the list'), findsOneWidget);
+    expect(find.text('How alerts appear'), findsNothing, reason: "the system's settings decide that now");
+    for (final row in ['Notification settings', 'Muted apps', 'Show message text in alerts', 'Send a test alert']) {
+      await reveal(tester, find.text(row));
+      expect(find.text(row), findsOneWidget);
+    }
+    for (final section in ['Alerts', 'Sync', 'Privacy and data', 'Help and about']) {
+      await reveal(tester, find.text(section));
+      expect(find.text(section), findsWidgets);
+    }
+    expect(find.text('Sharing'), findsNothing, reason: 'a phone that shares has that section');
+    await close(tester);
+  });
 
-    await tester.tap(find.text('How alerts appear'));
-    await tester.pumpAndSettle();
-    final silent = find.text('Silent').last; // the second group: other notifications
-    await reveal(tester, silent);
-    await tester.tap(silent);
-    await tester.pumpAndSettle();
-
-    final saved = AppPreferences.fromJson(
-      (await SharedAppPreferencesStore(SharedPreferencesAsync()).load()).toJson(),
-    ).alertStyle;
-    expect(saved.others, AlertMode.silent);
-    expect(saved.messages, AlertMode.popUp);
-
-    // the bar slid away while scrolling: scrolling back a little brings its back button
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, 120));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byType(BackButton));
-    await tester.pumpAndSettle();
-    expect(find.text('Messages: Pop up · Other: Silent'), findsOneWidget);
+  testWidgets("a phone's Settings: sharing and what it needs first", (tester) async {
+    await launch(tester, role: 'sender');
+    await openTab(tester, 'Settings');
+    for (final row in ['Share notifications', 'Apps to share', 'Notification access']) {
+      await reveal(tester, find.text(row));
+      expect(find.text(row), findsOneWidget);
+    }
+    expect(find.text('Notification settings'), findsNothing);
     await close(tester);
   });
 

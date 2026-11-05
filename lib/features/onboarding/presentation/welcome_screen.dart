@@ -57,7 +57,7 @@ class WelcomeScreen extends ConsumerWidget {
     final previous = ref.watch(archivedPairsProvider).value?.length ?? 0;
 
     final sections = <Widget>[
-      UnderlinedHeadline(first: l10n.welcomeHeadlineFirst, second: l10n.welcomeHeadlineSecond),
+      UnderlinedHeadline(first: l10n.welcomeHeadlineFirst, second: l10n.welcomeHeadlineSecond, playOnce: 'welcome'),
       Text(l10n.welcomeIntro, style: AppType.bodyLarge.copyWith(color: c.muted)),
       SectionHeader(eyebrow: l10n.welcomeEyebrow, title: l10n.welcomeQuestion, padding: EdgeInsets.zero),
       for (final option in options) option,

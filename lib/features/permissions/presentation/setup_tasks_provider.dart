@@ -1,5 +1,6 @@
 import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
+import 'package:air_reply/features/notifications/alert_delivery_provider.dart';
 import 'package:air_reply/features/permissions/domain/setup_tasks.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
 import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
@@ -31,6 +32,7 @@ final setupTasksProvider = Provider.autoDispose<List<SetupTask>>((ref) {
       role: role,
       paired: paired,
       alertsAllowed: ref.watch(alertPermissionProvider).value,
+      popUpsWork: ref.watch(alertDeliveryProvider).value?.works,
       receiverRestrictions: AppPlatform.isAndroid ? ref.watch(senderPermissionsProvider).value?.restrictions : null,
       autostartConfirmed: preferences?.autostartConfirmed ?? false,
     ),

@@ -96,6 +96,9 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
   failed delete or a server retry only redelivers it. Each receiver has its own pair, so its own mailbox.
 - Web needs `web/sqlite3.wasm` and `web/drift_worker.js`, matching the sqlite3 and drift versions in `pubspec.lock`;
   download new ones from their GitHub releases when upgrading either package.
+- A notification's sealed payload must stay under firestore.rules' 16 KB: `PublishCapturedNotification.fit` keeps
+  the clear JSON under `maxPayloadBytes`, by bytes (Hindi, Chinese, emoji take 3-4 bytes a character): the icon goes
+  first, then text and title are shortened with an ellipsis. Without it such notifications were refused, unseen.
 - Every mailbox document has `expireAt` (30 days) for a Firestore TTL policy. Dismissals are their own documents,
   written only for notifications that were mirrored.
 - `firestore.rules` must be deployed before an app with this change runs, or publishing is refused.
@@ -133,6 +136,11 @@ Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configure
 - Icons: `AppIcons` (`lib/core/theme/app_icons.dart`), the Phosphor pack bundled as fonts in `assets/fonts` (regular,
   plus filled for a selected tab). Never `Icons.*`; add a missing icon to `AppIcons` by its Phosphor code point. Back
   and close buttons get theirs from the theme's `actionIconTheme`.
+- App icon: one glossy deep blue chat bubble with a white reply arrow on a flat charcoal ground (#1E1F21), in
+  the style of the system's own dark icons. `tool/make_app_icon.py` (Pillow only) draws the masters in `assets/icon/`,
+  the Windows `.ico`, Android's status-bar `ic_stat_air_reply.png` at each density and `assets/icon/app_logo.png`
+  (the in-app `AppLogo`: the bubble alone, on clear; only the app icon has the charcoal plate);
+  `dart run flutter_launcher_icons` then writes every platform's set.
 - Glass (`BackdropFilter`) only on floating chrome: app bar, pinned search, nav bar, composer.
 - Scrolling pages use `GlassSliverAppBar` (through `GlassScrollPage`, and on Home): reading on slides the bar away and
   scrolling back brings it back; a strip of its glass stays under the status bar, and pinned search boxes stay just
@@ -198,10 +206,13 @@ The development profile is "Mac Team Provisioning Profile: com.airreply.airReply
 
 ## Alerts
 
-- Receivers choose how alerts appear (`AlertStyle` in `AppPreferences`, Settings → How alerts appear): messages and
-  other notifications apart (pop up / in the list / silent / off), sound, vibration, lock screen (Android). On Android
-  each combination is its own channel (`MirroredAlerts.channelFor`; channels cannot change once created);
-  `tidyChannels` deletes the unused ones by id.
+- How alerts appear (pop-up, sound, vibration, lock screen) is the system's, as in other messaging apps: Android has
+  two fixed channels, "Messages" (`mirrored_popUp_sound_vibrate`, high importance) and "Other notifications"
+  (`mirrored_normal_sound_vibrate`), from the fixed `AlertStyle()`; the bootstrap tidies away the per-choice channels
+  of earlier versions. Settings → Alerts opens the system's page (`openSystemNotificationSettings`: Android, iOS, Mac,
+  Windows) under `AlertExpectationBanner`, which says what messages and other notifications will do as the system
+  has them now (`AlertExpectation`, read per channel by `alertDeliveryProvider`). AirReply itself only decides muted
+  apps, message text in alerts and receiving while closed.
 - Replying from an alert: Android needs `ActionBroadcastReceiver` in the manifest and the background handler
   (`onAlertActionInBackground`) on Android and iOS whether or not push is used; a reply that started the app is sent
   (`launchReply`); one that cannot be queued raises a "Reply not sent" alert with the reason. Receivers check history
@@ -213,6 +224,21 @@ The development profile is "Mac Team Provisioning Profile: com.airreply.airReply
   is closed" (`receiveWhenClosed`, off by default) runs `SyncForegroundService` (type `remoteMessaging`) in receiving
   mode (`SyncPreferences.receiving`, `_runReceiving` in `sender_sync_entrypoint.dart`), alerting only while the app's
   window is not showing (`AppVisibility`); a push and the service raise the same alert id (`onlyAlertOnce`).
+- Phone makers hold apps' alerts back: on OnePlus/OPPO/realme (and others) only an allowlist (WhatsApp, Telegram,
+  Instagram...) keeps pop-up channels; every other app's channels are lowered to the list with no sound as they are
+  created (even Slack's), and no app can raise them. `alertDeliveryProvider` reads what the system does with each
+  channel in use (`AlertChannels.kt` via `alertChannel`, judged by `judgeAlertDelivery`) and, when held back, Home
+  asks once (`showAlertDeliveryPrompt`, `alertPromptShown`), the Setup assistant lists `popUps` and Settings → Alerts
+  shows `AlertExpectationBanner`; each opens the system page with the switch (on OnePlus/OPPO/realme the app's
+  notification page: Banner, Ring and Vibrate are app-wide there, off by default, and a category offers Banner only
+  once the app's is on; elsewhere the channel's page) and confirms when the person comes back fixed.
+  No overlays or full-screen intents (a permission of their own; Android 14 keeps FSI for calls and alarms).
+- A push the server sent more than `ArrivalAlerts.window` ago (`isLatePush`, by FCM's `sentTime`, so no clock skew
+  between devices) lands without an alert: a device back online gets the backlog without one ring per message.
+- Read in AirReply means gone from the system's panel: `InboxController.markRead` / `hide` take the alerts down
+  (`MirroredAlerts.dismiss`, by `MirroredAlerts.alertId`, the same id in every isolate), "Mark all as read" takes down
+  every mirrored alert (`dismissAll`; on Android only the `mirrored*` channels, never the sharing service's status),
+  and a reply typed into an alert takes that alert down once it is queued.
 - `--dart-define=AIRREPLY_DEMO_ARRIVALS=true` (with the receiver demo) brings a new answerable message every 20 seconds,
   to try alerts and replies on a device or emulator.
 

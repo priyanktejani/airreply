@@ -1,6 +1,5 @@
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/platform/notification_permission.dart';
-import 'package:air_reply/features/notifications/domain/alert_style.dart';
 import 'package:air_reply/features/settings/domain/app_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,11 +20,11 @@ final class AppPreferencesController extends AsyncNotifier<AppPreferences> {
 
   Future<void> setHaptics(bool value) => _update((p) => p.copyWith(haptics: value));
 
-  Future<void> setAlertStyle(AlertStyle style) => _update((p) => p.copyWith(alertStyle: style));
-
   Future<void> setAutostartConfirmed(bool value) => _update((p) => p.copyWith(autostartConfirmed: value));
 
   Future<void> setSetupCardHidden(bool value) => _update((p) => p.copyWith(setupCardHidden: value));
+
+  Future<void> setAlertPromptShown() => _update((p) => p.copyWith(alertPromptShown: true));
 
   Future<void> setReceiveWhenClosed(bool value) => _update((p) => p.copyWith(receiveWhenClosed: value));
 

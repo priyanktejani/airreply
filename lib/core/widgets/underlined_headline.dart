@@ -5,11 +5,23 @@ import 'package:flutter/material.dart';
 
 /// The big headline of Home and Welcome: [first] on one line, then [second] in the accent colour with a drawn underline, left
 /// aligned. Each line rises into place, then the underline draws itself.
+///
+/// With [playOnce], that happens once while the app runs: Home's headline animates as the app opens, and is simply
+/// there whenever it is built again (scrolled back into view, a tab switch, the window resized or turned).
 class UnderlinedHeadline extends StatefulWidget {
-  const UnderlinedHeadline({required this.first, required this.second, super.key});
+  const UnderlinedHeadline({required this.first, required this.second, this.playOnce, super.key});
 
   final String first;
   final String second;
+
+  /// Names this headline: once it has played, it shows in place until the app starts again.
+  final String? playOnce;
+
+  /// The headlines that have played since the app started.
+  static final _played = <String>{};
+
+  @visibleForTesting
+  static void resetPlayed() => _played.clear();
 
   @override
   State<UnderlinedHeadline> createState() => _UnderlinedHeadlineState();
@@ -21,9 +33,11 @@ class _UnderlinedHeadlineState extends State<UnderlinedHeadline> with SingleTick
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (MediaQuery.of(context).disableAnimations) {
+    final once = widget.playOnce;
+    if (MediaQuery.of(context).disableAnimations || (once != null && UnderlinedHeadline._played.contains(once))) {
       _a.value = 1;
     } else if (_a.value == 0 && !_a.isAnimating) {
+      if (once != null) UnderlinedHeadline._played.add(once);
       _a.forward();
     }
   }

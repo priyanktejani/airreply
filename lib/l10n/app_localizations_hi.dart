@@ -925,7 +925,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return '$name के साथ सिंक दोनों डिवाइस पर बंद हो जाएगा। उसका इतिहास इस डिवाइस पर सेटिंग → पिछले डिवाइस में तब तक रहेगा जब तक आप उसे मिटा नहीं देते। दूसरे डिवाइस पर कोई असर नहीं होगा।';
+    return '$name के साथ सिंक दोनों डिवाइस पर बंद हो जाएगा। उसका इतिहास इस डिवाइस पर डिवाइस → पिछले डिवाइस में तब तक रहेगा जब तक आप उसे मिटा नहीं देते। दूसरे डिवाइस पर कोई असर नहीं होगा।';
   }
 
   @override
@@ -1845,4 +1845,237 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get feedbackNoEmailApp => 'इस डिवाइस पर कोई ईमेल ऐप सेट नहीं है।';
+
+  @override
+  String get alertChannelPopUp => 'पॉप-अप अलर्ट';
+
+  @override
+  String get alertChannelSilent => 'बिना आवाज़ की सूचनाएँ';
+
+  @override
+  String get alertStatusChannelName => 'जवाब की स्थिति';
+
+  @override
+  String get alertStatusChannelDescription => 'बताता है जब सूचना में लिखा जवाब नहीं भेजा जा सका';
+
+  @override
+  String alertReplyNotSent(String name) {
+    return '$name को जवाब नहीं भेजा गया';
+  }
+
+  @override
+  String get alertStyleTitle => 'अलर्ट कैसे दिखें';
+
+  @override
+  String alertStyleSummary(String messages, String others) {
+    return 'संदेश: $messages · अन्य: $others';
+  }
+
+  @override
+  String get alertStyleIntro =>
+      'चुनें कि आपके फ़ोन की सूचनाएँ इस डिवाइस पर आपको कैसे अलर्ट करें। आप जो भी चुनें, वे हमेशा सूचनाएँ टैब में पहुँचती हैं।';
+
+  @override
+  String get alertStyleMessages => 'संदेश';
+
+  @override
+  String get alertStyleOthers => 'अन्य सूचनाएँ';
+
+  @override
+  String get alertModePopUp => 'पॉप-अप';
+
+  @override
+  String get alertModePopUpHint => 'स्क्रीन पर, आवाज़ के साथ';
+
+  @override
+  String get alertModeNormal => 'सूची में';
+
+  @override
+  String get alertModeNormalHint => 'आवाज़ के साथ, स्क्रीन ढके बिना';
+
+  @override
+  String get alertModeSilent => 'बिना आवाज़';
+
+  @override
+  String get alertModeSilentHint => 'केवल सूची में: न आवाज़, न कंपन';
+
+  @override
+  String get alertModeOff => 'बंद';
+
+  @override
+  String get alertModeOffHint => 'कोई अलर्ट नहीं: केवल सूचनाएँ टैब में';
+
+  @override
+  String get alertStyleSoundTitle => 'आवाज़ और कंपन';
+
+  @override
+  String get alertStyleSound => 'आवाज़';
+
+  @override
+  String get alertStyleVibration => 'कंपन';
+
+  @override
+  String get alertStyleSoundHint => 'पॉप-अप या सूची में दिखने वाले अलर्ट के लिए';
+
+  @override
+  String get alertStyleLockScreen => 'लॉक स्क्रीन पर';
+
+  @override
+  String get lockScreenShow => 'सब कुछ दिखाएँ';
+
+  @override
+  String get lockScreenHideContent => 'संदेश की बात छिपाएँ';
+
+  @override
+  String get lockScreenHide => 'अनलॉक होने तक कुछ न दिखाएँ';
+
+  @override
+  String get alertStyleTest => 'टेस्ट अलर्ट भेजें';
+
+  @override
+  String get alertStyleTestHint => 'यह ऊपर संदेशों के लिए चुनी गई सेटिंग का उपयोग करता है।';
+
+  @override
+  String get alertStyleTestTitle => 'AirReply';
+
+  @override
+  String get alertStyleTestText => 'संदेश आने पर आपको ऐसे अलर्ट मिलेगा।';
+
+  @override
+  String pairFinishingOn(String name) {
+    return '$name पर पूरा हो रहा है…';
+  }
+
+  @override
+  String pairFinishingHint(String name) {
+    return '$name पर AirReply खुला रखें। दोनों डिवाइस के सहेज लेने पर जोड़ना पूरा होता है।';
+  }
+
+  @override
+  String pairUnconfirmedTitle(String name) {
+    return '$name ने जोड़ना पूरा नहीं किया';
+  }
+
+  @override
+  String pairUnconfirmedHint(String name) {
+    return 'देखें कि $name पर AirReply खुला और ऑनलाइन है। अगर वहाँ जोड़ना पूरा दिख रहा है, तो आगे बढ़ें।';
+  }
+
+  @override
+  String get actionKeepWaiting => 'इंतज़ार करें';
+
+  @override
+  String get actionPairedThere => 'वहाँ जुड़ गया है';
+
+  @override
+  String get actionCancelPairing => 'जोड़ना रद्द करें';
+
+  @override
+  String get setupAssistantTitle => 'सेटअप सहायक';
+
+  @override
+  String setupAssistantProgress(int done, int total) {
+    return '$total में से $done पूरे';
+  }
+
+  @override
+  String get setupAssistantIntroTitle => 'AirReply को चालू रखें';
+
+  @override
+  String get setupAssistantIntro =>
+      'इस डिवाइस को सूचनाएँ भरोसे से साझा करने या दिखाने के लिए जो कुछ चाहिए, बैकग्राउंड में भी। सेटिंग बदलने पर यह अपडेट होता है।';
+
+  @override
+  String get setupNeeded => 'ज़रूरी';
+
+  @override
+  String get setupRecommended => 'सुझाया गया';
+
+  @override
+  String get setupAllDone => 'सब तैयार';
+
+  @override
+  String get setupAllDoneHint => 'सब कुछ ठीक है। AirReply बैकग्राउंड में काम करता रहता है।';
+
+  @override
+  String get setupCardTitle => 'सेटअप पूरा करें';
+
+  @override
+  String get actionNotNow => 'अभी नहीं';
+
+  @override
+  String get actionTurnOn => 'चालू करें';
+
+  @override
+  String get actionAutostartDone => 'मैंने चालू कर दिया';
+
+  @override
+  String get taskAccessText =>
+      'AirReply को साझा की जाने वाली सूचनाएँ पढ़ने देता है। सूची में AirReply ढूँढें और इसे चालू करें।';
+
+  @override
+  String get taskSharingText => 'साझा करना बंद है, इसलिए आपके डिवाइस तक कुछ नहीं पहुँचता।';
+
+  @override
+  String get taskListenerText =>
+      'Android ने AirReply का सूचना लिसनर बंद कर दिया। सूचनाएँ फिर पाने के लिए इसे दोबारा जोड़ें।';
+
+  @override
+  String get taskBackgroundTitle => 'बैकग्राउंड गतिविधि';
+
+  @override
+  String get taskBackgroundText =>
+      'AirReply के लिए “बैकग्राउंड उपयोग सीमित करें” चालू है, इसलिए स्क्रीन बंद होने के कुछ देर बाद Android साझा करना रोक देता है। AirReply की सेटिंग में बैटरी खोलें और “अप्रतिबंधित” चुनें।';
+
+  @override
+  String get taskBatterySamsung =>
+      'Samsung पर, AirReply को “कभी स्लीप न होने वाले ऐप्स” में भी जोड़ें: सेटिंग → बैटरी → बैकग्राउंड उपयोग सीमाएँ।';
+
+  @override
+  String get taskAutostartXiaomi =>
+      'सिक्योरिटी → अनुमतियाँ → ऑटोस्टार्ट खोलें और AirReply चालू करें। इसके बिना ऐप बंद होते ही फ़ोन AirReply को रोक देता है।';
+
+  @override
+  String get taskAutostartOppo =>
+      'सेटिंग → बैटरी → ऐप बैटरी प्रबंधन खोलें, AirReply चुनें, और इसे अपने-आप शुरू होने व बैकग्राउंड में चलने की अनुमति दें।';
+
+  @override
+  String get taskAutostartVivo => 'i Manager → ऐप मैनेजर → ऑटोस्टार्ट खोलें और AirReply चालू करें।';
+
+  @override
+  String get taskAutostartHuawei =>
+      'फ़ोन मैनेजर → ऐप लॉन्च खोलें, AirReply ढूँढें, “मैन्युअल रूप से प्रबंधित करें” चुनें और तीनों स्विच चालू करें।';
+
+  @override
+  String get taskAlertsText => 'सूचना आने पर यह डिवाइस आपको अलर्ट दे सके। इसके बिना भी सूचनाएँ ऐप में दिखती हैं।';
+
+  @override
+  String get taskPairSender => 'इस फ़ोन की सूचनाएँ साझा करने के लिए एक डिवाइस जोड़ें।';
+
+  @override
+  String get taskPairReceiver => 'जिस फ़ोन की सूचनाएँ आप यहाँ देखना चाहते हैं, उसे जोड़ें।';
+
+  @override
+  String get eraseEverythingTitle => 'सब कुछ मिटाएँ';
+
+  @override
+  String get eraseEverythingSubtitle =>
+      'इस डिवाइस से सभी डिवाइस, इतिहास, कुंजियाँ और सेटिंग, और सर्वर से इसका खाता हटाता है';
+
+  @override
+  String get eraseEverythingConfirmTitle => 'सब कुछ मिटाएँ?';
+
+  @override
+  String get eraseEverythingConfirmMessage =>
+      'हर डिवाइस हटा दिया जाएगा, सारा इतिहास और सहेजा गया इतिहास मिटा दिया जाएगा, और AirReply नए इंस्टॉल की तरह शुरू होगा। इसे वापस नहीं लाया जा सकता।';
+
+  @override
+  String get actionErase => 'मिटाएँ';
+
+  @override
+  String get receiveWhenClosedTitle => 'AirReply बंद होने पर भी पाएँ';
+
+  @override
+  String get receiveWhenClosedText =>
+      'उन फ़ोन के लिए जो AirReply बंद होने पर अलर्ट रोक देते हैं: इसे बैकग्राउंड में भी पाते रहने देता है। चलते समय Android एक छोटी स्थिति सूचना दिखाता है।';
 }

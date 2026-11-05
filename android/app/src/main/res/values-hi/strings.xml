@@ -6,4 +6,6 @@
     <string name="sync_pause">रोकें</string>
     <string name="sync_channel_name">सिंक की स्थिति</string>
     <string name="sync_channel_description">तब दिखती है जब यह फ़ोन अपनी सूचनाएँ साझा करता है</string>
+    <string name="receive_notification_title">सूचनाएँ मिल रही हैं</string>
+    <string name="receive_notification_text">AirReply बंद होने पर भी आपके फ़ोन के अलर्ट आते हैं</string>
 </resources>

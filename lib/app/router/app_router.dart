@@ -14,9 +14,11 @@ import 'package:air_reply/features/notifications/presentation/inbox_screen.dart'
 import 'package:air_reply/features/notifications/presentation/notification_detail_screen.dart';
 import 'package:air_reply/features/onboarding/presentation/welcome_screen.dart';
 import 'package:air_reply/features/pairing/presentation/pairing_screen.dart';
+import 'package:air_reply/features/permissions/presentation/setup_assistant_screen.dart';
 import 'package:air_reply/features/permissions/presentation/setup_screen.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:air_reply/features/settings/domain/feedback.dart';
+import 'package:air_reply/features/settings/presentation/alert_style_screen.dart';
 import 'package:air_reply/features/settings/presentation/diagnostics_screen.dart';
 import 'package:air_reply/features/settings/presentation/feedback_screen.dart';
 import 'package:air_reply/features/settings/presentation/settings_screen.dart';
@@ -127,6 +129,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   overTabs('apps', (_) => const AppManagementScreen()),
                   overTabs('diagnostics', (_) => const DiagnosticsScreen()),
+                  overTabs('alerts', (_) => const AlertStyleScreen()),
+                  overTabs('setup', (_) => const SetupAssistantScreen()),
                 ],
               ),
             ],

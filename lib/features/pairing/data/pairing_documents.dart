@@ -55,6 +55,11 @@ abstract final class PairingDocuments {
 
   static bool isActive(Map<String, Object?>? pair) => pair != null && pair['active'] != false;
 
+  /// The [role]'s acknowledgement that it kept the pair: its platform, a field it may already write (see the rules).
+  static Map<String, Object?> ready(DeviceRole role, String platform) => {'${role.name}Platform': platform};
+
+  static bool isReady(Map<String, Object?>? pair, DeviceRole role) => pair?['${role.name}Platform'] != null;
+
   /// [data] uses DateTime for timestamps. Null when the document does not exist.
   static PairingSession? session(String code, Map<String, Object?>? data) {
     if (data == null) return null;

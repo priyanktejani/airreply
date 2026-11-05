@@ -14,7 +14,6 @@ final class ContinueHistory {
 
   /// Returns the ids of the notifications that joined [pair].
   Future<List<String>> call(PairingCredentials pair) async {
-    if (pair.peerUid == null) return const [];
     final moved = <String>[];
     for (final old in await _archive.readAll()) {
       if (!old.continuesIn(pair)) continue;

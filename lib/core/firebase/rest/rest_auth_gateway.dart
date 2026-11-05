@@ -38,6 +38,22 @@ final class RestAuthGateway implements AuthGateway {
     return (await _validSession()).idToken!;
   }
 
+  @override
+  Future<void> signOut({bool deleteAccount = false}) async {
+    if (deleteAccount) {
+      try {
+        final token = await idToken();
+        await _post(_config.identityToolkit('accounts:delete'), jsonEncode({'idToken': token}), {
+          'content-type': 'application/json',
+        });
+      } on Object {
+        // the account stays on the server (offline): signed out here all the same
+      }
+    }
+    _session = null;
+    await _secrets.delete(_storageKey);
+  }
+
   // One sign-in / refresh at a time, however many requests ask for a token at once.
   Future<_Session> _validSession() => _inFlight ??= _resolve().whenComplete(() => _inFlight = null);
 

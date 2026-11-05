@@ -2,6 +2,7 @@ import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/utils/app_insets.dart';
+import 'package:air_reply/core/widgets/bottom_fade.dart';
 import 'package:air_reply/core/widgets/glass_container.dart';
 import 'package:flutter/material.dart';
 
@@ -28,17 +29,17 @@ class StickyActionBar extends StatelessWidget {
   static double room(BuildContext context) => AppInsets.bottom(context, extra: reserve + AppSpacing.xl);
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    top: false,
-    minimum: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
-    child: GlassContainer(
-      strong: true,
-      floating: true,
-      borderRadius: pill ? AppRadius.fullBorder : AppRadius.xlBorder,
-      padding: pill
-          ? const EdgeInsets.all(AppSpacing.sm)
-          : const EdgeInsets.fromLTRB(AppSpacing.sm, AppSpacing.sm, AppSpacing.sm, AppSpacing.md),
-      child: SizedBox(width: double.infinity, child: child),
+  Widget build(BuildContext context) => BottomFade(
+    child: SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
+      child: GlassContainer(
+        strong: true,
+        floating: true,
+        borderRadius: pill ? AppRadius.fullBorder : AppRadius.xlBorder,
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        child: SizedBox(width: double.infinity, child: child),
+      ),
     ),
   );
 }

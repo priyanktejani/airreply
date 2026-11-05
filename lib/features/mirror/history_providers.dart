@@ -53,6 +53,12 @@ final moveHistoryProvider = Provider<Future<List<String>> Function(PairingCreden
   },
 );
 
+/// Deletes every pair's history on this device.
+final eraseAllHistoryProvider = Provider<Future<void> Function()>(
+  (ref) =>
+      () => ref.read(historyDatabaseProvider).eraseAll(),
+);
+
 /// Deletes one pair's history on this device.
 final eraseHistoryProvider = Provider<Future<void> Function(String pairId)>(
   (ref) =>

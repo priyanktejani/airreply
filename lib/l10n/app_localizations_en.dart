@@ -923,7 +923,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return 'Syncing with $name stops on both devices. Its history stays on this device under Settings → Previous devices until you delete it. Other devices are not affected.';
+    return 'Syncing with $name stops on both devices. Its history stays on this device under Devices → Previous devices until you delete it. Other devices are not affected.';
   }
 
   @override
@@ -1867,4 +1867,238 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackNoEmailApp => 'No email app is set up on this device.';
+
+  @override
+  String get alertChannelPopUp => 'Pop-up alerts';
+
+  @override
+  String get alertChannelSilent => 'Silent notifications';
+
+  @override
+  String get alertStatusChannelName => 'Reply status';
+
+  @override
+  String get alertStatusChannelDescription => 'Tells you when a reply typed into a notification could not be sent';
+
+  @override
+  String alertReplyNotSent(String name) {
+    return 'Reply to $name not sent';
+  }
+
+  @override
+  String get alertStyleTitle => 'How alerts appear';
+
+  @override
+  String alertStyleSummary(String messages, String others) {
+    return 'Messages: $messages · Other: $others';
+  }
+
+  @override
+  String get alertStyleIntro =>
+      'Choose how notifications from your phone alert you on this device. Whatever you choose, they always arrive in Notifications.';
+
+  @override
+  String get alertStyleMessages => 'Messages';
+
+  @override
+  String get alertStyleOthers => 'Other notifications';
+
+  @override
+  String get alertModePopUp => 'Pop up';
+
+  @override
+  String get alertModePopUpHint => 'On screen, with sound';
+
+  @override
+  String get alertModeNormal => 'In the list';
+
+  @override
+  String get alertModeNormalHint => 'With sound, without covering the screen';
+
+  @override
+  String get alertModeSilent => 'Silent';
+
+  @override
+  String get alertModeSilentHint => 'In the list only: no sound, no vibration';
+
+  @override
+  String get alertModeOff => 'Off';
+
+  @override
+  String get alertModeOffHint => 'No alert: only in Notifications';
+
+  @override
+  String get alertStyleSoundTitle => 'Sound and vibration';
+
+  @override
+  String get alertStyleSound => 'Sound';
+
+  @override
+  String get alertStyleVibration => 'Vibration';
+
+  @override
+  String get alertStyleSoundHint => 'For alerts that pop up or show in the list';
+
+  @override
+  String get alertStyleLockScreen => 'On the lock screen';
+
+  @override
+  String get lockScreenShow => 'Show everything';
+
+  @override
+  String get lockScreenHideContent => 'Hide what the message says';
+
+  @override
+  String get lockScreenHide => 'Show nothing until unlocked';
+
+  @override
+  String get alertStyleTest => 'Send a test alert';
+
+  @override
+  String get alertStyleTestHint => 'It uses the choices for messages above.';
+
+  @override
+  String get alertStyleTestTitle => 'AirReply';
+
+  @override
+  String get alertStyleTestText => 'This is how a message will alert you.';
+
+  @override
+  String pairFinishingOn(String name) {
+    return 'Finishing on $name…';
+  }
+
+  @override
+  String pairFinishingHint(String name) {
+    return 'Keep AirReply open on $name. Pairing is done once both devices have saved it.';
+  }
+
+  @override
+  String pairUnconfirmedTitle(String name) {
+    return '$name hasn\'t finished pairing';
+  }
+
+  @override
+  String pairUnconfirmedHint(String name) {
+    return 'Check that AirReply is open on $name and online. If it already shows the pairing as done, carry on.';
+  }
+
+  @override
+  String get actionKeepWaiting => 'Keep waiting';
+
+  @override
+  String get actionPairedThere => 'It\'s paired there';
+
+  @override
+  String get actionCancelPairing => 'Cancel pairing';
+
+  @override
+  String get setupAssistantTitle => 'Setup assistant';
+
+  @override
+  String setupAssistantProgress(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String get setupAssistantIntroTitle => 'Keep AirReply working';
+
+  @override
+  String get setupAssistantIntro =>
+      'Everything this device needs to share or show notifications reliably, even in the background. It updates as you change settings.';
+
+  @override
+  String get setupNeeded => 'Needed';
+
+  @override
+  String get setupRecommended => 'Recommended';
+
+  @override
+  String get setupAllDone => 'All set';
+
+  @override
+  String get setupAllDoneHint => 'Everything is in place. AirReply keeps working in the background.';
+
+  @override
+  String get setupCardTitle => 'Finish setting up';
+
+  @override
+  String get actionNotNow => 'Not now';
+
+  @override
+  String get actionTurnOn => 'Turn on';
+
+  @override
+  String get actionAutostartDone => 'I\'ve turned it on';
+
+  @override
+  String get taskAccessText =>
+      'Lets AirReply read the notifications it shares. Find AirReply in the list and switch it on.';
+
+  @override
+  String get taskSharingText => 'Sharing is off, so nothing reaches your devices.';
+
+  @override
+  String get taskListenerText =>
+      'Android stopped AirReply\'s notification listener. Reconnect it to start receiving again.';
+
+  @override
+  String get taskBackgroundTitle => 'Background activity';
+
+  @override
+  String get taskBackgroundText =>
+      '“Restrict background usage” is on for AirReply, so Android stops sharing soon after the screen goes off. In AirReply’s settings, open Battery and choose Unrestricted.';
+
+  @override
+  String get taskBatterySamsung =>
+      'On Samsung, also add AirReply to Never sleeping apps: Settings → Battery → Background usage limits.';
+
+  @override
+  String get taskAutostartXiaomi =>
+      'Open Security → Permissions → Autostart, and turn on AirReply. Without it, the phone stops AirReply once the app is closed.';
+
+  @override
+  String get taskAutostartOppo =>
+      'Open Settings → Battery → App battery management, choose AirReply, and allow it to start automatically and run in the background.';
+
+  @override
+  String get taskAutostartVivo => 'Open i Manager → App manager → Autostart, and turn on AirReply.';
+
+  @override
+  String get taskAutostartHuawei =>
+      'Open Phone Manager → App launch, find AirReply, choose Manage manually, and turn on all three switches.';
+
+  @override
+  String get taskAlertsText =>
+      'Lets this device alert you when a notification arrives. Without it, notifications still appear in the app.';
+
+  @override
+  String get taskPairSender => 'Pair a device to share this phone\'s notifications with.';
+
+  @override
+  String get taskPairReceiver => 'Pair the phone whose notifications you want to see here.';
+
+  @override
+  String get eraseEverythingTitle => 'Erase everything';
+
+  @override
+  String get eraseEverythingSubtitle =>
+      'Removes all devices, history, keys and settings from this device, and its account from the server';
+
+  @override
+  String get eraseEverythingConfirmTitle => 'Erase everything?';
+
+  @override
+  String get eraseEverythingConfirmMessage =>
+      'Every device is removed, all history and kept history is deleted, and AirReply starts as if newly installed. This cannot be undone.';
+
+  @override
+  String get actionErase => 'Erase';
+
+  @override
+  String get receiveWhenClosedTitle => 'Receive when AirReply is closed';
+
+  @override
+  String get receiveWhenClosedText =>
+      'For phones that hold back alerts once AirReply is closed: keeps it receiving in the background too. Android shows a small status notification while it runs.';
 }

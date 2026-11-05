@@ -24,6 +24,7 @@ import 'package:air_reply/features/pairing/domain/entities/pairing_session.dart'
 import 'package:air_reply/features/pairing/domain/repositories/archived_pairs_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_credentials_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_repository.dart';
+import 'package:air_reply/features/pairing/domain/usecases/receiver_pairing_usecases.dart';
 import 'package:air_reply/features/pairing/pairing_providers.dart';
 import 'package:air_reply/features/session/domain/device_settings_store.dart';
 import 'package:air_reply/features/session/session_providers.dart';
@@ -48,6 +49,7 @@ List<Override> demoOverrides(String role) {
     // demo history lives in memory, not in the history database: removed devices keep nothing
     historySizeProvider.overrideWithValue((_) async => (notifications: 0, replies: 0)),
     archivedPairsStoreProvider.overrideWithValue(_DemoArchive()),
+    pendingJoinStoreProvider.overrideWithValue(_NoPendingJoin()),
     removeDoorbellProvider.overrideWithValue((_) async {}),
     notificationBridgeProvider.overrideWithValue(_DemoBridge()),
     notificationPermissionProvider.overrideWithValue(_DemoPermission()),
@@ -121,6 +123,17 @@ final class _DemoPairs implements PairingCredentialsStore {
   Future<void> remove(String pairId) async => _pairs.removeWhere((p) => p.pairId == pairId);
 }
 
+final class _NoPendingJoin implements PendingJoinStore {
+  @override
+  Future<PendingJoin?> read() async => null;
+
+  @override
+  Future<void> save(PendingJoin join) async {}
+
+  @override
+  Future<void> clear() async {}
+}
+
 final class _DemoArchive implements ArchivedPairsStore {
   final _pairs = <ArchivedPair>[];
 
@@ -141,6 +154,9 @@ final class _DemoPairing implements PairingRepository {
 
   @override
   Stream<bool> watchPairActive(String pairId) => Stream.value(true);
+
+  @override
+  Future<String?> peerUidOf(String pairId) async => null;
 
   @override
   Future<void> endPair(String pairId) async {}
@@ -166,7 +182,16 @@ final class _DemoPairing implements PairingRepository {
   }) => Future.error(_unavailable);
 
   @override
-  Future<String> confirmSession(PairingSession session) => Future.error(_unavailable);
+  String newPairId() => 'demo';
+
+  @override
+  Future<void> confirmSession(PairingSession session, String pairId) => Future.error(_unavailable);
+
+  @override
+  Future<void> markReady(String pairId, DeviceRole role) async {}
+
+  @override
+  Stream<bool> watchReady(String pairId, DeviceRole role) => Stream.value(true);
 
   @override
   Future<void> cancelSession(String code) async {}
@@ -178,7 +203,35 @@ final class _DemoMirror implements MirrorRepository {
 
   static final _instances = <String, _DemoMirror>{};
 
-  static _DemoMirror of(String pairId) => _instances.putIfAbsent(pairId, () => _seed(pairId));
+  static _DemoMirror of(String pairId) => _instances.putIfAbsent(pairId, () {
+    final mirror = _seed(pairId);
+    if (_arrivals && pairId == 'pixel') mirror._startArrivals();
+    return mirror;
+  });
+
+  /// `--dart-define=AIRREPLY_DEMO_ARRIVALS=true`: a new message that can be answered arrives every 20 seconds, so
+  /// alerts (and replying from them) can be tried on a device without a phone. Off by default.
+  static const _arrivals = bool.fromEnvironment('AIRREPLY_DEMO_ARRIVALS');
+
+  void _startArrivals() {
+    var n = 0;
+    Timer.periodic(const Duration(seconds: 20), (_) {
+      n++;
+      _notifications.insert(
+        0,
+        _n(
+          'arrival-$n',
+          'com.whatsapp',
+          'WhatsApp',
+          'Alex Morgan',
+          'Are you still coming? ($n)',
+          Duration.zero,
+          chat: 'alex',
+        ),
+      );
+      _changes.add(null);
+    });
+  }
 
   final List<MirroredNotification> _notifications;
   final List<ReplyCommand> _replies;
@@ -540,7 +593,7 @@ final class _DemoBridge implements NotificationBridge {
   Future<SyncStatus> syncStatus() async => _status;
 
   @override
-  Future<void> startSync() async => _setEnabled(true);
+  Future<void> startSync({bool receiving = false}) async => _setEnabled(true);
 
   @override
   Future<void> stopSync() async => _setEnabled(false);
@@ -564,6 +617,15 @@ final class _DemoBridge implements NotificationBridge {
 
   @override
   Future<void> openAutostartSettings() async {}
+
+  @override
+  Future<void> openAppSettings() async {}
+
+  @override
+  Future<bool> isAppVisible() async => false;
+
+  @override
+  Future<void> clearNativeData() async {}
 
   @override
   Future<BackgroundRestrictions> backgroundRestrictions() async => BackgroundRestrictions.none;

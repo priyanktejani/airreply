@@ -6,4 +6,6 @@
     <string name="sync_pause">Pausieren</string>
     <string name="sync_channel_name">Sync-Status</string>
     <string name="sync_channel_description">Wird angezeigt, während dieses Telefon seine Benachrichtigungen teilt</string>
+    <string name="receive_notification_title">Mitteilungen werden empfangen</string>
+    <string name="receive_notification_text">Hinweise deines Handys kommen an, auch wenn AirReply geschlossen ist</string>
 </resources>

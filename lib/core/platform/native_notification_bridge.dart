@@ -19,6 +19,12 @@ abstract interface class NotificationBridge {
   /// OEM "Autostart" screen (or the app's settings page on phones without one).
   Future<void> openAutostartSettings();
 
+  /// This app's page in the system settings (background activity, battery use, notifications).
+  Future<void> openAppSettings();
+
+  /// Forgets what the Android side keeps for itself (sharing on or off, the app filter): Settings → Erase everything.
+  Future<void> clearNativeData();
+
   Future<BackgroundRestrictions> backgroundRestrictions();
 
   /// Asks Android to bind the notification listener again when access is granted but nothing is listening (what
@@ -35,7 +41,12 @@ abstract interface class NotificationBridge {
   Future<void> setAppFilter(AppFilter filter);
 
   /// Starts the foreground service and the headless sync engine, and keeps them running across reboots.
-  Future<void> startSync();
+  /// Starts the background service: sharing this phone's notifications, or, with [receiving], keeping a device that
+  /// shows them receiving while AirReply is closed.
+  Future<void> startSync({bool receiving = false});
+
+  /// Whether the app's window is in front (Android): the background engine leaves alerts to the app then.
+  Future<bool> isAppVisible();
 
   Future<void> stopSync();
 
@@ -83,6 +94,12 @@ final class MethodChannelNotificationBridge implements NotificationBridge {
   Future<void> openAutostartSettings() => _invoke<void>('openAutostartSettings');
 
   @override
+  Future<void> openAppSettings() => _invoke<void>('openAppSettings');
+
+  @override
+  Future<void> clearNativeData() => _invoke<void>('clearNativeData');
+
+  @override
   Future<BackgroundRestrictions> backgroundRestrictions() async {
     if (!isSupported) return BackgroundRestrictions.none;
     final map = await _invoke<Map<Object?, Object?>>('getBackgroundRestrictions');
@@ -111,7 +128,10 @@ final class MethodChannelNotificationBridge implements NotificationBridge {
   Future<void> setAppFilter(AppFilter filter) => _invoke<void>('setAppFilter', filter.toMap());
 
   @override
-  Future<void> startSync() => _invoke<void>('startSync');
+  Future<void> startSync({bool receiving = false}) => _invoke<void>('startSync', {'receiving': receiving});
+
+  @override
+  Future<bool> isAppVisible() async => await _invoke<bool>('isAppVisible') ?? false;
 
   @override
   Future<void> stopSync() => _invoke<void>('stopSync');

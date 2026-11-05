@@ -90,7 +90,9 @@ void main() {
   });
 
   group('GlassScrollPage', () {
-    testWidgets('pins a glass app bar and a search box that turns to glass over content', (tester) async {
+    testWidgets('the bar slides away while reading and comes back on scrolling back; the search box stays', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -101,21 +103,132 @@ void main() {
               title: const Text('Title'),
               search: SearchField(onChanged: (_) {}, hint: 'Search'),
               slivers: [
-                SliverList.list(children: [for (var i = 0; i < 40; i++) Text('Row $i')]),
+                SliverList.list(children: [for (var i = 0; i < 80; i++) Text('Row $i')]),
               ],
             ),
           ),
         ),
       );
       expect(find.byType(GlassBarBackground), findsOneWidget);
+      // hidden: faded out, or not built at all (with no status bar, nothing of the bar is left)
+      double opacityOf(String text) => find.text(text).evaluate().isEmpty
+          ? 0
+          : tester.widget<Opacity>(find.ancestor(of: find.text(text), matching: find.byType(Opacity)).first).opacity;
+      final titleTop = tester.getTopLeft(find.text('Title')).dy;
       final searchTop = tester.getTopLeft(find.text('Search')).dy;
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      expect(opacityOf('Title'), 1);
+
+      // reading on: the bar goes, the search box moves up into its place and stays
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
       await tester.pumpAndSettle();
-      // the bar and the search box stay put while the rows scroll under them
-      expect(find.text('Title'), findsOneWidget);
-      expect(tester.getTopLeft(find.text('Search')).dy, lessThanOrEqualTo(searchTop));
-      expect(find.text('Search'), findsOneWidget);
+      expect(opacityOf('Title'), 0);
+      final pinned = tester.getTopLeft(find.text('Search')).dy;
+      expect(pinned, lessThan(searchTop));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -600));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('Search')).dy, pinned);
+
+      // scrolling back a little, far from the top: the bar is back at once, with the search box under it
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 40));
+      await tester.pumpAndSettle();
+      expect(opacityOf('Title'), 1);
+      expect(tester.getTopLeft(find.text('Title')).dy, titleTop);
+      expect(tester.getTopLeft(find.text('Search')).dy, searchTop);
+      expect(find.text('Row 0'), findsNothing);
+
+      // back and forth, many times over: every snap animates, and none of them runs out of tickers
+      for (var i = 0; i < 6; i++) {
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+        await tester.pumpAndSettle();
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, 40));
+        await tester.pumpAndSettle();
+      }
+      expect(tester.takeException(), isNull);
+      expect(opacityOf('Title'), 1);
     });
+  });
+
+  testWidgets('a bar moved in the tree (a tab switch, a route transition) still snaps', (tester) async {
+    // the page keeps its state while its render objects detach and attach again; the header then needs a new ticker
+    final page = GlobalKey();
+    var wrapped = false;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: AppTheme.light(),
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            rebuild = setState;
+            final child = KeyedSubtree(
+              key: page,
+              child: GlassScrollPage(
+                title: const Text('Title'),
+                slivers: [
+                  SliverList.list(children: [for (var i = 0; i < 80; i++) Text('Row $i')]),
+                ],
+              ),
+            );
+            return Scaffold(
+              body: wrapped ? Padding(padding: EdgeInsets.zero, child: child) : child,
+            );
+          },
+        ),
+      ),
+    );
+    Future<void> snapBothWays() async {
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 40));
+      await tester.pumpAndSettle();
+    }
+
+    await snapBothWays();
+    for (var i = 0; i < 3; i++) {
+      rebuild(() => wrapped = !wrapped);
+      await tester.pumpAndSettle();
+      await snapBothWays();
+    }
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('under a status bar, a strip of glass stays and the search box pins below it, never under the icons', (
+    tester,
+  ) async {
+    const statusBar = 47.0;
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: AppTheme.light(),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(padding: const EdgeInsets.only(top: statusBar)),
+          child: child!,
+        ),
+        home: Scaffold(
+          body: GlassScrollPage(
+            title: const Text('Title'),
+            search: SearchField(onChanged: (_) {}, hint: 'Search'),
+            slivers: [
+              SliverList.list(children: [for (var i = 0; i < 80; i++) Text('Row $i')]),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(tester.getTopLeft(find.text('Title')).dy, greaterThan(statusBar));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -900));
+    await tester.pumpAndSettle();
+
+    // the glass is still there, just the status bar's height of it
+    final glass = tester.getRect(find.byType(GlassBarBackground));
+    expect(glass.top, 0);
+    expect(glass.height, statusBar);
+    // the search box sits right under it
+    final search = tester.getRect(find.byType(SearchField));
+    expect(search.top, greaterThanOrEqualTo(statusBar));
+    expect(search.top, lessThan(statusBar + 20));
   });
 
   group('showAppSheet', () {

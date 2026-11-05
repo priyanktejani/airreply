@@ -6,11 +6,13 @@ import 'package:air_reply/features/pairing/data/firestore_pairing_repository.dar
 import 'package:air_reply/features/pairing/data/rest_pairing_repository.dart';
 import 'package:air_reply/features/pairing/data/secure_archived_pairs_store.dart';
 import 'package:air_reply/features/pairing/data/secure_pairing_credentials_store.dart';
+import 'package:air_reply/features/pairing/data/secure_pending_join_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/archived_pairs_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_credentials_store.dart';
 import 'package:air_reply/features/pairing/domain/repositories/pairing_repository.dart';
 import 'package:air_reply/features/pairing/domain/usecases/continue_history.dart';
 import 'package:air_reply/features/pairing/domain/usecases/receiver_pairing_usecases.dart';
+import 'package:air_reply/features/pairing/domain/usecases/restore_kept_history.dart';
 import 'package:air_reply/features/pairing/domain/usecases/sender_pairing_usecases.dart';
 import 'package:air_reply/features/pairing/domain/usecases/unpair.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,6 +31,12 @@ final pairingRepositoryProvider = Provider<PairingRepository>(
   },
 );
 
+/// How long pairing waits for the other device's acknowledgement, and how often it asks the server again beside the
+/// live updates (shorter in tests).
+final pairingTimingsProvider = Provider<({Duration ackTimeout, Duration poll})>(
+  (ref) => (ackTimeout: const Duration(seconds: 45), poll: const Duration(seconds: 4)),
+);
+
 final pairingCredentialsStoreProvider = Provider<PairingCredentialsStore>(
   (ref) => SecurePairingCredentialsStore(ref.watch(secretStoreProvider)),
 );
@@ -40,6 +48,14 @@ final archivedPairsStoreProvider = Provider<ArchivedPairsStore>(
 
 final continueHistoryProvider = Provider(
   (ref) => ContinueHistory(ref.watch(archivedPairsStoreProvider), moveHistory: ref.watch(moveHistoryProvider)),
+);
+
+final restoreKeptHistoryProvider = Provider(
+  (ref) => RestoreKeptHistory(
+    ref.watch(pairingRepositoryProvider),
+    ref.watch(pairingCredentialsStoreProvider),
+    ref.watch(continueHistoryProvider),
+  ),
 );
 
 final startPairingSessionProvider = Provider(
@@ -65,7 +81,19 @@ final joinPairingSessionProvider = Provider(
 );
 
 final finishReceiverPairingProvider = Provider(
-  (ref) => FinishReceiverPairing(ref.watch(pairingCredentialsStoreProvider)),
+  (ref) => FinishReceiverPairing(ref.watch(pairingCredentialsStoreProvider), ref.watch(pairingRepositoryProvider)),
+);
+
+final pendingJoinStoreProvider = Provider<PendingJoinStore>(
+  (ref) => SecurePendingJoinStore(ref.watch(secretStoreProvider)),
+);
+
+final resumeReceiverPairingProvider = Provider(
+  (ref) => ResumeReceiverPairing(
+    ref.watch(pendingJoinStoreProvider),
+    ref.watch(pairingRepositoryProvider),
+    ref.watch(finishReceiverPairingProvider),
+  ),
 );
 
 final unpairProvider = Provider(

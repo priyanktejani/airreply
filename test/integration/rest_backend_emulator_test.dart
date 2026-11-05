@@ -119,7 +119,7 @@ void main() {
         .watchSession(pending.session.code)
         .firstWhere((s) => s?.pairId != null)
         .timeout(const Duration(seconds: 10));
-    final receiverCredentials = await FinishReceiverPairing(receiver.store).call(joined, confirmed!);
+    final receiverCredentials = await FinishReceiverPairing(receiver.store, receiver.pairing).call(joined, confirmed!);
     return (senderCredentials, receiverCredentials);
   }
 
@@ -140,6 +140,23 @@ void main() {
     expect(phonePair.pairId, desktopPair.pairId);
     expect(phonePair.sharedKey, desktopPair.sharedKey);
     expect(desktopPair.peerName, 'Pixel 9');
+
+    // Both acknowledged the pair, and the security rules let each write only its own acknowledgement: the phone sees
+    // the desktop's, so it shows paired only once both kept the pair.
+    expect(
+      await phone.pairing
+          .watchReady(phonePair.pairId, DeviceRole.receiver)
+          .firstWhere((r) => r)
+          .timeout(const Duration(seconds: 10)),
+      isTrue,
+    );
+    expect(
+      await desktop.pairing
+          .watchReady(desktopPair.pairId, DeviceRole.sender)
+          .firstWhere((r) => r)
+          .timeout(const Duration(seconds: 10)),
+      isTrue,
+    );
 
     final phoneMirror = phone.mirror(phonePair);
     final desktopMirror = desktop.mirror(desktopPair);

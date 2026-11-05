@@ -1,14 +1,15 @@
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/utils/app_insets.dart';
-import 'package:air_reply/core/widgets/glass_app_bar.dart';
+import 'package:air_reply/core/widgets/glass_sliver_app_bar.dart';
 import 'package:air_reply/core/widgets/pinned_search_bar.dart';
 import 'package:air_reply/core/widgets/responsive_center.dart';
 import 'package:flutter/material.dart';
 
-/// A scrolling page under a pinned frosted-glass app bar: the content scrolls up beneath the bar (and beneath the
-/// [search] box, pinned just under it), is centred and never wider than [maxWidth], and ends clear of the floating
-/// navigation bar. Pull down to [onRefresh].
+/// A scrolling page under a frosted-glass app bar that slides away as the page is read and comes back on scrolling the
+/// other way ([GlassSliverAppBar]): the content scrolls up beneath the bar (and beneath the [search] box, pinned just
+/// under it), is centred and never wider than [maxWidth], and ends clear of the floating navigation bar. Pull down to
+/// [onRefresh].
 class GlassScrollPage extends StatelessWidget {
   const GlassScrollPage({
     required this.slivers,
@@ -36,7 +37,7 @@ class GlassScrollPage extends StatelessWidget {
   final ScrollController? controller;
 
   /// The bar's height, a little taller than Material's.
-  static const toolbarHeight = kToolbarHeight + AppSpacing.sm;
+  static const toolbarHeight = GlassSliverAppBar.defaultHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -45,20 +46,7 @@ class GlassScrollPage extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       slivers: [
-        SliverAppBar(
-          pinned: true,
-          toolbarHeight: toolbarHeight,
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          flexibleSpace: const GlassBarBackground(),
-          leading: leading,
-          centerTitle: centerTitle,
-          title: title,
-          actions: [
-            ...actions,
-            const SizedBox(width: AppSpacing.sm),
-          ],
-        ),
+        GlassSliverAppBar(leading: leading, centerTitle: centerTitle, title: title, actions: actions),
         if (search != null) PinnedSearchBar(field: search!, maxWidth: maxWidth),
         for (final sliver in slivers)
           ResponsiveSliverCenter(

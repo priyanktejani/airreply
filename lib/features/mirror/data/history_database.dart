@@ -107,6 +107,14 @@ final class HistoryDatabase extends _$HistoryDatabase {
     },
   );
 
+  /// Deletes all history of every pair, kept or not, and the search index: Settings → Erase everything.
+  Future<void> eraseAll() => transaction(() async {
+    await customStatement('DELETE FROM history_fts');
+    for (final table in allTables) {
+      await delete(table).go();
+    }
+  });
+
   /// Changes whenever another connection (another isolate or engine) commits a write; this connection's own writes
   /// leave it as it is.
   Future<int> dataVersion() async => (await customSelect('PRAGMA data_version').getSingle()).read<int>('data_version');

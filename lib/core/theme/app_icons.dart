@@ -99,4 +99,10 @@ abstract final class AppIcons {
   static const IconData delete = IconData(0xe4a6, fontFamily: _regularFont); // trash
   static const IconData history = IconData(0xe1a0, fontFamily: _regularFont); // clockCounterClockwise
   static const IconData lightbulb = IconData(0xe2dc, fontFamily: _regularFont); // lightbulb
+
+  // Alerts and the setup assistant.
+  static const IconData volume = IconData(0xe44a, fontFamily: _regularFont); // speakerHigh
+  static const IconData checklist = IconData(0xeadc, fontFamily: _regularFont); // listChecks
+  static const IconData taskDone = IconData(0xe184, fontFamily: _regularFont); // checkCircle
+  static const IconData taskOpen = IconData(0xe18a, fontFamily: _regularFont); // circle
 }

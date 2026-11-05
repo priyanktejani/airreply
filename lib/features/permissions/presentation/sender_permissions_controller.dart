@@ -42,6 +42,9 @@ final class SenderPermissionsController extends AsyncNotifier<SenderPermissions>
 
   Future<void> openAutostartSettings() => _bridge.openAutostartSettings();
 
+  /// This app's system settings page: background activity, battery use.
+  Future<void> openAppSettings() => _bridge.openAppSettings();
+
   Future<void> requestPostNotifications() async {
     await _permission.request();
     await refresh();

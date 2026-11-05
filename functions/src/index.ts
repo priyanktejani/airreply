@@ -13,7 +13,12 @@ import { initializeApp } from 'firebase-admin/app';
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { getMessaging, type Message } from 'firebase-admin/messaging';
 import { logger } from 'firebase-functions';
+import { setGlobalOptions } from 'firebase-functions/v2';
 import { onDocumentCreated, onDocumentUpdated } from 'firebase-functions/v2/firestore';
+
+// Beside the Firestore database (asia-south1): its triggers must run in the same region. A few instances are plenty
+// for a push relay and keep a runaway loop from costing anything.
+setGlobalOptions({ region: 'asia-south1', maxInstances: 10 });
 
 initializeApp();
 const db = getFirestore();

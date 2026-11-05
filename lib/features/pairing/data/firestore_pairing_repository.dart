@@ -96,21 +96,42 @@ final class FirestorePairingRepository implements PairingRepository {
   }
 
   @override
-  Future<String> confirmSession(PairingSession session) async {
+  String newPairId() => _pairs.doc().id;
+
+  @override
+  Future<void> confirmSession(PairingSession session, String pairId) async {
     final uid = await _auth.ensureSignedIn();
     if (session.receiverUid == null || session.senderUid != uid) {
       throw const PairingException(AppError.sessionNotConfirmable);
     }
-    final pair = _pairs.doc();
     final batch = _db.batch()
-      ..set(pair, SdkValues.toSdk(PairingDocuments.pair(session)))
-      ..update(_sessions.doc(session.code), PairingDocuments.confirmed(pair.id));
+      ..set(_pairs.doc(pairId), SdkValues.toSdk(PairingDocuments.pair(session)))
+      ..update(_sessions.doc(session.code), PairingDocuments.confirmed(pairId));
     await _guard(batch.commit);
-    return pair.id;
   }
 
   @override
+  Future<void> markReady(String pairId, DeviceRole role) =>
+      _guard(() => _pairs.doc(pairId).update(PairingDocuments.ready(role, AppPlatform.name)));
+
+  @override
+  Stream<bool> watchReady(String pairId, DeviceRole role) => _pairs
+      .doc(pairId)
+      .snapshots()
+      .map((s) => PairingDocuments.isReady(s.data(), role))
+      // a pair that is gone or not readable yet says nothing about the acknowledgement
+      .handleError((Object _) {})
+      .distinct();
+
+  @override
   Future<void> cancelSession(String code) => _guard(() => _sessions.doc(code).delete());
+
+  @override
+  Future<String?> peerUidOf(String pairId) async {
+    final self = await _auth.ensureSignedIn();
+    final pair = await _guard(() => _pairs.doc(pairId).get(const GetOptions(source: Source.server)));
+    return _otherMember(pair.data()?['members'], self);
+  }
 
   @override
   Stream<bool> watchPairActive(String pairId) => _pairs
@@ -184,3 +205,9 @@ final class FirestorePairingRepository implements PairingRepository {
     }
   }
 }
+
+/// The member of [members] that is not [self].
+String? _otherMember(Object? members, String self) => switch (members) {
+  final List<Object?> uids => uids.whereType<String>().where((uid) => uid != self).firstOrNull,
+  _ => null,
+};

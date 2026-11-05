@@ -6,4 +6,6 @@
     <string name="sync_pause">Pause</string>
     <string name="sync_channel_name">Sync status</string>
     <string name="sync_channel_description">Shown while this phone shares its notifications</string>
+    <string name="receive_notification_title">Receiving notifications</string>
+    <string name="receive_notification_text">Alerts from your phone arrive even when AirReply is closed</string>
 </resources>

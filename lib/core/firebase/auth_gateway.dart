@@ -10,6 +10,10 @@ abstract interface class AuthGateway {
 
   /// A current ID token of this install, signing in first if needed; [forceRefresh] when the last one was refused.
   Future<String> idToken({bool forceRefresh = false});
+
+  /// Forgets this install's sign-in; with [deleteAccount], deletes its anonymous account on the server too, so
+  /// nothing of it is left there.
+  Future<void> signOut({bool deleteAccount = false});
 }
 
 final class FirebaseAuthGateway implements AuthGateway {
@@ -29,6 +33,16 @@ final class FirebaseAuthGateway implements AuthGateway {
     } on FirebaseAuthException catch (e) {
       throw SyncException(AppError.serverUnreachable, cause: e);
     }
+  }
+
+  @override
+  Future<void> signOut({bool deleteAccount = false}) async {
+    try {
+      if (deleteAccount) await _auth.currentUser?.delete();
+    } on FirebaseAuthException {
+      // the account stays on the server (offline): signed out here all the same
+    }
+    await _auth.signOut();
   }
 
   @override

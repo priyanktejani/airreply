@@ -11,8 +11,8 @@ import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/utils/app_insets.dart';
 import 'package:air_reply/core/widgets/app_logo.dart';
-import 'package:air_reply/core/widgets/glass_app_bar.dart';
 import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/glass_sliver_app_bar.dart';
 import 'package:air_reply/core/widgets/pinned_search_bar.dart';
 import 'package:air_reply/core/widgets/responsive_center.dart';
 import 'package:air_reply/core/widgets/search_field.dart';
@@ -29,6 +29,7 @@ import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_widgets.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
+import 'package:air_reply/features/permissions/presentation/setup_assistant_screen.dart';
 import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter/material.dart';
@@ -89,20 +90,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         slivers: [
-          // the glass app bar, pinned, with the search box pinned just under it; the page scrolls under both
-          SliverAppBar(
-            pinned: true,
-            toolbarHeight: GlassScrollPage.toolbarHeight,
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            flexibleSpace: const GlassBarBackground(),
-            centerTitle: true,
-            title: const AppLogo(),
-            actions: const [
-              _BellButton(),
-              SizedBox(width: AppSpacing.sm),
-            ],
-          ),
+          // the glass app bar, out of the way while reading; the search box pins under whatever of it shows
+          const GlassSliverAppBar(centerTitle: true, title: AppLogo(), actions: [_BellButton()]),
           ResponsiveSliverCenter(
             maxContentWidth: maxWidth,
             padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.lg, AppSpacing.page, AppSpacing.sm),
@@ -190,6 +179,7 @@ class _HomeSections extends ConsumerWidget {
       ),
       _gap,
       const AttentionNotices(bottom: AppSpacing.section),
+      const SetupCard(),
       SectionHeader(
         eyebrow: context.l10n.homeRecentEyebrow,
         title: context.l10n.homeLatestTitle,

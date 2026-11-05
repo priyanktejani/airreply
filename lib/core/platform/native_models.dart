@@ -121,12 +121,14 @@ final class BackgroundRestrictions {
     required this.vendor,
     required this.hasAutostartScreen,
     required this.ignoringBatteryOptimizations,
+    this.backgroundRestricted = false,
   });
 
   factory BackgroundRestrictions.fromMap(Map<Object?, Object?> map) => BackgroundRestrictions(
     vendor: (map['vendor'] as String?) ?? '',
     hasAutostartScreen: map['hasAutostartScreen'] == true,
     ignoringBatteryOptimizations: map['ignoringBatteryOptimizations'] == true,
+    backgroundRestricted: map['backgroundRestricted'] == true,
   );
 
   static const none = BackgroundRestrictions(vendor: '', hasAutostartScreen: false, ignoringBatteryOptimizations: true);
@@ -138,6 +140,10 @@ final class BackgroundRestrictions {
   /// system refuses to restart the notification listener.
   final bool hasAutostartScreen;
   final bool ignoringBatteryOptimizations;
+
+  /// "Restrict background usage" is on in the app's system settings (Android 9+): the system stops sharing in the
+  /// background whatever the battery optimisation says.
+  final bool backgroundRestricted;
 
   /// "Xiaomi", "Oppo"... for messages.
   String get vendorName => vendor.isEmpty ? 'this phone' : vendor[0].toUpperCase() + vendor.substring(1);

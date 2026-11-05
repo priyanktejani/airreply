@@ -25,11 +25,16 @@ import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/devices/presentation/device_status_text.dart';
+import 'package:air_reply/features/notifications/domain/alert_style.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/permissions/domain/setup_tasks.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
+import 'package:air_reply/features/permissions/presentation/setup_tasks_provider.dart';
 import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
+import 'package:air_reply/features/settings/erase_everything.dart';
+import 'package:air_reply/features/settings/presentation/alert_style_screen.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -289,8 +294,19 @@ class _AlertSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preferences = ref.watch(appPreferencesProvider).value;
+    final style = preferences?.alertStyle ?? const AlertStyle();
     return CardGroup(
       children: [
+        InfoRow(
+          icon: AppIcons.notificationsActive,
+          title: context.l10n.alertStyleTitle,
+          subtitle: context.l10n.alertStyleSummary(
+            alertModeName(context.l10n, style.messages),
+            alertModeName(context.l10n, style.others),
+          ),
+          trailing: InfoRow.chevron,
+          onTap: () => unawaited(context.push(AppRoutes.alertStyle)),
+        ),
         SwitchRow(
           icon: AppIcons.visibility,
           title: context.l10n.alertTextTitle,
@@ -303,7 +319,27 @@ class _AlertSettings extends ConsumerWidget {
                   unawaited(ref.read(appPreferencesProvider.notifier).setAlertShowsContent(on));
                 },
         ),
-        if (!AppPlatform.usesPush)
+        // Android: the background service keeps alerts coming while AirReply is closed
+        if (AppPlatform.isAndroid)
+          SwitchRow(
+            icon: AppIcons.notificationsPaused,
+            title: context.l10n.receiveWhenClosedTitle,
+            subtitle: context.l10n.receiveWhenClosedText,
+            value: ref.watch(syncStatusProvider).value?.enabled ?? false,
+            onChanged: preferences == null
+                ? null
+                : (on) {
+                    ref.tick();
+                    unawaited(
+                      runGuarded(context, () async {
+                        await ref.read(appPreferencesProvider.notifier).setReceiveWhenClosed(on);
+                        await ref.read(syncStatusProvider.notifier).setEnabled(on);
+                      }),
+                    );
+                  },
+          ),
+        // computers and browsers alert only while AirReply runs (phones also get pushes)
+        if (AppPlatform.isDesktop || AppPlatform.isWeb)
           InfoRow(
             icon: AppIcons.desktopWindows,
             title: AppPlatform.isWeb ? context.l10n.alertsBrowserTitle : context.l10n.alertsComputerTitle,
@@ -477,7 +513,6 @@ class _DataSettings extends ConsumerWidget {
     final unread = ref.watch(unreadCountProvider);
     final hidden = ref.watch(hiddenCountProvider);
     final devices = ref.watch(pairedDevicesProvider);
-    final previous = ref.watch(archivedPairsProvider).value?.length ?? 0;
     final inbox = ref.read(inboxStateProvider.notifier);
 
     Future<void> removeAll() async {
@@ -522,19 +557,28 @@ class _DataSettings extends ConsumerWidget {
           },
         ),
         InfoRow(
-          icon: AppIcons.history,
-          title: context.l10n.previousDevicesTitle,
-          subtitle: context.l10n.previousDevicesSubtitle(previous),
-          trailing: InfoRow.chevron,
-          onTap: () => unawaited(context.push(AppRoutes.previousDevices)),
-        ),
-        InfoRow(
           icon: AppIcons.linkOff,
           title: context.l10n.removeAllTitle,
           subtitle: context.l10n.removeAllSubtitle,
           destructive: true,
           enabled: devices.isNotEmpty,
           onTap: removeAll,
+        ),
+        InfoRow(
+          icon: AppIcons.delete,
+          title: context.l10n.eraseEverythingTitle,
+          subtitle: context.l10n.eraseEverythingSubtitle,
+          destructive: true,
+          onTap: () async {
+            final confirmed = await context.confirm(
+              title: context.l10n.eraseEverythingConfirmTitle,
+              message: context.l10n.eraseEverythingConfirmMessage,
+              confirmLabel: context.l10n.actionErase,
+              destructive: true,
+            );
+            if (!confirmed || !context.mounted) return;
+            await runGuarded(context, ref.read(eraseEverythingProvider));
+          },
         ),
       ],
     );
@@ -547,6 +591,15 @@ class _HelpSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => CardGroup(
     children: [
+      InfoRow(
+        icon: AppIcons.checklist,
+        title: context.l10n.setupAssistantTitle,
+        subtitle: switch (ref.watch(setupTasksProvider)) {
+          final tasks => context.l10n.setupAssistantProgress(tasks.doneCount, tasks.length),
+        },
+        trailing: InfoRow.chevron,
+        onTap: () => unawaited(context.push(AppRoutes.setupAssistant)),
+      ),
       InfoRow(
         icon: AppIcons.bug,
         title: context.l10n.feedbackReportTitle,

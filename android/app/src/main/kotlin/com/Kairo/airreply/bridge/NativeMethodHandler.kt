@@ -44,6 +44,14 @@ class NativeMethodHandler(private val context: Context) : MethodChannel.MethodCa
                     BackgroundRestrictions.openAutostart(context)
                     result.success(null)
                 }
+                "clearNativeData" -> {
+                    preferences.clear()
+                    result.success(null)
+                }
+                "openAppSettings" -> {
+                    BackgroundRestrictions.openAppSettings(context)
+                    result.success(null)
+                }
                 "requestListenerRebind" -> {
                     ListenerHealth.ensureBound(context)
                     result.success(null)
@@ -77,9 +85,10 @@ class NativeMethodHandler(private val context: Context) : MethodChannel.MethodCa
                     result.success(null)
                 }
                 "startSync" -> {
-                    SyncController.enable(context)
+                    SyncController.enable(context, receiving = call.argument<Boolean>("receiving") == true)
                     result.success(null)
                 }
+                "isAppVisible" -> result.success(AppVisibility.visible)
                 "stopSync" -> {
                     // Answer first: when the headless engine itself asks to stop, disabling destroys that engine.
                     result.success(null)

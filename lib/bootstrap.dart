@@ -15,6 +15,7 @@ import 'package:air_reply/demo/demo_mode.dart';
 import 'package:air_reply/features/notifications/background/alert_handlers.dart';
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
+import 'package:air_reply/features/settings/erase_everything.dart';
 import 'package:air_reply/firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -51,6 +52,9 @@ Future<void> bootstrap() async {
     ],
   );
 
+  // before anything reads a key: a reinstall must not find the earlier install's keychain
+  if (!AppPlatform.isDemo) await forgetEarlierInstall(container);
+
   if (AppPlatform.usesPush) {
     FirebaseMessaging.onBackgroundMessage(onBackgroundPush);
     // While the app is open the receiver's feed updates live, so only the sender cares about foreground pushes.
@@ -71,8 +75,14 @@ Future<void> bootstrap() async {
               container.read(appRouterProvider).go(AppRoutes.notification(target.pairId, target.notificationId));
             }
           },
-          onBackgroundResponse: AppPlatform.usesPush ? onAlertActionInBackground : null,
+          // Android hands a reply typed into an alert to a background isolate, even while the app is open; iOS does when
+          // it is suspended. Push or not: without this the reply is dropped.
+          onBackgroundResponse: AppPlatform.isAndroid || AppPlatform.isIOS ? onAlertActionInBackground : null,
         );
+    // a reply typed into an alert that started the app: sent now, not lost as a plain tap
+    if (await container.read(mirroredAlertsProvider).launchReply() case final reply?) {
+      unawaited(sendAlertReply(container, reply));
+    }
   } on Object catch (e) {
     // e.g. Linux without a notification daemon: the feed still works, just without system alerts.
     appLog('Alerts unavailable: $e', name: 'air_reply');

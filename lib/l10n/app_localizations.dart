@@ -1702,7 +1702,7 @@ abstract class AppLocalizations {
   /// Confirm removing a device.
   ///
   /// In en, this message translates to:
-  /// **'Syncing with {name} stops on both devices. Its history stays on this device under Settings → Previous devices until you delete it. Other devices are not affected.'**
+  /// **'Syncing with {name} stops on both devices. Its history stays on this device under Devices → Previous devices until you delete it. Other devices are not affected.'**
   String removeDeviceMessage(String name);
 
   /// Button: remove.
@@ -3252,6 +3252,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No email app is set up on this device.'**
   String get feedbackNoEmailApp;
+
+  /// Android notification channel: alerts that pop up.
+  ///
+  /// In en, this message translates to:
+  /// **'Pop-up alerts'**
+  String get alertChannelPopUp;
+
+  /// Android notification channel: quiet ones.
+  ///
+  /// In en, this message translates to:
+  /// **'Silent notifications'**
+  String get alertChannelSilent;
+
+  /// Android notification channel: replies that could not be sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply status'**
+  String get alertStatusChannelName;
+
+  /// Channel description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tells you when a reply typed into a notification could not be sent'**
+  String get alertStatusChannelDescription;
+
+  /// Alert title when a reply from a notification failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to {name} not sent'**
+  String alertReplyNotSent(String name);
+
+  /// Settings row and screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'How alerts appear'**
+  String get alertStyleTitle;
+
+  /// Settings row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages: {messages} · Other: {others}'**
+  String alertStyleSummary(String messages, String others);
+
+  /// Alert style screen intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how notifications from your phone alert you on this device. Whatever you choose, they always arrive in Notifications.'**
+  String get alertStyleIntro;
+
+  /// Section: chats that can be answered.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get alertStyleMessages;
+
+  /// Section: everything that is not a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Other notifications'**
+  String get alertStyleOthers;
+
+  /// Alert mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pop up'**
+  String get alertModePopUp;
+
+  /// Alert mode description.
+  ///
+  /// In en, this message translates to:
+  /// **'On screen, with sound'**
+  String get alertModePopUpHint;
+
+  /// Alert mode.
+  ///
+  /// In en, this message translates to:
+  /// **'In the list'**
+  String get alertModeNormal;
+
+  /// Alert mode description.
+  ///
+  /// In en, this message translates to:
+  /// **'With sound, without covering the screen'**
+  String get alertModeNormalHint;
+
+  /// Alert mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Silent'**
+  String get alertModeSilent;
+
+  /// Alert mode description.
+  ///
+  /// In en, this message translates to:
+  /// **'In the list only: no sound, no vibration'**
+  String get alertModeSilentHint;
+
+  /// Alert mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get alertModeOff;
+
+  /// Alert mode description.
+  ///
+  /// In en, this message translates to:
+  /// **'No alert: only in Notifications'**
+  String get alertModeOffHint;
+
+  /// Section title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound and vibration'**
+  String get alertStyleSoundTitle;
+
+  /// Switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get alertStyleSound;
+
+  /// Switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration'**
+  String get alertStyleVibration;
+
+  /// Switch description.
+  ///
+  /// In en, this message translates to:
+  /// **'For alerts that pop up or show in the list'**
+  String get alertStyleSoundHint;
+
+  /// Section title.
+  ///
+  /// In en, this message translates to:
+  /// **'On the lock screen'**
+  String get alertStyleLockScreen;
+
+  /// Lock screen choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Show everything'**
+  String get lockScreenShow;
+
+  /// Lock screen choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide what the message says'**
+  String get lockScreenHideContent;
+
+  /// Lock screen choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Show nothing until unlocked'**
+  String get lockScreenHide;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a test alert'**
+  String get alertStyleTest;
+
+  /// Below the test button.
+  ///
+  /// In en, this message translates to:
+  /// **'It uses the choices for messages above.'**
+  String get alertStyleTestHint;
+
+  /// Test alert title.
+  ///
+  /// In en, this message translates to:
+  /// **'AirReply'**
+  String get alertStyleTestTitle;
+
+  /// Test alert text.
+  ///
+  /// In en, this message translates to:
+  /// **'This is how a message will alert you.'**
+  String get alertStyleTestText;
+
+  /// Pairing: waiting for the other device to save the pair.
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing on {name}…'**
+  String pairFinishingOn(String name);
+
+  /// Pairing hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep AirReply open on {name}. Pairing is done once both devices have saved it.'**
+  String pairFinishingHint(String name);
+
+  /// Pairing: the other device did not acknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} hasn\'t finished pairing'**
+  String pairUnconfirmedTitle(String name);
+
+  /// Pairing hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check that AirReply is open on {name} and online. If it already shows the pairing as done, carry on.'**
+  String pairUnconfirmedHint(String name);
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep waiting'**
+  String get actionKeepWaiting;
+
+  /// Button: the other device shows paired.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s paired there'**
+  String get actionPairedThere;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel pairing'**
+  String get actionCancelPairing;
+
+  /// Settings row and screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup assistant'**
+  String get setupAssistantTitle;
+
+  /// Setup progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String setupAssistantProgress(int done, int total);
+
+  /// Setup assistant heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep AirReply working'**
+  String get setupAssistantIntroTitle;
+
+  /// Setup assistant intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything this device needs to share or show notifications reliably, even in the background. It updates as you change settings.'**
+  String get setupAssistantIntro;
+
+  /// Section: required steps.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed'**
+  String get setupNeeded;
+
+  /// Section: recommended steps.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get setupRecommended;
+
+  /// Everything is done.
+  ///
+  /// In en, this message translates to:
+  /// **'All set'**
+  String get setupAllDone;
+
+  /// Everything is done.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is in place. AirReply keeps working in the background.'**
+  String get setupAllDoneHint;
+
+  /// Home card title.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish setting up'**
+  String get setupCardTitle;
+
+  /// Button: put away for now.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get actionNotNow;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on'**
+  String get actionTurnOn;
+
+  /// Button: the person confirms a setting the app cannot read.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve turned it on'**
+  String get actionAutostartDone;
+
+  /// Setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'Lets AirReply read the notifications it shares. Find AirReply in the list and switch it on.'**
+  String get taskAccessText;
+
+  /// Setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing is off, so nothing reaches your devices.'**
+  String get taskSharingText;
+
+  /// Setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'Android stopped AirReply\'s notification listener. Reconnect it to start receiving again.'**
+  String get taskListenerText;
+
+  /// Setup step title.
+  ///
+  /// In en, this message translates to:
+  /// **'Background activity'**
+  String get taskBackgroundTitle;
+
+  /// Setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'“Restrict background usage” is on for AirReply, so Android stops sharing soon after the screen goes off. In AirReply’s settings, open Battery and choose Unrestricted.'**
+  String get taskBackgroundText;
+
+  /// Setup tip for Samsung phones.
+  ///
+  /// In en, this message translates to:
+  /// **'On Samsung, also add AirReply to Never sleeping apps: Settings → Battery → Background usage limits.'**
+  String get taskBatterySamsung;
+
+  /// Autostart steps on Xiaomi.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Security → Permissions → Autostart, and turn on AirReply. Without it, the phone stops AirReply once the app is closed.'**
+  String get taskAutostartXiaomi;
+
+  /// Autostart steps on Oppo, Realme, OnePlus.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings → Battery → App battery management, choose AirReply, and allow it to start automatically and run in the background.'**
+  String get taskAutostartOppo;
+
+  /// Autostart steps on Vivo.
+  ///
+  /// In en, this message translates to:
+  /// **'Open i Manager → App manager → Autostart, and turn on AirReply.'**
+  String get taskAutostartVivo;
+
+  /// Autostart steps on Huawei and Honor.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Phone Manager → App launch, find AirReply, choose Manage manually, and turn on all three switches.'**
+  String get taskAutostartHuawei;
+
+  /// Setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'Lets this device alert you when a notification arrives. Without it, notifications still appear in the app.'**
+  String get taskAlertsText;
+
+  /// Setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair a device to share this phone\'s notifications with.'**
+  String get taskPairSender;
+
+  /// Setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair the phone whose notifications you want to see here.'**
+  String get taskPairReceiver;
+
+  /// Settings row.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase everything'**
+  String get eraseEverythingTitle;
+
+  /// Settings row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes all devices, history, keys and settings from this device, and its account from the server'**
+  String get eraseEverythingSubtitle;
+
+  /// Confirm title.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase everything?'**
+  String get eraseEverythingConfirmTitle;
+
+  /// Confirm message.
+  ///
+  /// In en, this message translates to:
+  /// **'Every device is removed, all history and kept history is deleted, and AirReply starts as if newly installed. This cannot be undone.'**
+  String get eraseEverythingConfirmMessage;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Erase'**
+  String get actionErase;
+
+  /// Android receivers: switch and setup step that keeps receiving alerts while the app is closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive when AirReply is closed'**
+  String get receiveWhenClosedTitle;
+
+  /// Explains the receive-when-closed switch.
+  ///
+  /// In en, this message translates to:
+  /// **'For phones that hold back alerts once AirReply is closed: keeps it receiving in the background too. Android shows a small status notification while it runs.'**
+  String get receiveWhenClosedText;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

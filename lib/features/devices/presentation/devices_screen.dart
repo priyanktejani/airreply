@@ -18,6 +18,7 @@ import 'package:air_reply/core/widgets/card_group.dart';
 import 'package:air_reply/core/widgets/empty_state.dart';
 import 'package:air_reply/core/widgets/eyebrow.dart';
 import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/info_row.dart';
 import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/presentation/device_sheet.dart';
@@ -32,7 +33,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Paired devices with their live state, adding and removing devices, and help when something does not work.
+/// Paired devices with their live state, adding and removing devices, devices removed before (their kept history),
+/// and help when something does not work.
 class DevicesScreen extends ConsumerWidget {
   const DevicesScreen({super.key});
 
@@ -40,6 +42,7 @@ class DevicesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final devices = ref.watch(pairedDevicesProvider);
     final isSender = ref.watch(deviceRoleProvider) == DeviceRole.sender;
+    final previous = ref.watch(archivedPairsProvider).value?.length ?? 0;
 
     return Scaffold(
       body: GlassScrollPage(
@@ -102,6 +105,23 @@ class DevicesScreen extends ConsumerWidget {
                 onPressed: () => context.push(AppRoutes.pair),
                 icon: const Icon(AppIcons.addLink, size: 18),
                 label: Text(isSender ? context.l10n.pairAddADevice : context.l10n.pairAddAnotherPhone),
+              ),
+            ),
+          ),
+          // removed devices whose history this device kept
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.lg),
+              child: CardGroup(
+                children: [
+                  InfoRow(
+                    icon: AppIcons.history,
+                    title: context.l10n.previousDevicesTitle,
+                    subtitle: context.l10n.previousDevicesSubtitle(previous),
+                    trailing: InfoRow.chevron,
+                    onTap: () => context.push(AppRoutes.previousDevices),
+                  ),
+                ],
               ),
             ),
           ),

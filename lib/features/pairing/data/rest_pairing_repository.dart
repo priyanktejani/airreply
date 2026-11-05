@@ -120,23 +120,46 @@ final class RestPairingRepository implements PairingRepository {
   }
 
   @override
-  Future<String> confirmSession(PairingSession session) async {
+  String newPairId() => _client.newId();
+
+  @override
+  Future<void> confirmSession(PairingSession session, String pairId) async {
     final uid = await _auth.ensureSignedIn();
     if (session.receiverUid == null || session.senderUid != uid) {
       throw const PairingException(AppError.sessionNotConfirmable);
     }
-    final pairId = _client.newId();
     await _guard(
       () => _client.commit([
         RestWrite.set(_pair(pairId), PairingDocuments.pair(session), mustNotExist: true),
         RestWrite.update(_session(session.code), PairingDocuments.confirmed(pairId)),
       ]),
     );
-    return pairId;
   }
 
   @override
+  Future<void> markReady(String pairId, DeviceRole role) =>
+      _guard(() => _client.commit([RestWrite.update(_pair(pairId), PairingDocuments.ready(role, AppPlatform.name))]));
+
+  @override
+  Stream<bool> watchReady(String pairId, DeviceRole role) => _pairPolls
+      .watch(_pair(pairId))
+      .expand<bool>(
+        (read) => switch (read) {
+          (document: final pair?, error: null) => [PairingDocuments.isReady(pair.data, role)],
+          _ => const [],
+        },
+      )
+      .distinct();
+
+  @override
   Future<void> cancelSession(String code) => _guard(() => _client.commit([RestWrite.delete(_session(code))]));
+
+  @override
+  Future<String?> peerUidOf(String pairId) async {
+    final self = await _auth.ensureSignedIn();
+    final pair = await _guard(() => _client.get(_pair(pairId)));
+    return _otherMember(pair?.data['members'], self);
+  }
 
   @override
   Stream<bool> watchPairActive(String pairId) => _pairPolls
@@ -197,3 +220,9 @@ final class _Box<T> {
   const _Box(this.value);
   final T value;
 }
+
+/// The member of [members] that is not [self].
+String? _otherMember(Object? members, String self) => switch (members) {
+  final List<Object?> uids => uids.whereType<String>().where((uid) => uid != self).firstOrNull,
+  _ => null,
+};

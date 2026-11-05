@@ -61,7 +61,7 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('Suggest a feature opens the form as an idea; Previous devices opens from Settings', (tester) async {
+  testWidgets('Suggest a feature opens the form as an idea; Previous devices opens from Devices', (tester) async {
     await launch(tester, role: 'sender');
     await openTab(tester, 'Settings');
     await reveal(tester, find.text('Suggest a feature'));
@@ -71,6 +71,7 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
 
+    await openTab(tester, 'Devices');
     await reveal(tester, find.text('Previous devices'));
     await tester.tap(find.text('Previous devices'));
     await tester.pumpAndSettle();

@@ -1,15 +1,32 @@
 import 'dart:convert';
 
+import 'package:air_reply/features/notifications/domain/alert_style.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Choices that change how this device behaves. Stored on the device only.
 final class AppPreferences {
-  const AppPreferences({this.alertShowsContent = true, this.haptics = true, this.mutedApps = const {}});
+  const AppPreferences({
+    this.alertShowsContent = true,
+    this.haptics = true,
+    this.mutedApps = const {},
+    this.alertStyle = const AlertStyle(),
+    this.autostartConfirmed = false,
+    this.setupCardHidden = false,
+    this.receiveWhenClosed = false,
+  });
 
   factory AppPreferences.fromJson(Map<String, Object?> json) => AppPreferences(
     alertShowsContent: json['alertShowsContent'] != false,
     haptics: json['haptics'] != false,
     mutedApps: {...?(json['mutedApps'] as List<Object?>?)?.whereType<String>()},
+    alertStyle: switch (json['alertStyle']) {
+      final Map<Object?, Object?> style => AlertStyle.fromJson(style.cast()),
+      _ => const AlertStyle(),
+    },
+    autostartConfirmed: json['autostartConfirmed'] == true,
+    setupCardHidden: json['setupCardHidden'] == true,
+    receiveWhenClosed: json['receiveWhenClosed'] == true,
   );
 
   /// Receivers: whether system alerts include the message text, or only "New notification" under the app's name (for shared
@@ -22,18 +39,47 @@ final class AppPreferences {
   /// Receivers: apps whose notifications still arrive in the inbox but never raise an alert on this device.
   final Set<String> mutedApps;
 
+  /// Receivers: how alerts present themselves, for messages and for other notifications.
+  final AlertStyle alertStyle;
+
+  /// Phones with a maker's autostart switch: the person said it is on (no app can read it).
+  final bool autostartConfirmed;
+
+  /// Home's "Finish setting up" card was put away while only recommended steps were left.
+  final bool setupCardHidden;
+
+  /// Android receivers: also keep receiving in a background service (with a status notification), for phones that
+  /// hold back pushes. Pushes alone wake a closed app, so this is off unless the person turns it on.
+  final bool receiveWhenClosed;
+
   bool alertsFor(String packageName) => !mutedApps.contains(packageName);
 
-  AppPreferences copyWith({bool? alertShowsContent, bool? haptics, Set<String>? mutedApps}) => AppPreferences(
+  AppPreferences copyWith({
+    bool? alertShowsContent,
+    bool? haptics,
+    Set<String>? mutedApps,
+    AlertStyle? alertStyle,
+    bool? autostartConfirmed,
+    bool? setupCardHidden,
+    bool? receiveWhenClosed,
+  }) => AppPreferences(
     alertShowsContent: alertShowsContent ?? this.alertShowsContent,
     haptics: haptics ?? this.haptics,
     mutedApps: mutedApps ?? this.mutedApps,
+    alertStyle: alertStyle ?? this.alertStyle,
+    autostartConfirmed: autostartConfirmed ?? this.autostartConfirmed,
+    setupCardHidden: setupCardHidden ?? this.setupCardHidden,
+    receiveWhenClosed: receiveWhenClosed ?? this.receiveWhenClosed,
   );
 
   Map<String, Object?> toJson() => {
     'alertShowsContent': alertShowsContent,
     'haptics': haptics,
     'mutedApps': mutedApps.toList(),
+    'alertStyle': alertStyle.toJson(),
+    'autostartConfirmed': autostartConfirmed,
+    'setupCardHidden': setupCardHidden,
+    'receiveWhenClosed': receiveWhenClosed,
   };
 }
 

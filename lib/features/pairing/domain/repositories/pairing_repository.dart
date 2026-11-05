@@ -21,13 +21,26 @@ abstract interface class PairingRepository {
     required String receiverName,
   });
 
-  /// Creates the pair for a `joined` session and marks the session `confirmed`. Returns the pair id.
-  Future<String> confirmSession(PairingSession session);
+  /// A new pair id, made on the device: the sender keeps its credentials under it before the pair exists on the
+  /// server, so a confirmation that reaches the server late is never orphaned.
+  String newPairId();
+
+  /// Creates the pair [pairId] for a `joined` session and marks the session `confirmed`.
+  Future<void> confirmSession(PairingSession session, String pairId);
+
+  /// This device ([role]) has kept the pair: the acknowledgement the other device waits for.
+  Future<void> markReady(String pairId, DeviceRole role);
+
+  /// Whether the device of [role] has acknowledged the pair (see [markReady]), each time that changes.
+  Stream<bool> watchReady(String pairId, DeviceRole role);
 
   Future<void> cancelSession(String code);
 
   /// Emits false once either device unpaired.
   Stream<bool> watchPairActive(String pairId);
+
+  /// The other device's sign-in id in the pair, as the server keeps its members; null once the pair is gone.
+  Future<String?> peerUidOf(String pairId);
 
   /// Ends the pair on the server and removes what it left there: the messages still waiting in its mailbox, then the
   /// pair itself, marked ended first so the other device notices however this goes.

@@ -1,4 +1,3 @@
-import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
 import 'package:air_reply/features/pairing/domain/entities/archived_pair.dart';
@@ -87,8 +86,9 @@ final class Unpair {
       }
     }
 
-    // Last: when this runs inside the sender's sync engine, both calls replace that engine.
-    if (ended.role == DeviceRole.sender && _bridge.isSupported) {
+    // Last: when this runs inside the background engine (a phone sharing, or an Android receiver receiving while
+    // the app is closed), both calls replace that engine.
+    if (_bridge.isSupported) {
       pairs.length == 1 ? await _bridge.stopSync() : await _bridge.reloadSync();
     }
   }

@@ -8,6 +8,10 @@ abstract interface class SecretStore {
   Future<void> write(String key, String value);
 
   Future<void> delete(String key);
+
+  /// Every secret this app keeps: on a fresh install (Apple keeps the keychain after an app is deleted) and when the
+  /// person erases everything.
+  Future<void> deleteAll();
 }
 
 final class SecureStorageSecretStore implements SecretStore {
@@ -23,4 +27,7 @@ final class SecureStorageSecretStore implements SecretStore {
 
   @override
   Future<void> delete(String key) => _storage.delete(key: key);
+
+  @override
+  Future<void> deleteAll() => _storage.deleteAll();
 }

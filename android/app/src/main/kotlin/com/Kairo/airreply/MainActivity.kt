@@ -1,6 +1,7 @@
 package com.Kairo.airreply
 
 import com.Kairo.airreply.bridge.AirReplyChannels
+import com.Kairo.airreply.bridge.AppVisibility
 import com.Kairo.airreply.bridge.NativeMethodHandler
 import com.Kairo.airreply.bridge.NotificationEventStreamHandler
 import com.Kairo.airreply.notifications.ListenerHealth
@@ -23,8 +24,14 @@ class MainActivity : FlutterActivity() {
 
     override fun onResume() {
         super.onResume()
+        AppVisibility.visible = true
         // The app is in front, so even ROMs that block background restarts let the listener be re-bound now.
         ListenerHealth.ensureBound(applicationContext)
+    }
+
+    override fun onPause() {
+        AppVisibility.visible = false
+        super.onPause()
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {

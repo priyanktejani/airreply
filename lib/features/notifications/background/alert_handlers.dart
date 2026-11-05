@@ -1,7 +1,10 @@
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/error/app_exception.dart';
 import 'package:air_reply/core/l10n/app_language.dart';
+import 'package:air_reply/core/l10n/describe_error.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
+import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
 import 'package:air_reply/features/mirror/mirror_providers.dart';
 import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
@@ -41,12 +44,26 @@ Future<void> presentMirroredPush(ProviderContainer container, Map<String, dynami
         pairId: pair.pairId,
         deviceName: session.pairs.length > 1 ? pair.peerName : null,
         showContent: preferences.alertShowsContent,
+        style: preferences.alertStyle,
       );
 }
 
-/// Sends the reply typed into a mirrored alert, to the pair the alert came from.
+/// Sends the reply typed into a mirrored alert, to the pair the alert came from. It is saved here first and shows in
+/// the conversation as waiting, then as sent or failed once the phone reports back. When it cannot even be queued
+/// (the device was removed, the notification can no longer be answered), an alert says so and why: a reply typed
+/// into a notification never disappears without a word.
 Future<void> sendAlertReply(ProviderContainer container, AlertReply reply) async {
-  final session = await container.read(deviceSessionProvider.future);
-  if (session.pair(reply.pairId) == null) return;
-  await container.read(sendReplyProvider(reply.pairId)).call(reply.notification, reply.text);
+  try {
+    final session = await container.read(deviceSessionProvider.future);
+    if (session.pair(reply.pairId) == null) throw const NotPairedException();
+    await container.read(sendReplyProvider(reply.pairId)).call(reply.notification, reply.text);
+    appLog('Reply from alert queued for ${reply.pairId}', name: 'air_reply.alerts');
+  } on Object catch (e, st) {
+    appLog('Reply from alert not sent', error: e, stackTrace: st, name: 'air_reply.alerts');
+    try {
+      await container.read(mirroredAlertsProvider).showReplyFailed(reply, appL10n().describe(e));
+    } on Object {
+      // alerts unavailable: the log is all there is
+    }
+  }
 }

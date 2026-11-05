@@ -79,15 +79,19 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
   `InboxController`; the phone prunes its icon records when its sync engine starts.
 - History is kept when a device is removed, as in WhatsApp: a pair that left any history becomes an `ArchivedPair`
   (`SecureArchivedPairsStore`, in the keystore with the pair's key, since its payloads stay sealed with it); one with
-  none is erased. Settings → Previous devices (`/previous`, reachable while unpaired too, and linked from the welcome
+  none is erased. Devices → Previous devices (`/previous`, reachable while unpaired too, and linked from the welcome
   screen) lists them, opens each read-only (`previousDeviceHistory` scope, read through `ClosedMailbox`) and deletes
   them (`archivedPairsProvider`).
 - The same device paired again continues its history (`ContinueHistory`, run by `DeviceSessionController.paired`
   before the pair is shown): devices are recognised by the other side's sign-in uid, `PairingCredentials.peerUid`
   (from the pairing session's `senderUid` / `receiverUid`; same role only). `MessageHistory.moveTo` re-seals each
   payload with the new pair's key and moves the rows in place (rowids, so the search index, are kept), a batch at a
-  time; moved notifications are marked read (`continuedHistoryProvider`). Pairs made before `peerUid` existed stay
-  under Previous devices.
+  time; moved notifications are marked read (`continuedHistoryProvider`). When either pair lacks `peerUid` (made
+  before it existed), the same device name and role decide (`ArchivedPair.continuesIn`); two different uids never
+  match, so another person's history never joins on a shared computer.
+- On start the app runs `RestoreKeptHistory` (`DeviceSessionController.restoreKeptHistory`, from `_PairEffects`):
+  active pairs without `peerUid` read it once from the pair document (`PairingRepository.peerUidOf`), then every
+  active pair takes back matching kept history, so a device paired again before it could be recognised gets it too.
 - Delivery is at-least-once and idempotent: a document is saved (upsert by id) before its mailbox copy is deleted, so a
   failed delete or a server retry only redelivers it. Each receiver has its own pair, so its own mailbox.
 - Web needs `web/sqlite3.wasm` and `web/drift_worker.js`, matching the sqlite3 and drift versions in `pubspec.lock`;
@@ -130,6 +134,9 @@ Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configure
   plus filled for a selected tab). Never `Icons.*`; add a missing icon to `AppIcons` by its Phosphor code point. Back
   and close buttons get theirs from the theme's `actionIconTheme`.
 - Glass (`BackdropFilter`) only on floating chrome: app bar, pinned search, nav bar, composer.
+- Scrolling pages use `GlassSliverAppBar` (through `GlassScrollPage`, and on Home): reading on slides the bar away and
+  scrolling back brings it back; a strip of its glass stays under the status bar, and pinned search boxes stay just
+  below whatever of it shows (a pinned + floating header, since plain floating headers ignore what is pinned above).
 - Every notification, app group and conversation is shown with `NotificationCard`
   (`lib/features/notifications/presentation/widgets/notification_card.dart`), which owns the layout, the press and the
   swipe (`SwipeActions`). Do not build another notification card or swipe; add to this one.
@@ -163,6 +170,11 @@ Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configure
 ## Conventions
 
 - Rows inside a card are square (the card clips the corners); a swipe behind a card rounds only its outer corners.
+- A `CardGroup`'s rows are `InfoRow` / `SwitchRow`, or laid out like them: `AppSpacing.card` from the card's edge, a
+  `InfoRow.tile`-sized leading, an `AppSpacing.md` gap, so text and hairlines line up. Rows without a leading pass
+  `inset: AppSpacing.card`. A tall row keeps its icon and control beside the title (`titleHeight` alignment).
+- Floating chrome at the bottom (nav bar, message box, `StickyActionBar`) sits on `BottomFade`, so content scrolling
+  under it fades out instead of showing between the panel and the screen's edge.
 - Tests use `FakeAccessibilityFeatures(disableAnimations: true)` through the helpers in `test/app/app_flow_test.dart`.
 
 ## macOS signing
@@ -172,6 +184,48 @@ The Mac app must be signed with a team (personal team `F9FQQ7JL29`, "Apple Devel
 signed-in device in the keychain, and an ad-hoc signed build fails sign-in (so pairing) with keychain error -34018.
 The development profile is "Mac Team Provisioning Profile: com.airreply.airReply"; a new Mac needs one build with
 `-allowProvisioningUpdates` (or opening the project in Xcode). Secure storage itself uses the legacy keychain.
+
+## Pairing handshake
+
+- The sender keeps its credentials under a locally made pair id (`PairingRepository.newPairId`) before confirming;
+  a refused confirmation removes them, a slow one keeps them. Each side then acknowledges by writing its own
+  `senderPlatform` / `receiverPlatform` on the pair (`markReady`; already allowed by the rules), and the sender shows
+  paired only once the receiver acknowledged (`watchReady`), or asks after `pairingTimingsProvider.ackTimeout`
+  (keep waiting / it's paired there / cancel, which ends the pair).
+- Both sides poll the session beside the live listener. The receiver keeps a `PendingJoin` (keystore) until the
+  sender confirms, and `ResumeReceiverPairing` finishes it on the next start if the app was closed meanwhile.
+- Covered by `test/features/pairing/handshake_test.dart` and the emulator test (acknowledgements under the real rules).
+
+## Alerts
+
+- Receivers choose how alerts appear (`AlertStyle` in `AppPreferences`, Settings → How alerts appear): messages and
+  other notifications apart (pop up / in the list / silent / off), sound, vibration, lock screen (Android). On Android
+  each combination is its own channel (`MirroredAlerts.channelFor`; channels cannot change once created);
+  `tidyChannels` deletes the unused ones by id.
+- Replying from an alert: Android needs `ActionBroadcastReceiver` in the manifest and the background handler
+  (`onAlertActionInBackground`) on Android and iOS whether or not push is used; a reply that started the app is sent
+  (`launchReply`); one that cannot be queued raises a "Reply not sent" alert with the reason. Receivers check history
+  for writes from other isolates too. Android 15+ keeps an answered alert until the shade closes (system behaviour).
+- While the app is in front, arrivals only appear in it (no popup or sound, the person's choice). Away, phones get a
+  push (`functions/`, deployed in asia-south1 on the Blaze plan: `onNotificationMirrored` → `onBackgroundPush`);
+  desktops and the web alert while they run (`ArrivalAlerts`, `_InAppAlerts`). iOS pushes need an APNs key in the
+  Firebase console. Optional on Android receivers, for phones that hold back pushes: Settings → "Receive when AirReply
+  is closed" (`receiveWhenClosed`, off by default) runs `SyncForegroundService` (type `remoteMessaging`) in receiving
+  mode (`SyncPreferences.receiving`, `_runReceiving` in `sender_sync_entrypoint.dart`), alerting only while the app's
+  window is not showing (`AppVisibility`); a push and the service raise the same alert id (`onlyAlertOnce`).
+- `--dart-define=AIRREPLY_DEMO_ARRIVALS=true` (with the receiver demo) brings a new answerable message every 20 seconds,
+  to try alerts and replies on a device or emulator.
+
+## Setup assistant and cleanup
+
+- `setupTasks` (`lib/features/permissions/domain/setup_tasks.dart`) lists what the device needs, from what the app can
+  read (notification access, sharing, listener, status notification, background restriction, battery, autostart —
+  unknown until the person confirms it, alerts, a pair); Settings → Setup assistant and Home's "Finish setting up" card.
+- Android: no backup or device transfer (`data_extraction_rules.xml`); the OS removes all app data on uninstall.
+  Apple keeps keychain items after deletion, so `forgetEarlierInstall` wipes them on a fresh install (an upgrade, with
+  settings present, keeps everything). Settings → Erase everything (`eraseEverythingProvider`) ends every pair, deletes
+  all history, keys, sign-in and its server account, push token, alerts and settings: the only way to leave nothing
+  on desktops and on the server.
 
 ## Feedback
 

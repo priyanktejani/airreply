@@ -122,7 +122,7 @@ class _SenderPairing extends ConsumerWidget {
       steps: [context.l10n.stepShowCode, context.l10n.stepVerify, context.l10n.stepDone],
       step: switch (state) {
         SenderPairingVerifying() => 1,
-        SenderPairingDone() => 2,
+        SenderPairingFinishing() || SenderPairingUnconfirmed() || SenderPairingDone() => 2,
         _ => 0,
       },
       child: switch (state) {
@@ -139,6 +139,23 @@ class _SenderPairing extends ConsumerWidget {
           onConfirm: controller.confirm,
           onReject: controller.reject,
         ),
+        SenderPairingFinishing(:final receiverName) => _Finishing(receiverName: receiverName),
+        SenderPairingUnconfirmed(:final receiverName) => EmptyState(
+          icon: AppIcons.warningAmber,
+          tone: Tone.warning,
+          title: context.l10n.pairUnconfirmedTitle(receiverName),
+          description: context.l10n.pairUnconfirmedHint(receiverName),
+          action: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FilledButton(onPressed: controller.keepWaiting, child: Text(context.l10n.actionKeepWaiting)),
+              const SizedBox(height: AppSpacing.sm),
+              OutlinedButton(onPressed: controller.finishAnyway, child: Text(context.l10n.actionPairedThere)),
+              const SizedBox(height: AppSpacing.sm),
+              TextButton(onPressed: controller.cancelUnconfirmed, child: Text(context.l10n.actionCancelPairing)),
+            ],
+          ),
+        ),
         SenderPairingFailed(:final error) => EmptyState(
           icon: AppIcons.linkOff,
           tone: Tone.error,
@@ -147,6 +164,29 @@ class _SenderPairing extends ConsumerWidget {
           action: FilledButton(onPressed: controller.newCode, child: Text(context.l10n.actionMakeNewCode)),
         ),
       },
+    );
+  }
+}
+
+/// Confirmed here; the receiver has yet to say it kept the pair too.
+class _Finishing extends StatelessWidget {
+  const _Finishing({required this.receiverName});
+
+  final String receiverName;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.palette;
+    return Column(
+      key: const ValueKey('finishing'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(context.l10n.pairFinishingOn(receiverName), style: AppType.pageTitle.copyWith(color: c.ink)),
+        const SizedBox(height: AppSpacing.sm),
+        Text(context.l10n.pairFinishingHint(receiverName), style: AppType.body.copyWith(color: c.muted)),
+        const SizedBox(height: AppSpacing.xxl),
+        const LinearProgressIndicator(),
+      ],
     );
   }
 }

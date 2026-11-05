@@ -10,9 +10,12 @@ import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_theme.dart';
 import 'package:air_reply/core/theme/theme_mode.dart';
 import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
+import 'package:air_reply/features/notifications/background/arrival_alerts.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/push/push_registration.dart';
+import 'package:air_reply/features/sender/presentation/controllers/sender_controllers.dart';
 import 'package:air_reply/features/session/session_providers.dart';
+import 'package:air_reply/features/settings/domain/app_preferences.dart';
 import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -79,10 +82,17 @@ class _PairEffects extends ConsumerStatefulWidget {
 class _PairEffectsState extends ConsumerState<_PairEffects> {
   StreamSubscription<RemoteMessage>? _pushTaps;
 
+  /// Back in front: a pairing joined here may have been confirmed by the phone meanwhile.
+  late final AppLifecycleListener _lifecycle = AppLifecycleListener(
+    onResume: () => unawaited(ref.read(deviceSessionProvider.notifier).resumePairing()),
+  );
+
   @override
   void initState() {
     super.initState();
+    _lifecycle;
     unawaited(_openLaunchAlert());
+    unawaited(_restoreKeptHistory());
     if (AppPlatform.usesPush && Firebase.apps.isNotEmpty) {
       // A push the system showed itself (Apple's alert text) opens its notification too, like the app's own alerts.
       _pushTaps = FirebaseMessaging.onMessageOpenedApp.listen(_openPush);
@@ -92,8 +102,17 @@ class _PairEffectsState extends ConsumerState<_PairEffects> {
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     unawaited(_pushTaps?.cancel());
     super.dispose();
+  }
+
+  /// A device paired again before its kept history could be recognised gets it back now (see RestoreKeptHistory).
+  Future<void> _restoreKeptHistory() async {
+    await ref.read(deviceSessionProvider.future);
+    if (mounted) await ref.read(deviceSessionProvider.notifier).resumePairing();
+    if (mounted) await ref.read(deviceSessionProvider.notifier).ensureBackgroundReceiving();
+    if (mounted) await ref.read(deviceSessionProvider.notifier).restoreKeptHistory();
   }
 
   Future<void> _openLaunchAlert() async {
@@ -133,10 +152,12 @@ class _PairEffectsState extends ConsumerState<_PairEffects> {
   }
 }
 
-/// Receivers raise system alerts themselves while the app is running, for every notification that arrives while
-/// the window is not in front, except for apps muted in Settings. That is the only alert path on desktop and web,
-/// and the fallback on phones when push is not deployed or late; alerts share the push's id, so one notification
-/// never alerts twice. Listening here also keeps each pair's feed syncing whatever screen is open.
+/// Receivers raise system alerts themselves while the app is running, for every notification that arrives, except
+/// for apps muted in Settings and for the conversation already on screen: like WhatsApp, a message pops up and sounds
+/// while the app is open too. While the window is not in front, an Android device that receives in the background
+/// leaves alerts to that service (see `runSenderSync`); elsewhere the app raises them as long as it runs. Alerts
+/// share the notification's id, so one never alerts twice. Listening here also keeps each pair's feed syncing
+/// whatever screen is open.
 class _InAppAlerts extends ConsumerStatefulWidget {
   const _InAppAlerts({required this.child});
 
@@ -147,10 +168,7 @@ class _InAppAlerts extends ConsumerStatefulWidget {
 }
 
 class _InAppAlertsState extends ConsumerState<_InAppAlerts> {
-  static const _alertWindow = Duration(minutes: 10);
-
-  /// Per pair, the notification ids already known. Null until that pair's first load, which never alerts.
-  final _seen = <String, Set<String>>{};
+  late final _arrivals = ArrivalAlerts(ref.read(mirroredAlertsProvider));
 
   bool get _inFront => WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
 
@@ -161,34 +179,36 @@ class _InAppAlertsState extends ConsumerState<_InAppAlerts> {
     ref.watch(appIconsProvider);
     final isReceiver = pairs.isNotEmpty && pairs.first.role == DeviceRole.receiver;
     if (isReceiver) {
+      // receiving in the background (Android): that service alerts while the app is away
+      final backgroundReceives = AppPlatform.isAndroid && (ref.watch(syncStatusProvider).value?.enabled ?? false);
       for (final pair in pairs) {
         ref.listen(mirroredNotificationsProvider(pair.pairId), (_, next) {
-          if (next.value case final items?) _onFeed(pair.pairId, pair.peerName, items, pairs.length > 1);
+          if (next.value case final items?) {
+            _onFeed(pair.pairId, pair.peerName, items, many: pairs.length > 1, backgroundReceives: backgroundReceives);
+          }
         });
       }
     }
     return widget.child;
   }
 
-  void _onFeed(String pairId, String deviceName, List<MirroredNotification> items, bool manyDevices) {
-    final known = _seen[pairId];
-    _seen[pairId] = {for (final n in items) n.id};
-    if (known == null || _inFront) return;
-
-    final alerts = ref.read(mirroredAlertsProvider);
-    final preferences = ref.read(appPreferencesProvider).value;
-    // Messages that waited in the mailbox while this device was away arrive together: only recent ones alert.
-    final recent = DateTime.now().subtract(_alertWindow);
-    for (final n in items.where((n) => !known.contains(n.id) && !n.dismissedOnSender && n.postedAt.isAfter(recent))) {
-      if (!(preferences?.alertsFor(n.content.packageName) ?? true)) continue;
+  void _onFeed(
+    String pairId,
+    String deviceName,
+    List<MirroredNotification> items, {
+    required bool many,
+    required bool backgroundReceives,
+  }) {
+    final fresh = _arrivals.arrived(pairId, items);
+    // In front, new notifications simply appear in the app, with no popup or sound. Away, a push alerts on phones
+    // (and the background service, when on); elsewhere the app does while it is still running.
+    if (fresh.isEmpty || _inFront || backgroundReceives || AppPlatform.usesPush) return;
+    final preferences = ref.read(appPreferencesProvider).value ?? const AppPreferences();
+    for (final n in fresh) {
+      if (!ArrivalAlerts.alertable(n, preferences)) continue;
       unawaited(
-        alerts
-            .show(
-              n,
-              pairId: pairId,
-              deviceName: manyDevices ? deviceName : null,
-              showContent: preferences?.alertShowsContent ?? true,
-            )
+        _arrivals
+            .show(n, pairId: pairId, preferences: preferences, deviceName: many ? deviceName : null)
             .catchError((Object _) {}),
       );
     }

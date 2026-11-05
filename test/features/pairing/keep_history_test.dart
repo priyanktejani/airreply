@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:air_reply/core/crypto/crypto_service.dart';
@@ -14,6 +15,7 @@ import 'package:air_reply/features/pairing/domain/entities/archived_pair.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
 import 'package:air_reply/features/pairing/domain/usecases/continue_history.dart';
 import 'package:air_reply/features/pairing/domain/usecases/receiver_pairing_usecases.dart';
+import 'package:air_reply/features/pairing/domain/usecases/restore_kept_history.dart';
 import 'package:air_reply/features/pairing/domain/usecases/sender_pairing_usecases.dart';
 import 'package:air_reply/features/pairing/domain/usecases/unpair.dart';
 import 'package:drift/native.dart';
@@ -52,6 +54,7 @@ void main() {
     final sender = await ConfirmSenderPairing(backend, InMemoryCredentialsStore()).call(joined.session, secrets);
     final receiver = await FinishReceiverPairing(
       InMemoryCredentialsStore(),
+      backend,
     ).call(joined, backend.sessions[joined.session.code]!);
 
     expect(sender.peerUid, 'receiver-uid');
@@ -172,17 +175,110 @@ void main() {
       expect(readReply?.text, 'Yes!');
     });
 
-    test('a pair from before sign-in ids were recorded is left under previous devices', () async {
+    /// One notification of [pairId], sealed with its key, saved in the history.
+    Future<void> seed(PairingCredentials of, String text) async {
+      final docs = MirrorDocuments(PairCipher(cipher: cipher, pairId: of.pairId, key: of.sharedKey));
+      final content = NotificationContent(
+        key: 'k-$text',
+        packageName: 'com.whatsapp',
+        appName: 'WhatsApp',
+        title: 'Alex',
+        text: text,
+        postedAt: DateTime(2026, 4, 2, 19),
+      );
+      final sealed = await docs.notification(content, canReply: false);
+      await MessageHistory(db, of.pairId).putNotifications([
+        StoredNotification(id: 'n-$text', payload: sealed['payload']! as String, postedAt: content.postedAt),
+      ]);
+    }
+
+    test('a pair made before sign-in ids were recorded is recognised by the device\'s name', () async {
       final archive = SecureArchivedPairsStore(MemorySecretStore());
-      await archive.save(ArchivedPair(pair('old', peerUid: null), unpairedAt: DateTime(2026, 5)));
+      final old = pair('old', peerUid: null);
+      await seed(old, 'hello');
+      await archive.save(ArchivedPair(old, unpairedAt: DateTime(2026, 5)));
+      // another device, by name
+      await archive.save(
+        ArchivedPair(
+          PairingCredentials(
+            pairId: 'mac',
+            role: DeviceRole.receiver,
+            sharedKey: Uint8List(32),
+            peerName: 'Galaxy S25',
+            pairedAt: DateTime(2026, 3),
+          ),
+          unpairedAt: DateTime(2026, 5),
+        ),
+      );
 
       final moved = await ContinueHistory(
         archive,
         moveHistory: container.read(moveHistoryProvider),
-      ).call(pair('new', peerUid: null, key: 2));
+      ).call(pair('new', key: 2));
+
+      expect(moved, ['n-hello']);
+      expect([for (final p in await archive.readAll()) p.pairId], ['mac']);
+    });
+
+    test('two different sign-in ids are never the same device, whatever the names', () async {
+      final archive = SecureArchivedPairsStore(MemorySecretStore());
+      final old = pair('old', peerUid: 'someone-else');
+      await seed(old, 'private');
+      await archive.save(ArchivedPair(old, unpairedAt: DateTime(2026, 5)));
+
+      final moved = await ContinueHistory(
+        archive,
+        moveHistory: container.read(moveHistoryProvider),
+      ).call(pair('new', key: 2));
 
       expect(moved, isEmpty);
       expect((await archive.readAll()).single.pairId, 'old');
     });
+
+    test(
+      'on start, an older pair learns its peer\'s id and a device already paired again gets its history back',
+      () async {
+        final archive = SecureArchivedPairsStore(MemorySecretStore());
+        final old = pair('old', peerUid: null);
+        await seed(old, 'from before');
+        await archive.save(ArchivedPair(old, unpairedAt: DateTime(2026, 5)));
+        // paired again before this version: no id recorded on either
+        final store = InMemoryCredentialsStore()..pairs.add(pair('new', peerUid: null, key: 2));
+        final backend = InMemoryPairingRepository()..peers['new'] = 'phone-uid';
+
+        final moved = await RestoreKeptHistory(
+          backend,
+          store,
+          ContinueHistory(archive, moveHistory: container.read(moveHistoryProvider)),
+        ).call();
+
+        expect(moved, {
+          'new': ['n-from before'],
+        });
+        expect(store.single?.peerUid, 'phone-uid');
+        expect(await archive.readAll(), isEmpty);
+        expect((await MessageHistory(db, 'new').size()).notifications, 1);
+      },
+    );
+
+    test('offline on start: nothing is lost, the id is asked for again next time', () async {
+      final store = InMemoryCredentialsStore()..pairs.add(pair('new', peerUid: null, key: 2));
+      final moved = await RestoreKeptHistory(
+        _OfflineBackend(),
+        store,
+        ContinueHistory(
+          SecureArchivedPairsStore(MemorySecretStore()),
+          moveHistory: container.read(moveHistoryProvider),
+        ),
+        serverTimeout: const Duration(milliseconds: 20),
+      ).call();
+      expect(moved, isEmpty);
+      expect(store.single?.peerUid, isNull);
+    });
   });
+}
+
+final class _OfflineBackend extends InMemoryPairingRepository {
+  @override
+  Future<String?> peerUidOf(String pairId) => Completer<String?>().future;
 }

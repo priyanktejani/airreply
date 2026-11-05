@@ -48,6 +48,9 @@ class InfoRow extends StatelessWidget {
       enabled: enabled,
       contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.card, vertical: AppSpacing.xxs),
       horizontalTitleGap: AppSpacing.md,
+      // a row with a long explanation keeps its icon and control beside the title, not halfway down the paragraph;
+      // shorter rows centre them
+      titleAlignment: ListTileTitleAlignment.titleHeight,
       shape: const RoundedRectangleBorder(),
       leading: lead,
       title: Text(title, style: AppType.subtitle.copyWith(color: titleColor)),

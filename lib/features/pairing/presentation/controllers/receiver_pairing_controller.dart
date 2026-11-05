@@ -45,12 +45,22 @@ final receiverPairingProvider = NotifierProvider.autoDispose<ReceiverPairingCont
 /// Drives the receiver through: scan / type code -> join -> show code -> sender confirms -> paired.
 final class ReceiverPairingController extends Notifier<ReceiverPairingState> {
   late PairingRepository _repository;
+  late PendingJoinStore _pendingJoin;
   StreamSubscription<PairingSession?>? _sessionUpdates;
+
+  /// Asks the server again from time to time, beside the live updates: a stalled listener never strands pairing.
+  Timer? _poll;
+  bool _finishing = false;
 
   @override
   ReceiverPairingState build() {
     _repository = ref.watch(pairingRepositoryProvider);
-    ref.onDispose(() => unawaited(_sessionUpdates?.cancel()));
+    _pendingJoin = ref.watch(pendingJoinStoreProvider);
+    // leaving the screen keeps the pending join: the next start finishes pairing if the phone confirms meanwhile
+    ref.onDispose(() {
+      _poll?.cancel();
+      unawaited(_sessionUpdates?.cancel());
+    });
     return const ReceiverPairingIdle();
   }
 
@@ -70,8 +80,8 @@ final class ReceiverPairingController extends Notifier<ReceiverPairingState> {
   /// Back to scanning; the sender sees the session cancelled.
   Future<void> cancel() async {
     final current = state;
-    await _sessionUpdates?.cancel();
-    _sessionUpdates = null;
+    await _stopWatching();
+    await _pendingJoin.clear();
     if (current is ReceiverPairingAwaitingConfirmation) {
       try {
         await _repository.cancelSession(current.joined.session.code);
@@ -89,29 +99,53 @@ final class ReceiverPairingController extends Notifier<ReceiverPairingState> {
       final joined = await ref.read(joinPairingSessionProvider).call(code: code, expectedSenderKey: expectedSenderKey);
       if (!ref.mounted) return;
       state = ReceiverPairingAwaitingConfirmation(joined);
+      await _pendingJoin.save(PendingJoin(code: code, sharedKey: joined.secrets.sharedKey));
       _sessionUpdates = _repository.watchSession(code).listen((s) => _onSession(joined, s), onError: _fail);
+      _poll = Timer.periodic(ref.read(pairingTimingsProvider).poll, (_) async {
+        try {
+          await _onSession(joined, await _repository.fetchSession(code));
+        } on Object {
+          // offline for a moment: the live updates and the next check carry on
+        }
+      });
     } on Object catch (e) {
       _fail(e);
     }
   }
 
   Future<void> _onSession(JoinedPairing joined, PairingSession? session) async {
+    // once only, whether the live update or the check got there first
+    if (_finishing || !ref.mounted || state is! ReceiverPairingAwaitingConfirmation) return;
     if (session == null || session.status == PairingStatus.cancelled) {
-      await _sessionUpdates?.cancel();
+      await _stopWatching();
+      await _pendingJoin.clear();
       return _fail(const PairingException(AppError.pairingCancelledOnPhone));
     }
     if (session.status != PairingStatus.confirmed) return;
 
-    await _sessionUpdates?.cancel();
+    _finishing = true;
+    await _stopWatching();
     try {
       final credentials = await ref.read(finishReceiverPairingProvider).call(joined, session);
+      await _pendingJoin.clear();
       // The handshake is done; remove it rather than waiting for the TTL.
       unawaited(_repository.cancelSession(session.code).catchError((Object _) {}));
       await ref.read(deviceSessionProvider.notifier).paired(credentials);
+      // alerts from this phone arrive while AirReply is closed too (Android)
+      await ref.read(deviceSessionProvider.notifier).ensureBackgroundReceiving(restart: true);
       if (ref.mounted) state = ReceiverPairingDone(credentials.peerName);
     } on Object catch (e) {
       _fail(e);
+    } finally {
+      _finishing = false;
     }
+  }
+
+  Future<void> _stopWatching() async {
+    _poll?.cancel();
+    _poll = null;
+    await _sessionUpdates?.cancel();
+    _sessionUpdates = null;
   }
 
   void _fail(Object error) {

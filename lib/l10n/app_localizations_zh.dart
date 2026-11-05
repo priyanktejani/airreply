@@ -883,7 +883,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return '两台设备都会停止与 $name 同步。它的历史记录会保留在这台设备的“设置 → 以前的设备”中，直到你删除为止。其他设备不受影响。';
+    return '两台设备都会停止与 $name 同步。它的历史记录会保留在这台设备的“设备 → 以前的设备”中，直到你删除为止。其他设备不受影响。';
   }
 
   @override
@@ -1777,4 +1777,225 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get feedbackNoEmailApp => '这台设备上没有设置邮件应用。';
+
+  @override
+  String get alertChannelPopUp => '弹出提醒';
+
+  @override
+  String get alertChannelSilent => '静默通知';
+
+  @override
+  String get alertStatusChannelName => '回复状态';
+
+  @override
+  String get alertStatusChannelDescription => '在通知中输入的回复无法发送时告诉你';
+
+  @override
+  String alertReplyNotSent(String name) {
+    return '给 $name 的回复未发送';
+  }
+
+  @override
+  String get alertStyleTitle => '提醒方式';
+
+  @override
+  String alertStyleSummary(String messages, String others) {
+    return '消息：$messages · 其他：$others';
+  }
+
+  @override
+  String get alertStyleIntro => '选择手机的通知在这台设备上如何提醒你。无论怎么选，它们都会出现在“通知”中。';
+
+  @override
+  String get alertStyleMessages => '消息';
+
+  @override
+  String get alertStyleOthers => '其他通知';
+
+  @override
+  String get alertModePopUp => '弹出';
+
+  @override
+  String get alertModePopUpHint => '显示在屏幕上，有声音';
+
+  @override
+  String get alertModeNormal => '在列表中';
+
+  @override
+  String get alertModeNormalHint => '有声音，但不遮挡屏幕';
+
+  @override
+  String get alertModeSilent => '静默';
+
+  @override
+  String get alertModeSilentHint => '只在列表中：没有声音和振动';
+
+  @override
+  String get alertModeOff => '关闭';
+
+  @override
+  String get alertModeOffHint => '不提醒：只在“通知”中';
+
+  @override
+  String get alertStyleSoundTitle => '声音和振动';
+
+  @override
+  String get alertStyleSound => '声音';
+
+  @override
+  String get alertStyleVibration => '振动';
+
+  @override
+  String get alertStyleSoundHint => '用于弹出或在列表中显示的提醒';
+
+  @override
+  String get alertStyleLockScreen => '锁定屏幕上';
+
+  @override
+  String get lockScreenShow => '显示全部内容';
+
+  @override
+  String get lockScreenHideContent => '隐藏消息内容';
+
+  @override
+  String get lockScreenHide => '解锁前不显示';
+
+  @override
+  String get alertStyleTest => '发送测试提醒';
+
+  @override
+  String get alertStyleTestHint => '使用上面为消息选择的设置。';
+
+  @override
+  String get alertStyleTestTitle => 'AirReply';
+
+  @override
+  String get alertStyleTestText => '有消息时，你会这样收到提醒。';
+
+  @override
+  String pairFinishingOn(String name) {
+    return '正在 $name 上完成…';
+  }
+
+  @override
+  String pairFinishingHint(String name) {
+    return '请保持 $name 上的 AirReply 打开。两台设备都保存后配对才算完成。';
+  }
+
+  @override
+  String pairUnconfirmedTitle(String name) {
+    return '$name 尚未完成配对';
+  }
+
+  @override
+  String pairUnconfirmedHint(String name) {
+    return '请确认 $name 上的 AirReply 已打开并联网。如果那边已显示配对完成，就继续吧。';
+  }
+
+  @override
+  String get actionKeepWaiting => '继续等待';
+
+  @override
+  String get actionPairedThere => '那边已配对';
+
+  @override
+  String get actionCancelPairing => '取消配对';
+
+  @override
+  String get setupAssistantTitle => '设置助手';
+
+  @override
+  String setupAssistantProgress(int done, int total) {
+    return '已完成 $done/$total';
+  }
+
+  @override
+  String get setupAssistantIntroTitle => '让 AirReply 正常工作';
+
+  @override
+  String get setupAssistantIntro => '这台设备可靠地共享或显示通知（包括在后台）所需的一切。你更改设置后会自动更新。';
+
+  @override
+  String get setupNeeded => '必需';
+
+  @override
+  String get setupRecommended => '建议';
+
+  @override
+  String get setupAllDone => '全部就绪';
+
+  @override
+  String get setupAllDoneHint => '一切就绪。AirReply 会在后台持续工作。';
+
+  @override
+  String get setupCardTitle => '完成设置';
+
+  @override
+  String get actionNotNow => '以后再说';
+
+  @override
+  String get actionTurnOn => '开启';
+
+  @override
+  String get actionAutostartDone => '我已开启';
+
+  @override
+  String get taskAccessText => '让 AirReply 读取要共享的通知。在列表中找到 AirReply 并打开。';
+
+  @override
+  String get taskSharingText => '共享已关闭，所以没有任何内容送达你的设备。';
+
+  @override
+  String get taskListenerText => 'Android 停止了 AirReply 的通知监听器。重新连接即可恢复接收。';
+
+  @override
+  String get taskBackgroundTitle => '后台活动';
+
+  @override
+  String get taskBackgroundText => 'AirReply 开启了“限制后台使用”，因此熄屏后不久 Android 就会停止共享。请在 AirReply 的设置中打开“电池”，选择“不受限制”。';
+
+  @override
+  String get taskBatterySamsung => '在三星手机上，还要把 AirReply 加入“永不休眠的应用”：设置 → 电池 → 后台使用限制。';
+
+  @override
+  String get taskAutostartXiaomi => '打开“安全中心 → 授权管理 → 自启动管理”，开启 AirReply。否则应用关闭后手机会停止 AirReply。';
+
+  @override
+  String get taskAutostartOppo => '打开“设置 → 电池 → 应用耗电管理”，选择 AirReply，允许自动启动并在后台运行。';
+
+  @override
+  String get taskAutostartVivo => '打开“i 管家 → 应用管理 → 自启动”，开启 AirReply。';
+
+  @override
+  String get taskAutostartHuawei => '打开“手机管家 → 应用启动管理”，找到 AirReply，选择“手动管理”，并打开三个开关。';
+
+  @override
+  String get taskAlertsText => '让这台设备在收到通知时提醒你。不开启的话，通知仍会显示在应用中。';
+
+  @override
+  String get taskPairSender => '配对一台设备，以共享这部手机的通知。';
+
+  @override
+  String get taskPairReceiver => '配对你想在这里查看通知的手机。';
+
+  @override
+  String get eraseEverythingTitle => '清除所有数据';
+
+  @override
+  String get eraseEverythingSubtitle => '从这台设备移除所有设备、历史记录、密钥和设置，并从服务器删除其账号';
+
+  @override
+  String get eraseEverythingConfirmTitle => '清除所有数据？';
+
+  @override
+  String get eraseEverythingConfirmMessage => '所有设备都会被移除，所有历史记录（包括保留的历史记录）都会被删除，AirReply 将像刚安装一样重新开始。此操作无法撤销。';
+
+  @override
+  String get actionErase => '清除';
+
+  @override
+  String get receiveWhenClosedTitle => 'AirReply 关闭时也接收';
+
+  @override
+  String get receiveWhenClosedText => '适用于 AirReply 关闭后会拦截提醒的手机：让它在后台也继续接收。运行时 Android 会显示一条小的状态通知。';
 }

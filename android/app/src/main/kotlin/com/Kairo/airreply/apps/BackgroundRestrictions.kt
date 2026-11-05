@@ -1,5 +1,6 @@
 package com.Kairo.airreply.apps
 
+import android.app.ActivityManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -36,7 +37,20 @@ object BackgroundRestrictions {
         "hasAutostartScreen" to (autostartIntent(context) != null),
         "ignoringBatteryOptimizations" to
             context.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(context.packageName),
+        // "Restrict background usage" in the app's system settings (Android 9+): with it on, the system stops the
+        // sharing service soon after the screen goes off
+        "backgroundRestricted" to (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+            context.getSystemService(ActivityManager::class.java).isBackgroundRestricted),
     )
+
+    /** This app's page in the system settings: battery use, background activity, notifications. */
+    fun openAppSettings(context: Context) {
+        context.startActivity(
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.fromParts("package", context.packageName, null))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
 
     /** Opens the OEM autostart screen, or this app's system settings page when the phone has none. */
     fun openAutostart(context: Context) {

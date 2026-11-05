@@ -19,11 +19,14 @@ object SyncController {
      * From the UI (app in the foreground, so starting a foreground service is allowed). Restarts a running engine so
      * it loads the current set of pairs (e.g. right after pairing another device).
      */
-    fun enable(context: Context) {
-        SyncPreferences(context).syncEnabled = true
+    fun enable(context: Context, receiving: Boolean = false) {
+        val preferences = SyncPreferences(context)
+        preferences.syncEnabled = true
+        preferences.receiving = receiving
         SyncForegroundService.start(context)
         BackgroundSyncEngine.restart(context)
-        ListenerHealth.ensureBound(context)
+        // only a sharing phone listens to its notifications
+        if (!receiving) ListenerHealth.ensureBound(context)
         publishState(context)
     }
 

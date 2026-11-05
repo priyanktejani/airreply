@@ -63,6 +63,8 @@ void main() {
     await launch(tester, role: 'receiver');
 
     expect(find.text('Receiving from 2 phones.'), findsOneWidget);
+    // on the tab and on Home's bell (the bar slides away once the page is scrolled)
+    expect(find.descendant(of: find.byType(Badge), matching: find.text('6')), findsNWidgets(2));
     await reveal(tester, find.text('Latest notifications'));
     expect(find.text('Recent activity'), findsOneWidget);
     expect(find.text('At a glance'), findsOneWidget);
@@ -70,9 +72,7 @@ void main() {
     expect(find.text('Receiving from 2 phones.'), findsOneWidget);
     // The demo starts with the last 20 minutes unread: six notifications.
     expect(find.byWidgetPredicate((w) => w is Stat && w.label == 'Unread' && w.value == '6'), findsOneWidget);
-    // on the tab and on Home's bell
     expect(find.descendant(of: find.byType(FloatingNavBar), matching: find.text('6')), findsOneWidget);
-    expect(find.descendant(of: find.byType(Badge), matching: find.text('6')), findsNWidgets(2));
     expect(find.text('Alex Morgan'), findsWidgets);
     // Four tabs.
     for (final tab in ['Home', 'Notifications', 'Devices', 'Settings']) {

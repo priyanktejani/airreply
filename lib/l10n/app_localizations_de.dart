@@ -942,7 +942,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String removeDeviceMessage(String name) {
-    return 'Die Synchronisierung mit $name endet auf beiden Geräten. Der Verlauf bleibt auf diesem Gerät unter Einstellungen → Frühere Geräte, bis du ihn löschst. Andere Geräte sind nicht betroffen.';
+    return 'Die Synchronisierung mit $name endet auf beiden Geräten. Der Verlauf bleibt auf diesem Gerät unter Geräte → Frühere Geräte, bis du ihn löschst. Andere Geräte sind nicht betroffen.';
   }
 
   @override
@@ -1889,4 +1889,239 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get feedbackNoEmailApp => 'Auf diesem Gerät ist keine E-Mail-App eingerichtet.';
+
+  @override
+  String get alertChannelPopUp => 'Pop-up-Hinweise';
+
+  @override
+  String get alertChannelSilent => 'Lautlose Mitteilungen';
+
+  @override
+  String get alertStatusChannelName => 'Antwortstatus';
+
+  @override
+  String get alertStatusChannelDescription =>
+      'Sagt dir, wenn eine in einer Mitteilung geschriebene Antwort nicht gesendet werden konnte';
+
+  @override
+  String alertReplyNotSent(String name) {
+    return 'Antwort an $name nicht gesendet';
+  }
+
+  @override
+  String get alertStyleTitle => 'So erscheinen Hinweise';
+
+  @override
+  String alertStyleSummary(String messages, String others) {
+    return 'Nachrichten: $messages · Andere: $others';
+  }
+
+  @override
+  String get alertStyleIntro =>
+      'Wähle, wie dich die Mitteilungen deines Handys auf diesem Gerät hinweisen. Egal was du wählst, sie kommen immer unter Mitteilungen an.';
+
+  @override
+  String get alertStyleMessages => 'Nachrichten';
+
+  @override
+  String get alertStyleOthers => 'Andere Mitteilungen';
+
+  @override
+  String get alertModePopUp => 'Pop-up';
+
+  @override
+  String get alertModePopUpHint => 'Auf dem Bildschirm, mit Ton';
+
+  @override
+  String get alertModeNormal => 'In der Liste';
+
+  @override
+  String get alertModeNormalHint => 'Mit Ton, ohne den Bildschirm zu verdecken';
+
+  @override
+  String get alertModeSilent => 'Lautlos';
+
+  @override
+  String get alertModeSilentHint => 'Nur in der Liste: kein Ton, keine Vibration';
+
+  @override
+  String get alertModeOff => 'Aus';
+
+  @override
+  String get alertModeOffHint => 'Kein Hinweis: nur unter Mitteilungen';
+
+  @override
+  String get alertStyleSoundTitle => 'Ton und Vibration';
+
+  @override
+  String get alertStyleSound => 'Ton';
+
+  @override
+  String get alertStyleVibration => 'Vibration';
+
+  @override
+  String get alertStyleSoundHint => 'Für Hinweise, die aufpoppen oder in der Liste erscheinen';
+
+  @override
+  String get alertStyleLockScreen => 'Auf dem Sperrbildschirm';
+
+  @override
+  String get lockScreenShow => 'Alles zeigen';
+
+  @override
+  String get lockScreenHideContent => 'Nachrichteninhalt ausblenden';
+
+  @override
+  String get lockScreenHide => 'Nichts zeigen bis zum Entsperren';
+
+  @override
+  String get alertStyleTest => 'Testhinweis senden';
+
+  @override
+  String get alertStyleTestHint => 'Er nutzt die Auswahl für Nachrichten oben.';
+
+  @override
+  String get alertStyleTestTitle => 'AirReply';
+
+  @override
+  String get alertStyleTestText => 'So weist dich eine Nachricht hin.';
+
+  @override
+  String pairFinishingOn(String name) {
+    return 'Wird auf $name abgeschlossen…';
+  }
+
+  @override
+  String pairFinishingHint(String name) {
+    return 'Lass AirReply auf $name geöffnet. Die Kopplung ist fertig, sobald beide Geräte sie gespeichert haben.';
+  }
+
+  @override
+  String pairUnconfirmedTitle(String name) {
+    return '$name hat die Kopplung nicht abgeschlossen';
+  }
+
+  @override
+  String pairUnconfirmedHint(String name) {
+    return 'Prüfe, ob AirReply auf $name geöffnet und online ist. Wenn dort die Kopplung schon als fertig angezeigt wird, mach weiter.';
+  }
+
+  @override
+  String get actionKeepWaiting => 'Weiter warten';
+
+  @override
+  String get actionPairedThere => 'Dort ist es gekoppelt';
+
+  @override
+  String get actionCancelPairing => 'Kopplung abbrechen';
+
+  @override
+  String get setupAssistantTitle => 'Einrichtungsassistent';
+
+  @override
+  String setupAssistantProgress(int done, int total) {
+    return '$done von $total erledigt';
+  }
+
+  @override
+  String get setupAssistantIntroTitle => 'AirReply am Laufen halten';
+
+  @override
+  String get setupAssistantIntro =>
+      'Alles, was dieses Gerät braucht, um Mitteilungen zuverlässig zu teilen oder anzuzeigen, auch im Hintergrund. Es aktualisiert sich, wenn du Einstellungen änderst.';
+
+  @override
+  String get setupNeeded => 'Erforderlich';
+
+  @override
+  String get setupRecommended => 'Empfohlen';
+
+  @override
+  String get setupAllDone => 'Alles bereit';
+
+  @override
+  String get setupAllDoneHint => 'Alles ist eingerichtet. AirReply läuft im Hintergrund weiter.';
+
+  @override
+  String get setupCardTitle => 'Einrichtung abschließen';
+
+  @override
+  String get actionNotNow => 'Nicht jetzt';
+
+  @override
+  String get actionTurnOn => 'Einschalten';
+
+  @override
+  String get actionAutostartDone => 'Ich habe es eingeschaltet';
+
+  @override
+  String get taskAccessText =>
+      'Erlaubt AirReply, die Mitteilungen zu lesen, die es teilt. Suche AirReply in der Liste und schalte es ein.';
+
+  @override
+  String get taskSharingText => 'Teilen ist aus, daher erreicht nichts deine Geräte.';
+
+  @override
+  String get taskListenerText =>
+      'Android hat den Mitteilungs-Listener von AirReply beendet. Verbinde ihn neu, um wieder zu empfangen.';
+
+  @override
+  String get taskBackgroundTitle => 'Hintergrundaktivität';
+
+  @override
+  String get taskBackgroundText =>
+      '„Hintergrundnutzung einschränken“ ist für AirReply an, daher beendet Android das Teilen kurz nachdem der Bildschirm ausgeht. Öffne in den Einstellungen von AirReply Akku und wähle Nicht eingeschränkt.';
+
+  @override
+  String get taskBatterySamsung =>
+      'Füge AirReply auf Samsung auch zu den Nie-Standby-Apps hinzu: Einstellungen → Akku → Limits für Hintergrundnutzung.';
+
+  @override
+  String get taskAutostartXiaomi =>
+      'Öffne Sicherheit → Berechtigungen → Autostart und schalte AirReply ein. Ohne das stoppt das Handy AirReply, sobald die App geschlossen ist.';
+
+  @override
+  String get taskAutostartOppo =>
+      'Öffne Einstellungen → Akku → App-Akkuverwaltung, wähle AirReply und erlaube automatisches Starten und Ausführen im Hintergrund.';
+
+  @override
+  String get taskAutostartVivo => 'Öffne i Manager → App-Manager → Autostart und schalte AirReply ein.';
+
+  @override
+  String get taskAutostartHuawei =>
+      'Öffne Telefonmanager → App-Start, suche AirReply, wähle Manuell verwalten und schalte alle drei Schalter ein.';
+
+  @override
+  String get taskAlertsText =>
+      'Erlaubt diesem Gerät, dich auf neue Mitteilungen hinzuweisen. Ohne das erscheinen Mitteilungen trotzdem in der App.';
+
+  @override
+  String get taskPairSender => 'Kopple ein Gerät, mit dem dieses Handy seine Mitteilungen teilt.';
+
+  @override
+  String get taskPairReceiver => 'Kopple das Handy, dessen Mitteilungen du hier sehen möchtest.';
+
+  @override
+  String get eraseEverythingTitle => 'Alles löschen';
+
+  @override
+  String get eraseEverythingSubtitle =>
+      'Entfernt alle Geräte, den Verlauf, Schlüssel und Einstellungen von diesem Gerät und sein Konto vom Server';
+
+  @override
+  String get eraseEverythingConfirmTitle => 'Alles löschen?';
+
+  @override
+  String get eraseEverythingConfirmMessage =>
+      'Alle Geräte werden entfernt, der gesamte Verlauf (auch der behaltene) wird gelöscht und AirReply startet wie neu installiert. Das kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get actionErase => 'Löschen';
+
+  @override
+  String get receiveWhenClosedTitle => 'Empfangen, wenn AirReply geschlossen ist';
+
+  @override
+  String get receiveWhenClosedText =>
+      'Für Handys, die Benachrichtigungen zurückhalten, wenn AirReply geschlossen ist: empfängt zusätzlich im Hintergrund. Android zeigt dabei eine kleine Statusbenachrichtigung.';
 }

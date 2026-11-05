@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:air_reply/core/crypto/crypto_contracts.dart';
 import 'package:air_reply/core/device/device_identity.dart';
 import 'package:air_reply/core/domain/device_role.dart';
@@ -58,16 +60,29 @@ final class DeriveSenderSecrets {
 }
 
 /// Sender, step 3: the person confirmed both screens show the same code. Creates the pair and stores the key.
+///
+/// The key is kept before the pair exists on the server: a confirmation that reaches the server late (a slow or
+/// dropped connection) then never leaves the receiver paired with a phone that gave up. A confirmation the server
+/// refuses takes the key away again. Then this phone acknowledges the pair, and waits for the receiver's
+/// acknowledgement (see `PairingRepository.watchReady`) before calling it done.
 final class ConfirmSenderPairing {
-  const ConfirmSenderPairing(this._repository, this._store, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+  const ConfirmSenderPairing(
+    this._repository,
+    this._store, {
+    DateTime Function()? clock,
+    this.serverTimeout = const Duration(seconds: 20),
+  }) : _clock = clock ?? DateTime.now;
 
   final PairingRepository _repository;
   final PairingCredentialsStore _store;
   final DateTime Function() _clock;
 
+  /// How long the confirmation may take before pairing carries on waiting for the receiver instead: FlutterFire keeps
+  /// the write and sends it once it can, and the receiver's acknowledgement says whether it arrived.
+  final Duration serverTimeout;
+
   Future<PairingCredentials> call(PairingSession joined, PairingSecrets secrets) async {
-    final pairId = await _repository.confirmSession(joined);
+    final pairId = _repository.newPairId();
     final credentials = PairingCredentials(
       pairId: pairId,
       role: DeviceRole.sender,
@@ -77,6 +92,19 @@ final class ConfirmSenderPairing {
       peerUid: joined.receiverUid,
     );
     await _store.save(credentials);
+    try {
+      await _repository.confirmSession(joined, pairId).timeout(serverTimeout);
+    } on TimeoutException {
+      // still on its way: the receiver's acknowledgement tells
+    } on Object {
+      await _store.remove(pairId);
+      rethrow;
+    }
+    try {
+      await _repository.markReady(pairId, DeviceRole.sender).timeout(serverTimeout);
+    } on Object {
+      // the receiver does not wait for this one; the pair works without it
+    }
     return credentials;
   }
 }

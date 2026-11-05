@@ -16,9 +16,15 @@ final class ArchivedPair {
   String get pairId => credentials.pairId;
   String get peerName => credentials.peerName;
 
-  /// Whether [pair] is the same device in the same role, paired again.
-  bool continuesIn(PairingCredentials pair) =>
-      credentials.peerUid != null && credentials.peerUid == pair.peerUid && credentials.role == pair.role;
+  /// Whether [pair] is the same device in the same role, paired again: the same sign-in id when both pairs know it;
+  /// for a pair made before devices recorded each other's id, the same name. Two different ids are never the same
+  /// device, so one person's history never joins another's on a shared computer.
+  bool continuesIn(PairingCredentials pair) {
+    if (credentials.role != pair.role) return false;
+    final (before, now) = (credentials.peerUid, pair.peerUid);
+    if (before != null && now != null) return before == now;
+    return credentials.peerName.trim().toLowerCase() == pair.peerName.trim().toLowerCase();
+  }
 
   Map<String, Object?> toJson() => {'pair': credentials.toJson(), 'unpairedAt': unpairedAt.millisecondsSinceEpoch};
 }

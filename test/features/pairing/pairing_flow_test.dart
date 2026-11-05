@@ -40,7 +40,7 @@ void main() {
 
     final senderCredentials = await ConfirmSenderPairing(backend, senderStore).call(joined.session, senderSecrets);
     final confirmed = backend.sessions[joined.session.code]!;
-    final receiverCredentials = await FinishReceiverPairing(receiverStore).call(joined, confirmed);
+    final receiverCredentials = await FinishReceiverPairing(receiverStore, backend).call(joined, confirmed);
 
     expect(senderCredentials.role, DeviceRole.sender);
     expect(receiverCredentials.role, DeviceRole.receiver);

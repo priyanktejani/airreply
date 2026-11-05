@@ -6,4 +6,6 @@
     <string name="sync_pause">暂停</string>
     <string name="sync_channel_name">同步状态</string>
     <string name="sync_channel_description">在此手机共享通知时显示</string>
+    <string name="receive_notification_title">正在接收通知</string>
+    <string name="receive_notification_text">即使 AirReply 已关闭，手机的提醒也会送达</string>
 </resources>

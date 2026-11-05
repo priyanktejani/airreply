@@ -82,8 +82,26 @@ class InMemoryPairingRepository implements PairingRepository {
   }
 
   @override
-  Future<String> confirmSession(PairingSession session) async {
-    final pairId = 'pair-${_nextPair++}';
+  String newPairId() => 'pair-${_nextPair++}';
+
+  /// Each pair's acknowledgements, by role.
+  final ready = <String, Set<DeviceRole>>{};
+  final _readyChanges = StreamController<String>.broadcast();
+
+  @override
+  Future<void> markReady(String pairId, DeviceRole role) async {
+    (ready[pairId] ??= {}).add(role);
+    _readyChanges.add(pairId);
+  }
+
+  @override
+  Stream<bool> watchReady(String pairId, DeviceRole role) async* {
+    yield ready[pairId]?.contains(role) ?? false;
+    yield* _readyChanges.stream.where((id) => id == pairId).map((_) => ready[pairId]?.contains(role) ?? false);
+  }
+
+  @override
+  Future<void> confirmSession(PairingSession session, String pairId) async {
     pairs[pairId] = true;
     _put(
       PairingSession(
@@ -99,7 +117,6 @@ class InMemoryPairingRepository implements PairingRepository {
         pairId: pairId,
       ),
     );
-    return pairId;
   }
 
   @override
@@ -114,13 +131,22 @@ class InMemoryPairingRepository implements PairingRepository {
   @override
   Future<void> endPair(String pairId) async => pairs[pairId] = false;
 
+  /// Each pair's other member, as the server would report it.
+  final peers = <String, String>{};
+
+  @override
+  Future<String?> peerUidOf(String pairId) async => peers[pairId];
+
   @override
   Future<void> registerPushToken({required String pairId, required DeviceRole role, required String token}) async =>
       tokens['$pairId/${role.name}'] = token;
 
+  /// Live updates stall (a listener that stopped hearing): only fetching the session sees changes.
+  var muteUpdates = false;
+
   PairingSession _put(PairingSession session) {
     sessions[session.code] = session;
-    _controllers[session.code]?.add(session);
+    if (!muteUpdates) _controllers[session.code]?.add(session);
     return session;
   }
 }
@@ -213,6 +239,8 @@ final class FakeNotificationBridge implements NotificationBridge {
   final repliesSent = <(String, String)>[];
   var syncStopped = false;
   var syncReloaded = false;
+  var syncStarted = false;
+  bool? startedReceiving;
 
   @override
   bool get isSupported => true;
@@ -230,7 +258,10 @@ final class FakeNotificationBridge implements NotificationBridge {
   Future<void> reloadSync() async => syncReloaded = true;
 
   @override
-  Future<void> startSync() async {}
+  Future<void> startSync({bool receiving = false}) async {
+    syncStarted = true;
+    startedReceiving = receiving;
+  }
 
   @override
   Future<bool> isNotificationAccessGranted() async => true;
@@ -243,6 +274,15 @@ final class FakeNotificationBridge implements NotificationBridge {
 
   @override
   Future<void> openAutostartSettings() async {}
+
+  @override
+  Future<void> openAppSettings() async {}
+
+  @override
+  Future<bool> isAppVisible() async => false;
+
+  @override
+  Future<void> clearNativeData() async {}
 
   @override
   Future<BackgroundRestrictions> backgroundRestrictions() async => BackgroundRestrictions.none;
@@ -327,4 +367,7 @@ final class MemorySecretStore implements SecretStore {
 
   @override
   Future<void> delete(String key) async => values.remove(key);
+
+  @override
+  Future<void> deleteAll() async => values.clear();
 }

@@ -1269,7 +1269,7 @@
       }
     }
   },
-  "removeDeviceMessage": "Syncing with {name} stops on both devices. Its history stays on this device under Settings → Previous devices until you delete it. Other devices are not affected.",
+  "removeDeviceMessage": "Syncing with {name} stops on both devices. Its history stays on this device under Devices → Previous devices until you delete it. Other devices are not affected.",
   "@removeDeviceMessage": {
     "description": "Confirm removing a device.",
     "placeholders": {
@@ -2591,5 +2591,327 @@
   "feedbackNoEmailApp": "No email app is set up on this device.",
   "@feedbackNoEmailApp": {
     "description": "The email app could not be opened."
+  },
+  "alertChannelPopUp": "Pop-up alerts",
+  "@alertChannelPopUp": {
+    "description": "Android notification channel: alerts that pop up."
+  },
+  "alertChannelSilent": "Silent notifications",
+  "@alertChannelSilent": {
+    "description": "Android notification channel: quiet ones."
+  },
+  "alertStatusChannelName": "Reply status",
+  "@alertStatusChannelName": {
+    "description": "Android notification channel: replies that could not be sent."
+  },
+  "alertStatusChannelDescription": "Tells you when a reply typed into a notification could not be sent",
+  "@alertStatusChannelDescription": {
+    "description": "Channel description."
+  },
+  "alertReplyNotSent": "Reply to {name} not sent",
+  "@alertReplyNotSent": {
+    "description": "Alert title when a reply from a notification failed.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alex"
+      }
+    }
+  },
+  "alertStyleTitle": "How alerts appear",
+  "@alertStyleTitle": {
+    "description": "Settings row and screen title."
+  },
+  "alertStyleSummary": "Messages: {messages} · Other: {others}",
+  "@alertStyleSummary": {
+    "description": "Settings row subtitle.",
+    "placeholders": {
+      "messages": {
+        "type": "String"
+      },
+      "others": {
+        "type": "String"
+      }
+    }
+  },
+  "alertStyleIntro": "Choose how notifications from your phone alert you on this device. Whatever you choose, they always arrive in Notifications.",
+  "@alertStyleIntro": {
+    "description": "Alert style screen intro."
+  },
+  "alertStyleMessages": "Messages",
+  "@alertStyleMessages": {
+    "description": "Section: chats that can be answered."
+  },
+  "alertStyleOthers": "Other notifications",
+  "@alertStyleOthers": {
+    "description": "Section: everything that is not a message."
+  },
+  "alertModePopUp": "Pop up",
+  "@alertModePopUp": {
+    "description": "Alert mode."
+  },
+  "alertModePopUpHint": "On screen, with sound",
+  "@alertModePopUpHint": {
+    "description": "Alert mode description."
+  },
+  "alertModeNormal": "In the list",
+  "@alertModeNormal": {
+    "description": "Alert mode."
+  },
+  "alertModeNormalHint": "With sound, without covering the screen",
+  "@alertModeNormalHint": {
+    "description": "Alert mode description."
+  },
+  "alertModeSilent": "Silent",
+  "@alertModeSilent": {
+    "description": "Alert mode."
+  },
+  "alertModeSilentHint": "In the list only: no sound, no vibration",
+  "@alertModeSilentHint": {
+    "description": "Alert mode description."
+  },
+  "alertModeOff": "Off",
+  "@alertModeOff": {
+    "description": "Alert mode."
+  },
+  "alertModeOffHint": "No alert: only in Notifications",
+  "@alertModeOffHint": {
+    "description": "Alert mode description."
+  },
+  "alertStyleSoundTitle": "Sound and vibration",
+  "@alertStyleSoundTitle": {
+    "description": "Section title."
+  },
+  "alertStyleSound": "Sound",
+  "@alertStyleSound": {
+    "description": "Switch."
+  },
+  "alertStyleVibration": "Vibration",
+  "@alertStyleVibration": {
+    "description": "Switch."
+  },
+  "alertStyleSoundHint": "For alerts that pop up or show in the list",
+  "@alertStyleSoundHint": {
+    "description": "Switch description."
+  },
+  "alertStyleLockScreen": "On the lock screen",
+  "@alertStyleLockScreen": {
+    "description": "Section title."
+  },
+  "lockScreenShow": "Show everything",
+  "@lockScreenShow": {
+    "description": "Lock screen choice."
+  },
+  "lockScreenHideContent": "Hide what the message says",
+  "@lockScreenHideContent": {
+    "description": "Lock screen choice."
+  },
+  "lockScreenHide": "Show nothing until unlocked",
+  "@lockScreenHide": {
+    "description": "Lock screen choice."
+  },
+  "alertStyleTest": "Send a test alert",
+  "@alertStyleTest": {
+    "description": "Button."
+  },
+  "alertStyleTestHint": "It uses the choices for messages above.",
+  "@alertStyleTestHint": {
+    "description": "Below the test button."
+  },
+  "alertStyleTestTitle": "AirReply",
+  "@alertStyleTestTitle": {
+    "description": "Test alert title."
+  },
+  "alertStyleTestText": "This is how a message will alert you.",
+  "@alertStyleTestText": {
+    "description": "Test alert text."
+  },
+  "pairFinishingOn": "Finishing on {name}…",
+  "@pairFinishingOn": {
+    "description": "Pairing: waiting for the other device to save the pair.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "MacBook"
+      }
+    }
+  },
+  "pairFinishingHint": "Keep AirReply open on {name}. Pairing is done once both devices have saved it.",
+  "@pairFinishingHint": {
+    "description": "Pairing hint.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "MacBook"
+      }
+    }
+  },
+  "pairUnconfirmedTitle": "{name} hasn't finished pairing",
+  "@pairUnconfirmedTitle": {
+    "description": "Pairing: the other device did not acknowledge.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "MacBook"
+      }
+    }
+  },
+  "pairUnconfirmedHint": "Check that AirReply is open on {name} and online. If it already shows the pairing as done, carry on.",
+  "@pairUnconfirmedHint": {
+    "description": "Pairing hint.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "MacBook"
+      }
+    }
+  },
+  "actionKeepWaiting": "Keep waiting",
+  "@actionKeepWaiting": {
+    "description": "Button."
+  },
+  "actionPairedThere": "It's paired there",
+  "@actionPairedThere": {
+    "description": "Button: the other device shows paired."
+  },
+  "actionCancelPairing": "Cancel pairing",
+  "@actionCancelPairing": {
+    "description": "Button."
+  },
+  "setupAssistantTitle": "Setup assistant",
+  "@setupAssistantTitle": {
+    "description": "Settings row and screen title."
+  },
+  "setupAssistantProgress": "{done} of {total} done",
+  "@setupAssistantProgress": {
+    "description": "Setup progress.",
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAssistantIntroTitle": "Keep AirReply working",
+  "@setupAssistantIntroTitle": {
+    "description": "Setup assistant heading."
+  },
+  "setupAssistantIntro": "Everything this device needs to share or show notifications reliably, even in the background. It updates as you change settings.",
+  "@setupAssistantIntro": {
+    "description": "Setup assistant intro."
+  },
+  "setupNeeded": "Needed",
+  "@setupNeeded": {
+    "description": "Section: required steps."
+  },
+  "setupRecommended": "Recommended",
+  "@setupRecommended": {
+    "description": "Section: recommended steps."
+  },
+  "setupAllDone": "All set",
+  "@setupAllDone": {
+    "description": "Everything is done."
+  },
+  "setupAllDoneHint": "Everything is in place. AirReply keeps working in the background.",
+  "@setupAllDoneHint": {
+    "description": "Everything is done."
+  },
+  "setupCardTitle": "Finish setting up",
+  "@setupCardTitle": {
+    "description": "Home card title."
+  },
+  "actionNotNow": "Not now",
+  "@actionNotNow": {
+    "description": "Button: put away for now."
+  },
+  "actionTurnOn": "Turn on",
+  "@actionTurnOn": {
+    "description": "Button."
+  },
+  "actionAutostartDone": "I've turned it on",
+  "@actionAutostartDone": {
+    "description": "Button: the person confirms a setting the app cannot read."
+  },
+  "taskAccessText": "Lets AirReply read the notifications it shares. Find AirReply in the list and switch it on.",
+  "@taskAccessText": {
+    "description": "Setup step."
+  },
+  "taskSharingText": "Sharing is off, so nothing reaches your devices.",
+  "@taskSharingText": {
+    "description": "Setup step."
+  },
+  "taskListenerText": "Android stopped AirReply's notification listener. Reconnect it to start receiving again.",
+  "@taskListenerText": {
+    "description": "Setup step."
+  },
+  "taskBackgroundTitle": "Background activity",
+  "@taskBackgroundTitle": {
+    "description": "Setup step title."
+  },
+  "taskBackgroundText": "“Restrict background usage” is on for AirReply, so Android stops sharing soon after the screen goes off. In AirReply’s settings, open Battery and choose Unrestricted.",
+  "@taskBackgroundText": {
+    "description": "Setup step."
+  },
+  "taskBatterySamsung": "On Samsung, also add AirReply to Never sleeping apps: Settings → Battery → Background usage limits.",
+  "@taskBatterySamsung": {
+    "description": "Setup tip for Samsung phones."
+  },
+  "taskAutostartXiaomi": "Open Security → Permissions → Autostart, and turn on AirReply. Without it, the phone stops AirReply once the app is closed.",
+  "@taskAutostartXiaomi": {
+    "description": "Autostart steps on Xiaomi."
+  },
+  "taskAutostartOppo": "Open Settings → Battery → App battery management, choose AirReply, and allow it to start automatically and run in the background.",
+  "@taskAutostartOppo": {
+    "description": "Autostart steps on Oppo, Realme, OnePlus."
+  },
+  "taskAutostartVivo": "Open i Manager → App manager → Autostart, and turn on AirReply.",
+  "@taskAutostartVivo": {
+    "description": "Autostart steps on Vivo."
+  },
+  "taskAutostartHuawei": "Open Phone Manager → App launch, find AirReply, choose Manage manually, and turn on all three switches.",
+  "@taskAutostartHuawei": {
+    "description": "Autostart steps on Huawei and Honor."
+  },
+  "taskAlertsText": "Lets this device alert you when a notification arrives. Without it, notifications still appear in the app.",
+  "@taskAlertsText": {
+    "description": "Setup step."
+  },
+  "taskPairSender": "Pair a device to share this phone's notifications with.",
+  "@taskPairSender": {
+    "description": "Setup step."
+  },
+  "taskPairReceiver": "Pair the phone whose notifications you want to see here.",
+  "@taskPairReceiver": {
+    "description": "Setup step."
+  },
+  "eraseEverythingTitle": "Erase everything",
+  "@eraseEverythingTitle": {
+    "description": "Settings row."
+  },
+  "eraseEverythingSubtitle": "Removes all devices, history, keys and settings from this device, and its account from the server",
+  "@eraseEverythingSubtitle": {
+    "description": "Settings row subtitle."
+  },
+  "eraseEverythingConfirmTitle": "Erase everything?",
+  "@eraseEverythingConfirmTitle": {
+    "description": "Confirm title."
+  },
+  "eraseEverythingConfirmMessage": "Every device is removed, all history and kept history is deleted, and AirReply starts as if newly installed. This cannot be undone.",
+  "@eraseEverythingConfirmMessage": {
+    "description": "Confirm message."
+  },
+  "actionErase": "Erase",
+  "@actionErase": {
+    "description": "Button."
+  },
+  "receiveWhenClosedTitle": "Receive when AirReply is closed",
+  "receiveWhenClosedText": "For phones that hold back alerts once AirReply is closed: keeps it receiving in the background too. Android shows a small status notification while it runs.",
+  "@receiveWhenClosedTitle": {
+    "description": "Android receivers: switch and setup step that keeps receiving alerts while the app is closed."
+  },
+  "@receiveWhenClosedText": {
+    "description": "Explains the receive-when-closed switch."
   }
 }

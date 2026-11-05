@@ -41,8 +41,8 @@ final class MirrorSyncRepository implements MirrorRepository {
   /// This device receives the pair's notifications, so it empties the mailbox.
   final bool collects;
 
-  /// How often a sender's screens check history for writes made elsewhere: its background engine publishes from
-  /// another isolate. A receiver writes its history only here, so it never needs to.
+  /// How often the screens check history for writes made elsewhere: a sender's background engine publishes from
+  /// another isolate, and a receiver's reply typed into an alert may be saved by a background isolate.
   final Duration historyCheckInterval;
   final DateTime Function() _clock;
 
@@ -308,7 +308,9 @@ final class MirrorSyncRepository implements MirrorRepository {
           _mailbox.watch(FirestoreSchema.replies).listen(_collectReplies, onError: log),
         ]);
       }
-      if (!collects) _historyCheck = Timer.periodic(historyCheckInterval, (_) => _serially(_reloadIfChanged));
+      // writes made elsewhere: the sender's background engine publishing, or a reply sent from an alert by a
+      // background isolate on a receiver
+      _historyCheck = Timer.periodic(historyCheckInterval, (_) => _serially(_reloadIfChanged));
       _serially(_indexUnsearchable);
     });
   }

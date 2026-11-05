@@ -14,6 +14,8 @@
          restored copy could not be read anyway). -->
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
         android:label="AirReply"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
@@ -68,6 +70,12 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <!-- Receives the "Reply" typed into a mirrored alert (flutter_local_notifications), and hands it to the app or,
+             when the app is not running, to a background isolate. Without it the reply is silently dropped. -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false" />
 
         <!-- Icon of the mirrored alerts and of pushes shown by the system. -->
         <meta-data

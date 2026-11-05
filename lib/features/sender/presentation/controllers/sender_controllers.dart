@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:air_reply/core/core_providers.dart';
+import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
+import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ------------------------------------------------------------------ sync on / off
@@ -24,8 +26,11 @@ final class SyncStatusController extends AsyncNotifier<SyncStatus> {
   }
 
   /// Throws [NativeBridgeException] (state unchanged) when the service refuses to start or stop.
+  /// On a device that shows notifications, the same service keeps it receiving while AirReply is closed.
   Future<void> setEnabled(bool enabled) async {
-    enabled ? await _bridge.startSync() : await _bridge.stopSync();
+    enabled
+        ? await _bridge.startSync(receiving: ref.read(deviceRoleProvider) == DeviceRole.receiver)
+        : await _bridge.stopSync();
     state = AsyncData(await _bridge.syncStatus());
   }
 

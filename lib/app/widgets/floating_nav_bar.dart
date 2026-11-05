@@ -4,6 +4,7 @@ import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
+import 'package:air_reply/core/widgets/bottom_fade.dart';
 import 'package:air_reply/core/widgets/glass_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,62 +53,64 @@ class FloatingNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final still = MediaQuery.of(context).disableAnimations;
     final duration = still ? Duration.zero : const Duration(milliseconds: 320);
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.only(bottom: AppDimensions.navBarMargin),
-      child: Align(
-        heightFactor: 1,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
-            child: GlassContainer(
-              floating: true,
-              height: AppDimensions.navBarHeight,
-              borderRadius: AppRadius.fullBorder,
-              padding: const EdgeInsets.all(6),
-              child: LayoutBuilder(
-                builder: (context, box) {
-                  final slot = box.maxWidth / items.length;
-                  return Stack(
-                    children: [
-                      // the selected tab's highlight glides between tabs
-                      AnimatedPositioned(
-                        duration: duration,
-                        curve: Curves.easeOutCubic,
-                        left: slot * selectedIndex,
-                        top: 0,
-                        bottom: 0,
-                        width: slot,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: context.palette.accentSoft,
-                            borderRadius: AppRadius.fullBorder,
+    return BottomFade(
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.only(bottom: AppDimensions.navBarMargin),
+        child: Align(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+              child: GlassContainer(
+                floating: true,
+                height: AppDimensions.navBarHeight,
+                borderRadius: AppRadius.fullBorder,
+                padding: const EdgeInsets.all(6),
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final slot = box.maxWidth / items.length;
+                    return Stack(
+                      children: [
+                        // the selected tab's highlight glides between tabs
+                        AnimatedPositioned(
+                          duration: duration,
+                          curve: Curves.easeOutCubic,
+                          left: slot * selectedIndex,
+                          top: 0,
+                          bottom: 0,
+                          width: slot,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: context.palette.accentSoft,
+                              borderRadius: AppRadius.fullBorder,
+                            ),
                           ),
                         ),
-                      ),
-                      Row(
-                        children: [
-                          for (var i = 0; i < items.length; i++)
-                            Expanded(
-                              child: _popIn(
-                                i,
-                                _NavTab(
-                                  item: items[i],
-                                  selected: i == selectedIndex,
-                                  duration: duration,
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    onSelected(i);
-                                  },
+                        Row(
+                          children: [
+                            for (var i = 0; i < items.length; i++)
+                              Expanded(
+                                child: _popIn(
+                                  i,
+                                  _NavTab(
+                                    item: items[i],
+                                    selected: i == selectedIndex,
+                                    duration: duration,
+                                    onTap: () {
+                                      HapticFeedback.selectionClick();
+                                      onSelected(i);
+                                    },
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),

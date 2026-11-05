@@ -6,10 +6,12 @@ import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/features/mirror/history_providers.dart';
 import 'package:air_reply/features/pairing/domain/entities/archived_pair.dart';
 import 'package:air_reply/features/pairing/domain/entities/pairing_credentials.dart';
+import 'package:air_reply/features/pairing/domain/usecases/restore_kept_history.dart';
 import 'package:air_reply/features/pairing/pairing_providers.dart';
 import 'package:air_reply/features/session/data/preferences_device_settings_store.dart';
 import 'package:air_reply/features/session/domain/device_session.dart';
 import 'package:air_reply/features/session/domain/device_settings_store.dart';
+import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final deviceSettingsStoreProvider = Provider<DeviceSettingsStore>(
@@ -87,6 +89,52 @@ final class DeviceSessionController extends AsyncNotifier<DeviceSession> {
     ref.invalidate(archivedPairsProvider);
     if (continued.isNotEmpty) {
       ref.read(continuedHistoryProvider.notifier).add([for (final id in continued) '${credentials.pairId}/$id']);
+    }
+  }
+
+  /// Android receivers: keeps the background service receiving (alerts while AirReply is closed), unless the person
+  /// switched it off; a new pair restarts it so it serves that phone too. Run as the app starts and after pairing.
+  Future<void> ensureBackgroundReceiving({bool restart = false}) async {
+    final bridge = ref.read(notificationBridgeProvider);
+    final session = _current;
+    if (!bridge.isSupported || session.role != DeviceRole.receiver || !session.isPaired) return;
+    try {
+      final preferences = await ref.read(appPreferencesStoreProvider).load();
+      if (!preferences.receiveWhenClosed) return;
+      final status = await bridge.syncStatus();
+      if (restart || !status.enabled || !status.running) await bridge.startSync(receiving: true);
+    } on Object catch (e) {
+      appLog('Background receiving not started: $e', name: 'air_reply.sync');
+    }
+  }
+
+  /// A pairing this device joined, which the phone confirmed while the app was closed, is finished now.
+  Future<void> resumePairing() async {
+    try {
+      final credentials = await ref.read(resumeReceiverPairingProvider).call();
+      if (credentials != null) await paired(credentials);
+    } on Object catch (e) {
+      appLog('Pairing not resumed: $e', name: 'air_reply.pairing');
+    }
+  }
+
+  /// History kept from earlier pairings with the devices paired now comes back (see [RestoreKeptHistory]): run once
+  /// as the app starts, for pairs made again before their history could be recognised.
+  Future<void> restoreKeptHistory() async {
+    try {
+      final moved = await ref.read(restoreKeptHistoryProvider).call();
+      ref.invalidate(archivedPairsProvider);
+      if (moved.isEmpty) return;
+      ref.read(continuedHistoryProvider.notifier).add([
+        for (final MapEntry(key: pairId, value: ids) in moved.entries)
+          for (final id in ids) '$pairId/$id',
+      ]);
+      // their feeds read the history again, with what came back
+      for (final pairId in moved.keys) {
+        ref.invalidate(messageHistoryProvider(pairId));
+      }
+    } on Object catch (e) {
+      appLog('Kept history not restored: $e', name: 'air_reply.pairing');
     }
   }
 

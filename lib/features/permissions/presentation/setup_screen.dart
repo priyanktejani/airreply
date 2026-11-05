@@ -6,17 +6,17 @@ import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
-import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
-import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/widgets/card_group.dart';
 import 'package:air_reply/core/widgets/glass_scroll_page.dart';
+import 'package:air_reply/core/widgets/info_row.dart';
 import 'package:air_reply/core/widgets/page_intro.dart';
 import 'package:air_reply/core/widgets/responsive_center.dart';
 import 'package:air_reply/core/widgets/sticky_action_bar.dart';
 import 'package:air_reply/features/onboarding/presentation/onboarding_back.dart';
 import 'package:air_reply/features/permissions/presentation/sender_permissions_controller.dart';
+import 'package:air_reply/features/permissions/presentation/widgets/checklist_row.dart';
 import 'package:air_reply/features/session/session_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,8 +53,15 @@ class _WithActions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final paired = ref.watch(deviceSessionProvider.select((s) => s.value?.isPaired ?? false));
-    // one row of buttons per action, with the gaps between them
-    final reserve = actions.length * (AppDimensions.buttonHeight + AppSpacing.sm) + AppSpacing.xl;
+    // the panel (its first button is in StickyActionBar.reserve; then the others and the gaps between them), the home
+    // indicator, and room to breathe
+    final buttons = actions.whereType<ButtonStyleButton>().length;
+    final reserve =
+        StickyActionBar.reserve +
+        (buttons - 1) * AppDimensions.buttonHeight +
+        (actions.length - buttons) * AppSpacing.sm +
+        MediaQuery.paddingOf(context).bottom +
+        AppSpacing.xl;
     // unpaired, this is the step after choosing to share: back returns to that choice
     void back() =>
         paired ? context.go(AppRoutes.home) : unawaited(ref.read(deviceSessionProvider.notifier).clearRole());
@@ -141,6 +148,7 @@ class _Disclosure extends ConsumerWidget {
   }
 }
 
+/// One point of the disclosure: a card row like every other, its icon on a tile and the explanation under the title.
 class _Point extends StatelessWidget {
   const _Point({required this.icon, required this.title, required this.body});
 
@@ -149,29 +157,10 @@ class _Point extends StatelessWidget {
   final String body;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.palette;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 22, color: c.muted),
-          const SizedBox(width: AppSpacing.base),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppType.subtitle.copyWith(color: c.ink)),
-                const SizedBox(height: AppSpacing.xs),
-                Text(body, style: AppType.body.copyWith(color: c.muted)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    child: InfoRow(icon: icon, title: title, subtitle: body),
+  );
 }
 
 class _Checklist extends ConsumerStatefulWidget {
@@ -283,52 +272,11 @@ class _Step extends StatelessWidget {
   final bool? done;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.palette;
-    final isDone = done ?? false;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AnimatedContainer(
-            duration: AppMotion.medium,
-            width: 28,
-            height: 28,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDone ? c.accent : null,
-              border: isDone ? null : Border.all(color: c.line),
-            ),
-            child: isDone
-                ? Icon(AppIcons.check, size: 16, color: c.bg)
-                : Text(
-                    '$index',
-                    style: AppType.supporting.copyWith(color: c.ink, fontWeight: FontWeight.w600),
-                  ),
-          ),
-          const SizedBox(width: AppSpacing.base),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppType.subtitle.copyWith(color: c.ink)),
-                const SizedBox(height: 2),
-                Text(subtitle, style: AppType.supporting.copyWith(color: c.muted)),
-                const SizedBox(height: AppSpacing.sm),
-                if (isDone)
-                  Text(
-                    context.l10n.stepDone,
-                    style: AppType.supporting.copyWith(color: c.accent, fontWeight: FontWeight.w600),
-                  )
-                else
-                  OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => ChecklistRow(
+    index: index,
+    title: title,
+    subtitle: subtitle,
+    done: done ?? false,
+    actions: [OutlinedButton(onPressed: onAction, child: Text(actionLabel))],
+  );
 }

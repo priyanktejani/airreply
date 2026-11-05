@@ -8,6 +8,7 @@ import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
+import 'package:air_reply/core/widgets/bottom_fade.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
 import 'package:air_reply/core/widgets/glass_container.dart';
 import 'package:air_reply/core/widgets/responsive_center.dart';
@@ -103,69 +104,71 @@ class _ReplyComposerState extends ConsumerState<ReplyComposer> {
       borderSide: BorderSide(color: c.line),
     );
     // the message box floats as a glass panel over the conversation, clear of the home indicator and the keyboard
-    return SafeArea(
-      top: false,
-      minimum: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
-      child: ResponsiveCenter(
-        child: GlassContainer(
-          strong: true,
-          floating: true,
-          borderRadius: AppRadius.xxlBorder,
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _text,
-                  focusNode: _focus,
-                  autofocus: widget.autofocus,
-                  minLines: 1,
-                  maxLines: 5,
-                  maxLength: SendReply.maxLength,
-                  textCapitalization: TextCapitalization.sentences,
-                  textInputAction: AppPlatform.prefersKeyboardShortcuts
-                      ? TextInputAction.newline
-                      : TextInputAction.send,
-                  onSubmitted: (_) => _send(),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    counterText: '',
-                    filled: true,
-                    fillColor: c.soft,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.md),
-                    border: field,
-                    enabledBorder: field,
-                    focusedBorder: field.copyWith(borderSide: BorderSide(color: c.accent, width: 1.5)),
-                    hintText: to.isEmpty ? context.l10n.replyHint : context.l10n.replyToHint(to),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              AnimatedScale(
-                scale: canSend ? 1 : .88,
-                duration: quick,
-                curve: Curves.easeOutBack,
-                child: AnimatedOpacity(
-                  opacity: canSend ? 1 : .6,
-                  duration: quick,
-                  child: IconButton.filled(
-                    tooltip: AppPlatform.prefersKeyboardShortcuts
-                        ? context.l10n.sendWithEnter
-                        : context.l10n.actionSend,
-                    onPressed: canSend ? _send : null,
-                    style: IconButton.styleFrom(
-                      backgroundColor: c.accent,
-                      foregroundColor: c.accentInk,
-                      disabledBackgroundColor: c.accent,
-                      disabledForegroundColor: c.accentInk,
-                      minimumSize: const Size(AppDimensions.touchTarget, AppDimensions.touchTarget),
+    return BottomFade(
+      child: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.md),
+        child: ResponsiveCenter(
+          child: GlassContainer(
+            strong: true,
+            floating: true,
+            borderRadius: AppRadius.xxlBorder,
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _text,
+                    focusNode: _focus,
+                    autofocus: widget.autofocus,
+                    minLines: 1,
+                    maxLines: 5,
+                    maxLength: SendReply.maxLength,
+                    textCapitalization: TextCapitalization.sentences,
+                    textInputAction: AppPlatform.prefersKeyboardShortcuts
+                        ? TextInputAction.newline
+                        : TextInputAction.send,
+                    onSubmitted: (_) => _send(),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      counterText: '',
+                      filled: true,
+                      fillColor: c.soft,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.md),
+                      border: field,
+                      enabledBorder: field,
+                      focusedBorder: field.copyWith(borderSide: BorderSide(color: c.accent, width: 1.5)),
+                      hintText: to.isEmpty ? context.l10n.replyHint : context.l10n.replyToHint(to),
                     ),
-                    icon: const Icon(AppIcons.send, size: AppDimensions.iconMd),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.sm),
+                AnimatedScale(
+                  scale: canSend ? 1 : .88,
+                  duration: quick,
+                  curve: Curves.easeOutBack,
+                  child: AnimatedOpacity(
+                    opacity: canSend ? 1 : .6,
+                    duration: quick,
+                    child: IconButton.filled(
+                      tooltip: AppPlatform.prefersKeyboardShortcuts
+                          ? context.l10n.sendWithEnter
+                          : context.l10n.actionSend,
+                      onPressed: canSend ? _send : null,
+                      style: IconButton.styleFrom(
+                        backgroundColor: c.accent,
+                        foregroundColor: c.accentInk,
+                        disabledBackgroundColor: c.accent,
+                        disabledForegroundColor: c.accentInk,
+                        minimumSize: const Size(AppDimensions.touchTarget, AppDimensions.touchTarget),
+                      ),
+                      icon: const Icon(AppIcons.send, size: AppDimensions.iconMd),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

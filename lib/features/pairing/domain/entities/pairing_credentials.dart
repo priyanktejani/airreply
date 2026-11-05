@@ -33,6 +33,15 @@ final class PairingCredentials {
   /// finds the history kept from before. Null for pairs made before it was recorded.
   final String? peerUid;
 
+  PairingCredentials withPeerUid(String peerUid) => PairingCredentials(
+    pairId: pairId,
+    role: role,
+    sharedKey: sharedKey,
+    peerName: peerName,
+    pairedAt: pairedAt,
+    peerUid: peerUid,
+  );
+
   Map<String, Object?> toJson() => {
     'pairId': pairId,
     'role': role.name,

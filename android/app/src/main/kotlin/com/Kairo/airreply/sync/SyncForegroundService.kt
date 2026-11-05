@@ -49,6 +49,8 @@ class SyncForegroundService : Service() {
         }
     }
 
+    private val receiving: Boolean get() = SyncPreferences(this).receiving
+
     private fun buildNotification(): Notification {
         val openApp = packageManager.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
@@ -62,8 +64,8 @@ class SyncForegroundService : Service() {
         return Notification.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_air_reply)
             .setColor(getColor(R.color.accent))
-            .setContentTitle(getString(R.string.sync_notification_title))
-            .setContentText(getString(R.string.sync_notification_text))
+            .setContentTitle(getString(if (receiving) R.string.receive_notification_title else R.string.sync_notification_title))
+            .setContentText(getString(if (receiving) R.string.receive_notification_text else R.string.sync_notification_text))
             .setCategory(Notification.CATEGORY_SERVICE)
             .setOngoing(true)
             .setShowWhen(false)

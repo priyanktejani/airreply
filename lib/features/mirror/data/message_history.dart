@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/features/mirror/data/history_database.dart';
@@ -445,6 +446,43 @@ final class MessageHistory {
     );
     await (_db.delete(_db.historyPublished)..where((p) => p.pairId.equals(pairId))).go();
     return moved;
+  }
+
+  /// Deletes these notifications for good: their rows, their search entries and the replies sent to them.
+  Future<String> deleteNotifications(Iterable<String> ids) async {
+    final all = ids.toSet().toList();
+    // in batches, under SQLite's limit on bound variables
+    for (var start = 0; start < all.length; start += 500) {
+      final batch = all.sublist(start, min(start + 500, all.length));
+      final marks = List.filled(batch.length, '?').join(',');
+      final variables = [Variable.withString(pairId), for (final id in batch) Variable.withString(id)];
+      await _db.transaction(() async {
+        await _db.customUpdate(
+          'DELETE FROM history_fts WHERE rowid IN '
+          '(SELECT rowid FROM history_notifications WHERE pair_id = ? AND id IN ($marks))',
+          variables: variables,
+        );
+        await (_db.delete(_db.historyNotifications)..where((n) => n.pairId.equals(pairId) & n.id.isIn(batch))).go();
+        await (_db.delete(
+          _db.historyReplies,
+        )..where((r) => r.pairId.equals(pairId) & r.notificationId.isIn(batch))).go();
+      });
+    }
+    return revision();
+  }
+
+  /// Deletes every notification of this pair, with their search entries and replies ("Clear all"). Dismissals and
+  /// publish marks stay: they say what the phone did, not what is kept here.
+  Future<String> deleteAllNotifications() async {
+    await _db.transaction(() async {
+      await _db.customUpdate(
+        'DELETE FROM history_fts WHERE rowid IN (SELECT rowid FROM history_notifications WHERE pair_id = ?)',
+        variables: [Variable.withString(pairId)],
+      );
+      await (_db.delete(_db.historyNotifications)..where((n) => n.pairId.equals(pairId))).go();
+      await (_db.delete(_db.historyReplies)..where((r) => r.pairId.equals(pairId))).go();
+    });
+    return revision();
   }
 
   /// Deletes this pair's history.

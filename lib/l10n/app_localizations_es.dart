@@ -494,12 +494,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get markedAllRead => 'Todo marcado como leído';
 
   @override
-  String get restoreHiddenTitle => 'Restaurar notificaciones ocultas';
-
-  @override
-  String get hiddenRestored => 'Notificaciones ocultas restauradas';
-
-  @override
   String get removeAllTitle => 'Quitar todos los dispositivos';
 
   @override
@@ -587,18 +581,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String unreadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count sin leer', zero: 'Nada sin leer');
-    return '$_temp0';
-  }
-
-  @override
-  String hiddenCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count ocultas en este dispositivo',
-      one: '1 oculta en este dispositivo',
-      zero: 'Nada oculto',
-    );
     return '$_temp0';
   }
 
@@ -1368,17 +1350,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get copyText => 'Copiar texto';
 
   @override
-  String get hideFromDevice => 'Ocultar en este dispositivo';
-
-  @override
-  String get actionHide => 'Ocultar';
-
-  @override
-  String hideCount(int count) {
-    return 'Ocultar $count notificaciones';
-  }
-
-  @override
   String get you => 'Tú';
 
   @override
@@ -1488,9 +1459,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get inboxEmptyReceiver => 'Las notificaciones de tu teléfono aparecen aquí en cuanto llegan.';
 
   @override
-  String get inboxAllHidden => 'Todas las notificaciones están ocultas. Restáuralas desde Ajustes.';
-
-  @override
   String get notificationsLoadFailed => 'No se pudieron cargar las notificaciones';
 
   @override
@@ -1521,17 +1489,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get dividerNew => 'Nuevos';
-
-  @override
-  String notificationHidden(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count notificaciones ocultas',
-      one: 'Notificación oculta',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get copied => 'Copiado';
@@ -2151,4 +2108,54 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get expectOffHelp =>
       'Están desactivadas en los ajustes de notificaciones de este dispositivo. Toca Abrir ajustes de alertas y actívalas.';
+
+  @override
+  String get appIconTitle => 'Icono de la app';
+
+  @override
+  String get appIconLight => 'Claro';
+
+  @override
+  String get appIconDark => 'Oscuro';
+
+  @override
+  String get appIconHint => 'El icono de AirReply en tu pantalla de inicio.';
+
+  @override
+  String get appIconChanged => 'Icono cambiado. Tu pantalla de inicio puede tardar un momento en mostrarlo.';
+
+  @override
+  String get actionDelete => 'Eliminar';
+
+  @override
+  String deleteCount(int count) {
+    return 'Eliminar $count notificaciones';
+  }
+
+  @override
+  String get deleteFromDevice => 'Eliminar de este dispositivo';
+
+  @override
+  String notificationDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notificaciones eliminadas',
+      one: 'Notificación eliminada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clearAllTitle => 'Borrar todo';
+
+  @override
+  String get clearAllConfirmTitle => '¿Eliminar todas las notificaciones?';
+
+  @override
+  String get clearAllConfirmMessage =>
+      'Se eliminan todas las notificaciones de este dispositivo, con sus respuestas, y las alertas de AirReply salen del panel de notificaciones. No se puede deshacer. Tus dispositivos vinculados conservan las suyas.';
+
+  @override
+  String get clearAllDone => 'Todas las notificaciones eliminadas';
 }

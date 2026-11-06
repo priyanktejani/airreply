@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Written by tool/make_app_icon.py: the dark app icon's ground (DARK_GROUND). -->
+<resources>
+    <color name="ic_launcher_background_dark">#1E1F21</color>
+</resources>

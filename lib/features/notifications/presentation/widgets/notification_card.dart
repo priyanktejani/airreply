@@ -13,15 +13,15 @@ import 'package:air_reply/features/notifications/presentation/widgets/unread_cou
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// What a swipe does to a card: right marks read or unread, left hides. See [SwipeActions].
+/// What a swipe does to a card: right marks read or unread, left deletes. See [SwipeActions].
 class CardSwipe {
-  const CardSwipe({required this.id, required this.isRead, required this.onToggleRead, required this.onHide});
+  const CardSwipe({required this.id, required this.isRead, required this.onToggleRead, required this.onDelete});
 
   /// Unique among the cards of the list.
   final String id;
   final bool isRead;
   final Future<void> Function() onToggleRead;
-  final Future<void> Function() onHide;
+  final Future<void> Function() onDelete;
 }
 
 /// The one way a notification, an app's notifications or a conversation is shown, on every screen: an icon or avatar,
@@ -150,7 +150,7 @@ class NotificationCard extends StatelessWidget {
       id: s.id,
       isRead: s.isRead,
       onToggleRead: s.onToggleRead,
-      onHide: s.onHide,
+      onDelete: s.onDelete,
       child: result,
     );
   }

@@ -131,7 +131,7 @@ Future<bool> deletePreviousDevice(BuildContext context, WidgetRef ref, ArchivedP
     destructive: true,
   );
   if (!confirmed || !context.mounted) return false;
-  final deleted = l10n.historyDeleted(pair.peerName);
+  final done = appSnackBar(context, l10n.historyDeleted(pair.peerName), icon: AppIcons.delete);
   final messenger = ScaffoldMessenger.of(context);
   try {
     await ref.read(archivedPairsProvider.notifier).delete(pair.pairId);
@@ -139,6 +139,6 @@ Future<bool> deletePreviousDevice(BuildContext context, WidgetRef ref, ArchivedP
     if (context.mounted) context.showError(e);
     return false;
   }
-  messenger.showSnackBar(SnackBar(content: Text(deleted)));
+  messenger.showSnackBar(done);
   return true;
 }

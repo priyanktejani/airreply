@@ -1,19 +1,40 @@
-# App icon for every platform. The masters in assets/icon/ are drawn by tool/make_app_icon.py; to regenerate:
+# App icon for every platform, to each one's guidelines. The masters in assets/icon/ are drawn by
+# tool/make_app_icon.py (which explains each platform's rules); to regenerate:
 #   python3 tool/make_app_icon.py && dart run flutter_launcher_icons
 flutter_launcher_icons:
+  # iOS, the web and Android before adaptive icons: 1024, opaque, square corners (each system rounds them)
   image_path: assets/icon/app_icon.png
+
   android: true
-  # the flat charcoal ground (INK in tool/make_app_icon.py)
-  adaptive_icon_background: "#1E1F21"
+  min_sdk_android: 26
+  # Adaptive icon: the foreground and themed layers are drawn on the whole 108dp canvas with the glyph inside the
+  # 66dp safe zone, so no extra inset; the ground is plain white (GROUND in tool/make_app_icon.py).
+  adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: assets/icon/app_icon_foreground.png
+  adaptive_icon_foreground_inset: 0
   adaptive_icon_monochrome: assets/icon/app_icon_monochrome.png
+
   ios: true
   remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
+  # iOS 18 home screen appearances: dark (the glyph on clear) and tinted (grayscale, tinted by the system)
+  image_path_ios_dark_transparent: assets/icon/app_icon_ios_dark.png
+  image_path_ios_tinted_grayscale: assets/icon/app_icon_ios_tinted.png
+  desaturate_tinted_to_grayscale_ios: true
+
   macos:
     generate: true
+    # Apple's macOS template: an 824-point rounded square on the 1024 canvas, with its shadow
     image_path: assets/icon/app_icon_macos.png
-  # Windows: tool/make_app_icon.py writes windows/runner/resources/app_icon.ico with all its sizes.
+
   web:
     generate: true
-    background_color: "#1E1F21"
-    theme_color: "#1E1F21"
+    # also the maskable icons: the glyph sits well inside their central 80%
+    image_path: assets/icon/app_icon.png
+    background_color: "#FFFFFF"
+    theme_color: "#FFFFFF"
+
+  # Windows: tool/make_app_icon.py writes windows/runner/resources/app_icon.ico with every size from 16 to 256, as
+  # Windows asks; flutter_launcher_icons would write a single size.
+  windows:
+    generate: false

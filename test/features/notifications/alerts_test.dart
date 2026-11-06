@@ -257,7 +257,7 @@ void main() {
       expect(cancelled(), [7]);
     });
 
-    test('opening, marking or hiding in the inbox takes the alerts down', () async {
+    test('opening, marking or deleting in the inbox takes the alerts down', () async {
       SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -266,7 +266,7 @@ void main() {
       final inbox = container.read(inboxStateProvider.notifier);
 
       await inbox.markRead(['pixel/n1']);
-      await inbox.hide(['pixel/n2']);
+      inbox.dismissAlerts(['pixel/n2']); // as deleting does, at once
       await pumpEventQueue();
       expect(cancelled(), [MirroredAlerts.alertId('n1'), MirroredAlerts.alertId('n2')]);
     });

@@ -56,7 +56,7 @@ extension EntryActions on WidgetRef {
     );
   }
 
-  /// Copy, mark unread or hide one notification, from a sheet (a long press in a chat).
+  /// Copy, mark unread or delete one notification, from a sheet (a long press in a chat).
   Future<void> showEntryActions(BuildContext context, FeedEntry entry) async {
     final isRead = read(readCheckProvider)(entry);
     final action = await showAppSheet<_RowAction>(
@@ -64,7 +64,7 @@ extension EntryActions on WidgetRef {
       builder: (context) => _ActionSheet(isRead: isRead, count: 1),
     );
     if (!context.mounted || action == null) return;
-    await NotificationRow._perform(context, this, action, isRead: isRead, hideTargets: [entry]);
+    await NotificationRow._perform(context, this, action, isRead: isRead, targets: [entry]);
   }
 
   Future<void> toggleRead(BuildContext context, FeedEntry entry, {required bool isRead}) async {
@@ -73,14 +73,35 @@ extension EntryActions on WidgetRef {
     await (isRead ? inbox.markUnread([entry.key]) : inbox.markRead([entry.key]));
   }
 
-  /// Hides [entries] from this device's inbox, with Undo. The snackbar is shown first: a swiped row is gone (and its
-  /// context unmounted) as soon as the inbox updates.
-  Future<void> hide(BuildContext context, List<FeedEntry> entries) {
+  /// Deletes [entries] from this device for good, with a moment to Undo: they leave every list at once, and the
+  /// history when the Undo goes (another action, or its time running out). Everything is taken from [context] first:
+  /// a swiped row is gone, and its context unmounted, as soon as the lists update.
+  Future<void> delete(BuildContext context, List<FeedEntry> entries) async {
     tick();
     final keys = [for (final e in entries) e.key];
+    final deleted = read(deletedEntriesProvider.notifier);
     final inbox = read(inboxStateProvider.notifier);
-    context.showUndo(context.l10n.notificationHidden(entries.length), () => unawaited(inbox.unhide(keys)));
-    return inbox.hide(keys);
+    final messenger = ScaffoldMessenger.of(context);
+    final snack = appSnackBar(
+      context,
+      context.l10n.notificationDeleted(entries.length),
+      icon: AppIcons.delete,
+      duration: const Duration(seconds: 5),
+      // goes by itself (one with an action would otherwise stay until dismissed): then the delete is final
+      persist: false,
+      action: SnackBarAction(label: context.l10n.actionUndo, onPressed: () => deleted.remove(keys)),
+    );
+    deleted.add(keys);
+    inbox.dismissAlerts(keys);
+    messenger.hideCurrentSnackBar();
+    final closed = await messenger.showSnackBar(snack).closed;
+    if (closed == SnackBarClosedReason.action) return;
+    try {
+      await inbox.delete(keys);
+    } on Object {
+      // not deleted after all (the database could not be written): back in the lists
+      deleted.remove(keys);
+    }
   }
 
   /// Marks every notification of a group read, or (when all are read) its newest one from someone else unread again:
@@ -113,7 +134,7 @@ extension EntryActions on WidgetRef {
 }
 
 /// One notification on a [NotificationCard]: the app and source, time, unread count, title, text and the latest
-/// reply. Swipe right to mark read or unread, left to hide; long-press (or the menu on wide screens) for these and
+/// reply. Swipe right to mark read or unread, left to delete; long-press (or the menu on wide screens) for these and
 /// Copy.
 class NotificationRow extends ConsumerWidget {
   const NotificationRow({required this.entry, this.showDevice = false, this.compact = false, super.key});
@@ -131,7 +152,7 @@ class NotificationRow extends ConsumerWidget {
     final content = entry.notification.content;
     final latest = entry.latestReply;
     final wide = AppDimen.of(context).isWide;
-    final hideTargets = [entry];
+    final targets = [entry];
     final source = [content.appName, if (showDevice) entry.deviceName].join(' · ');
     final target = (pairId: entry.pairId, id: entry.notification.id);
     // your own message: under the other person's name, as yours
@@ -142,10 +163,10 @@ class NotificationRow extends ConsumerWidget {
     Future<void> showActions() async {
       final action = await showAppSheet<_RowAction>(
         context,
-        builder: (context) => _ActionSheet(isRead: isRead, count: hideTargets.length),
+        builder: (context) => _ActionSheet(isRead: isRead, count: targets.length),
       );
       if (!context.mounted || action == null) return;
-      await _perform(context, ref, action, isRead: isRead, hideTargets: hideTargets);
+      await _perform(context, ref, action, isRead: isRead, targets: targets);
     }
 
     return NotificationCard(
@@ -165,8 +186,8 @@ class NotificationRow extends ConsumerWidget {
           ? PopupMenuButton<_RowAction>(
               tooltip: context.l10n.moreActions,
               icon: Icon(AppIcons.moreHoriz, color: c.muted, size: AppDimensions.iconMd),
-              onSelected: (a) => _perform(context, ref, a, isRead: isRead, hideTargets: hideTargets),
-              itemBuilder: (_) => _RowAction.menu(context.l10n, isRead: isRead, count: hideTargets.length),
+              onSelected: (a) => _perform(context, ref, a, isRead: isRead, targets: targets),
+              itemBuilder: (_) => _RowAction.menu(context.l10n, isRead: isRead, count: targets.length),
             )
           : null,
       onTap: () => ref.open(context, entry),
@@ -176,7 +197,7 @@ class NotificationRow extends ConsumerWidget {
         id: entry.key,
         isRead: isRead,
         onToggleRead: () => ref.toggleRead(context, entry, isRead: isRead),
-        onHide: () => ref.hide(context, hideTargets),
+        onDelete: () => ref.delete(context, targets),
       ),
     );
   }
@@ -186,23 +207,23 @@ class NotificationRow extends ConsumerWidget {
     WidgetRef ref,
     _RowAction action, {
     required bool isRead,
-    required List<FeedEntry> hideTargets,
+    required List<FeedEntry> targets,
   }) => switch (action) {
-    _RowAction.toggleRead => ref.toggleRead(context, hideTargets.first, isRead: isRead),
-    _RowAction.hide => ref.hide(context, hideTargets),
-    _RowAction.copy => ref.copyText(context, hideTargets.first),
+    _RowAction.toggleRead => ref.toggleRead(context, targets.first, isRead: isRead),
+    _RowAction.delete => ref.delete(context, targets),
+    _RowAction.copy => ref.copyText(context, targets.first),
   };
 }
 
 enum _RowAction {
   toggleRead,
-  hide,
+  delete,
   copy;
 
   static List<PopupMenuEntry<_RowAction>> menu(AppLocalizations l10n, {required bool isRead, required int count}) => [
     PopupMenuItem(value: toggleRead, child: Text(isRead ? l10n.markAsUnread : l10n.markAsRead)),
     PopupMenuItem(value: copy, child: Text(l10n.copyText)),
-    PopupMenuItem(value: hide, child: Text(count > 1 ? l10n.hideCount(count) : l10n.actionHide)),
+    PopupMenuItem(value: delete, child: Text(count > 1 ? l10n.deleteCount(count) : l10n.actionDelete)),
   ];
 }
 
@@ -226,10 +247,10 @@ class _ActionSheet extends StatelessWidget {
         onTap: () => Navigator.pop(context, _RowAction.copy),
       ),
       InfoRow(
-        icon: AppIcons.visibilityOff,
+        icon: AppIcons.delete,
         destructive: true,
-        title: count > 1 ? context.l10n.hideCount(count) : context.l10n.hideFromDevice,
-        onTap: () => Navigator.pop(context, _RowAction.hide),
+        title: count > 1 ? context.l10n.deleteCount(count) : context.l10n.deleteFromDevice,
+        onTap: () => Navigator.pop(context, _RowAction.delete),
       ),
     ],
   );

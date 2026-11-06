@@ -144,7 +144,7 @@ final _threadOfProvider = Provider.autoDispose<Map<String, ConversationThread>>(
 );
 
 /// The notifications grouped with one (its thread: a chat, or a notice and its updates), oldest first; empty while it
-/// is not in any (loading, or hidden). Grouping decides this, never Android's notification key alone, which some apps
+/// is not in any (loading, or deleted). Grouping decides this, never Android's notification key alone, which some apps
 /// share between chats.
 final conversationProvider = Provider.autoDispose.family<List<FeedEntry>, ({String pairId, String id})>((ref, target) {
   final thread = ref.watch(_threadOfProvider.select((index) => index['${target.pairId}/${target.id}']));
@@ -152,7 +152,7 @@ final conversationProvider = Provider.autoDispose.family<List<FeedEntry>, ({Stri
 });
 
 /// The chat a notification is shown in (a person or a group chat), or null when it is in none: an app's own notice,
-/// or hidden. Opening such a notification opens its chat.
+/// or deleted. Opening such a notification opens its chat.
 final chatOfProvider = Provider.autoDispose.family<ConversationThread?, ({String pairId, String id})>((ref, target) {
   final thread = ref.watch(_threadOfProvider.select((index) => index['${target.pairId}/${target.id}']));
   return thread == null || thread.kind == ThreadKind.single ? null : thread;
@@ -179,7 +179,7 @@ final conversationNameProvider = Provider.autoDispose.family<String?, ({String p
   return named ? chat.title : null;
 });
 
-// ------------------------------------------------------------------ read, unread, hidden
+// ------------------------------------------------------------------ read, unread, deleted
 
 final inboxStateStoreProvider = Provider<InboxStateStore>(
   (ref) => PreferencesInboxStateStore(ref.watch(sharedPreferencesProvider)),
@@ -187,12 +187,12 @@ final inboxStateStoreProvider = Provider<InboxStateStore>(
 
 final inboxStateProvider = AsyncNotifierProvider<InboxController, InboxState>(InboxController.new);
 
-/// What this device has read and hidden. On first use everything already there counts as read, so a long history
-/// does not open as hundreds of unread notifications.
+/// What this device has read. On first use everything already there counts as read, so a long history does not open
+/// as hundreds of unread notifications. Deleting goes through here too, so the read marks and alerts go with it.
 final class InboxController extends AsyncNotifier<InboxState> {
   @override
   Future<InboxState> build() async {
-    // a pair that ends takes its read and hidden marks with it
+    // a pair that ends takes its read marks with it
     ref.listen(pairedDevicesProvider, (before, now) {
       final kept = {for (final p in now) p.pairId};
       for (final ended in before ?? const <PairingCredentials>[]) {
@@ -205,7 +205,14 @@ final class InboxController extends AsyncNotifier<InboxState> {
     });
     final store = ref.watch(inboxStateStoreProvider);
     final saved = await store.load();
-    if (saved != null) return saved;
+    if (saved != null) {
+      // an earlier version hid rather than deleted: what was hidden is deleted now, once
+      if (saved.legacyHidden.isNotEmpty) {
+        ref.read(deletedEntriesProvider.notifier).add(saved.legacyHidden);
+        unawaited(Future(() => delete(saved.legacyHidden)));
+      }
+      return saved;
+    }
     final fresh = InboxState(readBefore: DateTime.now());
     await store.save(fresh);
     return fresh;
@@ -214,7 +221,7 @@ final class InboxController extends AsyncNotifier<InboxState> {
   /// Read in AirReply, so their alerts leave the system's notification panel too.
   Future<void> markRead(Iterable<String> keys) async {
     await _update((s) => s.markRead(keys));
-    _dismissAlerts(keys);
+    dismissAlerts(keys);
   }
 
   Future<void> markUnread(Iterable<String> keys) => _update((s) => s.markUnread(keys));
@@ -224,13 +231,40 @@ final class InboxController extends AsyncNotifier<InboxState> {
     unawaited(_alerts((alerts) => alerts.dismissAll()));
   }
 
-  Future<void> hide(Iterable<String> keys) async {
-    await _update((s) => s.hide(keys));
-    _dismissAlerts(keys);
+  /// Deletes these notifications (`pairId/notificationId` keys) from this device for good: from its history, with
+  /// their replies and search entries, and their alerts from the system's panel.
+  Future<void> delete(Iterable<String> keys) async {
+    final byPair = <String, List<String>>{};
+    for (final key in keys) {
+      final slash = key.indexOf('/');
+      if (slash > 0) byPair.putIfAbsent(key.substring(0, slash), () => []).add(key.substring(slash + 1));
+    }
+    dismissAlerts(keys);
+    for (final MapEntry(key: pairId, value: ids) in byPair.entries) {
+      try {
+        await ref.read(notificationFeedProvider(pairId)).deleteNotifications(ids);
+      } on Object catch (e) {
+        appLog('Notifications not deleted: $e', name: 'air_reply.history');
+        rethrow;
+      }
+    }
+    // read marks of what is gone, and what an earlier version hid, are forgotten
+    await _update((s) => InboxState(readBefore: s.readBefore, read: s.read, unread: s.unread).forget(keys));
+  }
+
+  /// "Clear all": every notification of every paired device, deleted from this device, and every alert taken down.
+  Future<void> deleteAll() async {
+    unawaited(_alerts((alerts) => alerts.dismissAll()));
+    for (final pair in ref.read(pairedDevicesProvider)) {
+      await ref.read(notificationFeedProvider(pair.pairId)).deleteAllNotifications();
+    }
+    // search results and device histories loaded before: read again, now empty
+    ref.invalidate(historyResultsProvider);
+    await _update((_) => InboxState(readBefore: DateTime.now()));
   }
 
   /// Entry keys are `pairId/notificationId`; alerts are named by the notification.
-  void _dismissAlerts(Iterable<String> keys) {
+  void dismissAlerts(Iterable<String> keys) {
     final ids = [for (final key in keys) key.substring(key.indexOf('/') + 1)];
     if (ids.isNotEmpty) unawaited(_alerts((alerts) => alerts.dismiss(ids)));
   }
@@ -244,10 +278,6 @@ final class InboxController extends AsyncNotifier<InboxState> {
       appLog('Alerts not taken down: $e', name: 'air_reply.alerts');
     }
   }
-
-  Future<void> unhide(Iterable<String> keys) => _update((s) => s.unhide(keys));
-
-  Future<void> restoreHidden() => _update((s) => s.restoreHidden());
 
   /// Puts back an earlier state: Undo after "Mark all as read".
   Future<void> restore(InboxState previous) => _update((_) => previous);
@@ -297,7 +327,21 @@ final class InboxFilterController extends Notifier<FeedFilter> {
   void clear() => state = FeedFilter.none;
 }
 
-/// The inbox as shown: hidden entries removed, filters applied. While searching, the search's results from the whole
+/// Notifications deleted while the app runs, including those waiting out their Undo: every list leaves them out at
+/// once (the database catches up when the Undo goes), and so do history pages loaded before.
+final deletedEntriesProvider = NotifierProvider<DeletedEntries, Set<String>>(DeletedEntries.new);
+
+class DeletedEntries extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => const {};
+
+  void add(Iterable<String> keys) => state = {...state, ...keys};
+
+  /// Undo: back in the lists.
+  void remove(Iterable<String> keys) => state = state.difference(keys.toSet());
+}
+
+/// The inbox as shown: deleted entries left out, filters applied. While searching, the search's results from the whole
 /// history (see [historyResultsProvider]), which stay put as new notifications arrive; otherwise the live feed.
 final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) {
   final searching = ref.watch(historyResultsProvider(inboxSearch).select((r) => r.isActive));
@@ -305,6 +349,7 @@ final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((r
       ? AsyncData<List<FeedEntry>>(ref.watch(historyEntriesProvider(inboxSearch)))
       : ref.watch(liveFeedProvider);
   final inbox = ref.watch(inboxStateProvider).value;
+  final deleted = ref.watch(deletedEntriesProvider);
   final filter = ref.watch(inboxFilterProvider);
   final isRead = _isRead(inbox);
   // filtered again as the day turns, so "Today" and "Last 7 days" move on with the clock
@@ -313,35 +358,35 @@ final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((r
   return feed.whenData(
     (entries) => [
       for (final e in entries)
-        if (!(inbox?.isHidden(e) ?? false) && filter.matches(e, isRead: isRead, now: now)) e,
+        if (!deleted.contains(e.key) && filter.matches(e, isRead: isRead, now: now)) e,
     ],
   );
 });
 
-/// Not hidden: what the inbox holds before search and filters. Counts and Home come from here.
+/// Not deleted: what the inbox holds before search and filters. Counts and Home come from here.
 final _inboxEntriesProvider = Provider.autoDispose<List<FeedEntry>>((ref) {
-  final inbox = ref.watch(inboxStateProvider).value;
+  final deleted = ref.watch(deletedEntriesProvider);
   return [
     for (final e in ref.watch(liveFeedProvider).value ?? const <FeedEntry>[])
-      if (!(inbox?.isHidden(e) ?? false)) e,
+      if (!deleted.contains(e.key)) e,
   ];
 });
 
-/// Not hidden, with the history on screen: what the group and chat screens find a notification in.
+/// Not deleted, with the history on screen: what the group and chat screens find a notification in.
 final _openableEntriesProvider = Provider.autoDispose<List<FeedEntry>>((ref) {
-  final inbox = ref.watch(inboxStateProvider).value;
+  final deleted = ref.watch(deletedEntriesProvider);
   return [
     for (final e in ref.watch(allFeedProvider).value ?? const <FeedEntry>[])
-      if (!(inbox?.isHidden(e) ?? false)) e,
+      if (!deleted.contains(e.key)) e,
   ];
 });
 
-/// What [scope]'s results show: hidden notifications left out.
+/// What [scope]'s results show: deleted notifications left out.
 final shownResultsProvider = Provider.autoDispose.family<List<FeedEntry>, HistoryScope>((ref, scope) {
-  final inbox = ref.watch(inboxStateProvider).value;
+  final deleted = ref.watch(deletedEntriesProvider);
   return [
     for (final e in ref.watch(historyEntriesProvider(scope)))
-      if (!(inbox?.isHidden(e) ?? false)) e,
+      if (!deleted.contains(e.key)) e,
   ];
 });
 
@@ -356,8 +401,6 @@ final todayCountProvider = Provider.autoDispose<int>((ref) {
   return ref.watch(_inboxEntriesProvider).where((e) => FeedPeriod.today.includes(e.postedAt, now)).length;
 });
 
-final hiddenCountProvider = Provider.autoDispose<int>((ref) => ref.watch(inboxStateProvider).value?.hidden.length ?? 0);
-
 // ------------------------------------------------------------------ smart grouping
 
 /// Senders gather the copies of a notification sent to every device under one app group; receivers keep each
@@ -370,7 +413,7 @@ final groupedInboxProvider = Provider.autoDispose<AsyncValue<List<AppGroup>>>((r
   return ref.watch(visibleFeedProvider).whenData((entries) => groupByApp(entries, perDevice: perDevice));
 });
 
-/// Every group, ignoring search and filters (hidden notifications excluded), for the group screens.
+/// Every group, ignoring search and filters (deleted notifications excluded), for the group screens.
 final _allGroupsProvider = Provider.autoDispose<List<AppGroup>>(
   (ref) => groupByApp(ref.watch(_openableEntriesProvider), perDevice: ref.watch(_groupPerDeviceProvider)),
 );

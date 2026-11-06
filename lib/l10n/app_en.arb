@@ -641,14 +641,6 @@
   "@markedAllRead": {
     "description": "Message after marking all read."
   },
-  "restoreHiddenTitle": "Restore hidden notifications",
-  "@restoreHiddenTitle": {
-    "description": "Settings row title."
-  },
-  "hiddenRestored": "Hidden notifications restored",
-  "@hiddenRestored": {
-    "description": "Message after restoring."
-  },
   "removeAllTitle": "Remove all devices",
   "@removeAllTitle": {
     "description": "Settings row title."
@@ -777,15 +769,6 @@
   "unreadCount": "{count, plural, =0{Nothing unread} other{{count} unread}}",
   "@unreadCount": {
     "description": "How many notifications are unread.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "hiddenCount": "{count, plural, =0{Nothing hidden} other{{count} hidden on this device}}",
-  "@hiddenCount": {
-    "description": "How many notifications are hidden.",
     "placeholders": {
       "count": {
         "type": "int"
@@ -1856,23 +1839,6 @@
   "@copyText": {
     "description": "Action."
   },
-  "hideFromDevice": "Hide from this device",
-  "@hideFromDevice": {
-    "description": "Action."
-  },
-  "actionHide": "Hide",
-  "@actionHide": {
-    "description": "Action."
-  },
-  "hideCount": "Hide {count} notifications",
-  "@hideCount": {
-    "description": "Action: hide several notifications.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "you": "You",
   "@you": {
     "description": "The person using the app, as a message sender."
@@ -2035,10 +2001,6 @@
   "@inboxEmptyReceiver": {
     "description": "Empty inbox on a receiving device."
   },
-  "inboxAllHidden": "Every notification is hidden. Restore them from Settings.",
-  "@inboxAllHidden": {
-    "description": "Empty inbox."
-  },
   "notificationsLoadFailed": "Could not load notifications",
   "@notificationsLoadFailed": {
     "description": "Error title."
@@ -2088,15 +2050,6 @@
   "dividerNew": "New",
   "@dividerNew": {
     "description": "Divider above unread messages."
-  },
-  "notificationHidden": "{count, plural, =1{Notification hidden} other{{count} notifications hidden}}",
-  "@notificationHidden": {
-    "description": "Message after hiding.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
   },
   "copied": "Copied",
   "@copied": {
@@ -2943,5 +2896,67 @@
   "expectOffHelp": "They are switched off in this device's notification settings. Tap Open alert settings and turn them on.",
   "@expectOffHelp": {
     "description": "Banner line when message alerts are switched off in the system's settings."
+  },
+  "appIconTitle": "App icon",
+  "appIconLight": "Light",
+  "appIconDark": "Dark",
+  "appIconHint": "The icon of AirReply on your home screen.",
+  "appIconChanged": "Icon changed. Your home screen may take a moment to show it.",
+  "@appIconTitle": {
+    "description": "Settings → Appearance: the home screen icon choice."
+  },
+  "@appIconLight": {
+    "description": "The light app icon."
+  },
+  "@appIconDark": {
+    "description": "The dark app icon."
+  },
+  "@appIconHint": {
+    "description": "Under the App icon sheet's title."
+  },
+  "@appIconChanged": {
+    "description": "Android: after choosing an icon."
+  },
+  "actionDelete": "Delete",
+  "deleteCount": "Delete {count} notifications",
+  "deleteFromDevice": "Delete from this device",
+  "notificationDeleted": "{count, plural, =1{Notification deleted} other{{count} notifications deleted}}",
+  "clearAllTitle": "Clear all",
+  "clearAllConfirmTitle": "Delete all notifications?",
+  "clearAllConfirmMessage": "Every notification on this device is deleted, with its replies, and AirReply's alerts leave the notification panel. This can't be undone. Your paired devices keep their own.",
+  "clearAllDone": "All notifications deleted",
+  "@actionDelete": {
+    "description": "Swipe and menu action: delete a notification for good."
+  },
+  "@deleteFromDevice": {
+    "description": "Menu: delete one notification from this device."
+  },
+  "@clearAllTitle": {
+    "description": "Notifications: delete every notification (tooltip)."
+  },
+  "@clearAllConfirmTitle": {
+    "description": "Confirmation title for Clear all."
+  },
+  "@clearAllConfirmMessage": {
+    "description": "Confirmation text for Clear all."
+  },
+  "@clearAllDone": {
+    "description": "After Clear all."
+  },
+  "@deleteCount": {
+    "description": "Menu: delete several notifications.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@notificationDeleted": {
+    "description": "Snackbar after deleting, with Undo.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

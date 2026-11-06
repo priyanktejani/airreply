@@ -41,40 +41,44 @@ class EmptyState extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
-          child: FadeSlideIn(
-            child: GlassContainer(
-              borderRadius: AppRadius.xlBorder,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xxl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: error ? c.dangerSoft : c.accentSoft,
-                      borderRadius: AppRadius.lgBorder,
+          // as wide as it may be, whatever its words: every such box on every screen is the same width
+          child: SizedBox(
+            width: double.infinity,
+            child: FadeSlideIn(
+              child: GlassContainer(
+                borderRadius: AppRadius.xlBorder,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xxl),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: error ? c.dangerSoft : c.accentSoft,
+                        borderRadius: AppRadius.lgBorder,
+                      ),
+                      child: SizedBox.square(
+                        dimension: _tile,
+                        child: Icon(icon, color: error ? c.danger : c.accent, size: AppDimensions.iconLg + 6),
+                      ),
                     ),
-                    child: SizedBox.square(
-                      dimension: _tile,
-                      child: Icon(icon, color: error ? c.danger : c.accent, size: AppDimensions.iconLg + 6),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: AppType.title.copyWith(color: c.ink),
-                  ),
-                  if (description != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.base),
                     Text(
-                      description!,
+                      title,
                       textAlign: TextAlign.center,
-                      style: AppType.body.copyWith(color: c.muted),
+                      style: AppType.title.copyWith(color: c.ink),
                     ),
+                    if (description != null) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        description!,
+                        textAlign: TextAlign.center,
+                        style: AppType.body.copyWith(color: c.muted),
+                      ),
+                    ],
+                    if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
+                    if (secondaryAction != null) ...[const SizedBox(height: AppSpacing.sm), secondaryAction!],
                   ],
-                  if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
-                  if (secondaryAction != null) ...[const SizedBox(height: AppSpacing.sm), secondaryAction!],
-                ],
+                ),
               ),
             ),
           ),

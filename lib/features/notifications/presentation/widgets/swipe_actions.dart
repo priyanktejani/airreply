@@ -10,7 +10,7 @@ import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
-/// Swipe right to mark read or unread, left to hide; the same two actions for screen readers. Used by every
+/// Swipe right to mark read or unread, left to delete; the same two actions for screen readers. Used by every
 /// notification card, so a swipe looks and behaves the same on every screen.
 ///
 /// The action's colour is drawn here rather than by the Dismissible, which clips it to a straight line at the card's
@@ -21,7 +21,7 @@ class SwipeActions extends StatefulWidget {
     required this.id,
     required this.isRead,
     required this.onToggleRead,
-    required this.onHide,
+    required this.onDelete,
     required this.child,
     this.radius = cardRadius,
     super.key,
@@ -34,7 +34,7 @@ class SwipeActions extends StatefulWidget {
   final String id;
   final bool isRead;
   final Future<void> Function() onToggleRead;
-  final Future<void> Function() onHide;
+  final Future<void> Function() onDelete;
   final Widget child;
 
   /// The corner radius of what is swiped: the card's by default, 0 for a row inside a card.
@@ -71,8 +71,8 @@ class _SwipeActionsState extends State<SwipeActions> {
                       radius: widget.radius,
                     )
                   : _SwipeBackground(
-                      icon: AppIcons.visibilityOff,
-                      label: context.l10n.actionHide,
+                      icon: AppIcons.delete,
+                      label: context.l10n.actionDelete,
                       alignment: Alignment.centerRight,
                       radius: widget.radius,
                       danger: true,
@@ -91,12 +91,12 @@ class _SwipeActionsState extends State<SwipeActions> {
               }
               return true;
             },
-            onDismissed: (_) => unawaited(widget.onHide()),
+            onDismissed: (_) => unawaited(widget.onDelete()),
             child: Semantics(
               customSemanticsActions: {
                 CustomSemanticsAction(label: widget.isRead ? context.l10n.markAsUnread : context.l10n.markAsRead): () =>
                     unawaited(widget.onToggleRead()),
-                CustomSemanticsAction(label: context.l10n.actionHide): () => unawaited(widget.onHide()),
+                CustomSemanticsAction(label: context.l10n.actionDelete): () => unawaited(widget.onDelete()),
               },
               child: widget.child,
             ),
@@ -107,7 +107,7 @@ class _SwipeActionsState extends State<SwipeActions> {
   );
 }
 
-/// What a swipe does, under the card: soft accent for read, soft red for hide.
+/// What a swipe does, under the card: soft accent for read, soft red for delete.
 class _SwipeBackground extends StatelessWidget {
   const _SwipeBackground({
     required this.icon,

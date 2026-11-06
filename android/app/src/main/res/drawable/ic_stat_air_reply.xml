@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar and notification icon (drawn by tool/make_app_icon.py): the app's chat bubble with a reply arrow cut
+     out of it. 24dp, white on clear, as Android requires; Android tints it with the notification colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M6,3H18A4,4 0,0 1,22,7V13A4,4 0,0 1,18,17H10L4.9,20.6C4.2,21.1 3.4,20.6 3.6,19.8L4.3,16.8C2.9,16.2 2,14.8 2,13V7A4,4 0,0 1,6,3ZM11.08,8.24L11.08,6.0L7.16,9.92L11.08,13.84L11.08,11.544C13.88,11.544 15.84,12.44 17.24,14.4C16.68,11.6 15.0,8.8 11.08,8.24Z" />
+</vector>

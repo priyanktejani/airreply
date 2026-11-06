@@ -59,6 +59,9 @@ flutter:
     - assets/fonts/MIT-Phosphor.txt
     # the app icon, for the in-app logo (AppLogo); drawn by tool/make_app_icon.py
     - assets/icon/app_logo.png
+    # the app icons people can choose (Settings → Appearance → App icon); drawn by tool/make_app_icon.py
+    - assets/icon/app_icon_choice_light.png
+    - assets/icon/app_icon_choice_dark.png
 
   # Geist for the interface and Geist Mono for the small green labels, as in the iFixxer app. Bundled so text never
   # shifts while fonts download, and the app looks the same offline.

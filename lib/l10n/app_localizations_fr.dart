@@ -502,12 +502,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get markedAllRead => 'Tout est marqué comme lu';
 
   @override
-  String get restoreHiddenTitle => 'Restaurer les notifications masquées';
-
-  @override
-  String get hiddenRestored => 'Notifications masquées restaurées';
-
-  @override
   String get removeAllTitle => 'Retirer tous les appareils';
 
   @override
@@ -602,18 +596,6 @@ class AppLocalizationsFr extends AppLocalizations {
       other: '$count non lues',
       one: '1 non lue',
       zero: 'Rien de non lu',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String hiddenCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count masquées sur cet appareil',
-      one: '1 masquée sur cet appareil',
-      zero: 'Rien de masqué',
     );
     return '$_temp0';
   }
@@ -1383,17 +1365,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get copyText => 'Copier le texte';
 
   @override
-  String get hideFromDevice => 'Masquer sur cet appareil';
-
-  @override
-  String get actionHide => 'Masquer';
-
-  @override
-  String hideCount(int count) {
-    return 'Masquer $count notifications';
-  }
-
-  @override
   String get you => 'Vous';
 
   @override
@@ -1509,9 +1480,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get inboxEmptyReceiver => 'Les notifications de votre téléphone s\'affichent ici dès leur arrivée.';
 
   @override
-  String get inboxAllHidden => 'Toutes les notifications sont masquées. Restaurez-les depuis les Réglages.';
-
-  @override
   String get notificationsLoadFailed => 'Impossible de charger les notifications';
 
   @override
@@ -1542,17 +1510,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dividerNew => 'Nouveau';
-
-  @override
-  String notificationHidden(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count notifications masquées',
-      one: 'Notification masquée',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get copied => 'Copié';
@@ -2179,4 +2136,54 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get expectOffHelp =>
       'Elles sont désactivées dans les réglages des notifications de cet appareil. Touchez Ouvrir les réglages des alertes et activez-les.';
+
+  @override
+  String get appIconTitle => 'Icône de l’app';
+
+  @override
+  String get appIconLight => 'Clair';
+
+  @override
+  String get appIconDark => 'Sombre';
+
+  @override
+  String get appIconHint => 'L’icône d’AirReply sur votre écran d’accueil.';
+
+  @override
+  String get appIconChanged => 'Icône modifiée. Votre écran d’accueil peut mettre un instant à l’afficher.';
+
+  @override
+  String get actionDelete => 'Supprimer';
+
+  @override
+  String deleteCount(int count) {
+    return 'Supprimer $count notifications';
+  }
+
+  @override
+  String get deleteFromDevice => 'Supprimer de cet appareil';
+
+  @override
+  String notificationDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notifications supprimées',
+      one: 'Notification supprimée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clearAllTitle => 'Tout effacer';
+
+  @override
+  String get clearAllConfirmTitle => 'Supprimer toutes les notifications ?';
+
+  @override
+  String get clearAllConfirmMessage =>
+      'Toutes les notifications de cet appareil sont supprimées, avec leurs réponses, et les alertes d’AirReply quittent le panneau des notifications. Action irréversible. Vos appareils associés gardent les leurs.';
+
+  @override
+  String get clearAllDone => 'Toutes les notifications ont été supprimées';
 }

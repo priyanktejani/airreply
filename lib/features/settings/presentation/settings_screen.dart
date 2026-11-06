@@ -7,11 +7,13 @@ import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/l10n/app_language.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
+import 'package:air_reply/core/platform/launcher_icon.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/platform/system_notification_settings.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
+import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/theme/theme_mode.dart';
@@ -418,6 +420,7 @@ class _AppearanceSettings extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final haptics = ref.watch(appPreferencesProvider).value?.haptics ?? true;
     final language = ref.watch(appLocaleProvider);
+    final launcherIcon = ref.watch(launcherIconProvider).value;
     return CardGroup(
       children: [
         InfoRow(
@@ -454,6 +457,15 @@ class _AppearanceSettings extends ConsumerWidget {
             ],
           ),
         ),
+        // the home screen icon, where the system lets an app change it (Android, iOS)
+        if (launcherIcon != null)
+          InfoRow(
+            icon: AppIcons.apps,
+            title: context.l10n.appIconTitle,
+            subtitle: launcherIcon == LauncherIcon.dark ? context.l10n.appIconDark : context.l10n.appIconLight,
+            trailing: InfoRow.chevron,
+            onTap: () => unawaited(showAppSheet<void>(context, builder: (_) => const _LauncherIconSheet())),
+          ),
         if (!AppPlatform.isDesktop && !AppPlatform.isWeb)
           SwitchRow(
             icon: AppIcons.vibration,
@@ -466,6 +478,99 @@ class _AppearanceSettings extends ConsumerWidget {
             },
           ),
         InfoRow(icon: AppIcons.textFields, title: context.l10n.textSizeTitle, subtitle: context.l10n.textSizeSubtitle),
+      ],
+    );
+  }
+}
+
+/// The home screen icons to choose from, as a launcher shows them; the choice applies at once.
+class _LauncherIconSheet extends ConsumerWidget {
+  const _LauncherIconSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.palette;
+    final chosen = ref.watch(launcherIconProvider).value;
+
+    Future<void> choose(LauncherIcon icon) async {
+      ref.tick();
+      final messenger = ScaffoldMessenger.of(context);
+      final changed = appSnackBar(context, context.l10n.appIconChanged, icon: AppIcons.apps);
+      final controller = ref.read(launcherIconProvider.notifier);
+      // switched while the sheet is still open (it is quick), so a failure is shown here and nothing is read from a
+      // sheet that has closed
+      var switched = false;
+      await runGuarded(context, () async {
+        await controller.choose(icon);
+        switched = true;
+      });
+      if (context.mounted) Navigator.pop(context);
+      // iOS says so itself; Android launchers can take a moment
+      if (switched && AppPlatform.isAndroid) messenger.showSnackBar(changed);
+    }
+
+    Widget option(LauncherIcon icon, String label) {
+      final selected = chosen == icon;
+      return Expanded(
+        // one control: the picture and its name, read once
+        child: MergeSemantics(
+          child: Semantics(
+            button: true,
+            selected: selected,
+            child: InkWell(
+              borderRadius: AppRadius.lgBorder,
+              onTap: selected ? null : () => unawaited(choose(icon)),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: AppRadius.xlBorder,
+                        border: Border.all(color: selected ? c.accent : c.line, width: selected ? 3 : 1),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Image.asset('assets/icon/app_icon_choice_${icon.name}.png', width: 80, height: 80),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (selected) ...[
+                          Icon(AppIcons.check, size: AppDimensions.iconSm, color: c.accent),
+                          const SizedBox(width: AppSpacing.xs),
+                        ],
+                        Text(label, style: AppType.button.copyWith(color: selected ? c.accent : c.ink)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xs, AppSpacing.sm, AppSpacing.xs, AppSpacing.xs),
+          child: Text(context.l10n.appIconTitle, style: AppType.section.copyWith(color: c.ink)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.xs, 0, AppSpacing.xs, AppSpacing.base),
+          child: Text(context.l10n.appIconHint, style: AppType.body.copyWith(color: c.muted)),
+        ),
+        Row(
+          children: [
+            option(LauncherIcon.light, context.l10n.appIconLight),
+            option(LauncherIcon.dark, context.l10n.appIconDark),
+          ],
+        ),
       ],
     );
   }
@@ -521,7 +626,6 @@ class _DataSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unread = ref.watch(unreadCountProvider);
-    final hidden = ref.watch(hiddenCountProvider);
     final devices = ref.watch(pairedDevicesProvider);
     final inbox = ref.read(inboxStateProvider.notifier);
 
@@ -554,17 +658,6 @@ class _DataSettings extends ConsumerWidget {
             ref.success();
             unawaited(inbox.markAllRead());
             context.showMessage(context.l10n.markedAllRead);
-          },
-        ),
-        InfoRow(
-          icon: AppIcons.visibility,
-          title: context.l10n.restoreHiddenTitle,
-          subtitle: context.l10n.hiddenCount(hidden),
-          enabled: hidden > 0,
-          onTap: () {
-            ref.success();
-            unawaited(inbox.restoreHidden());
-            context.showMessage(context.l10n.hiddenRestored);
           },
         ),
       ],

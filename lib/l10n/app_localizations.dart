@@ -982,18 +982,6 @@ abstract class AppLocalizations {
   /// Settings row title.
   ///
   /// In en, this message translates to:
-  /// **'Restore hidden notifications'**
-  String get restoreHiddenTitle;
-
-  /// Message after restoring.
-  ///
-  /// In en, this message translates to:
-  /// **'Hidden notifications restored'**
-  String get hiddenRestored;
-
-  /// Settings row title.
-  ///
-  /// In en, this message translates to:
   /// **'Remove all devices'**
   String get removeAllTitle;
 
@@ -1110,12 +1098,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Nothing unread} other{{count} unread}}'**
   String unreadCount(int count);
-
-  /// How many notifications are hidden.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =0{Nothing hidden} other{{count} hidden on this device}}'**
-  String hiddenCount(int count);
 
   /// Notice title.
   ///
@@ -2347,24 +2329,6 @@ abstract class AppLocalizations {
   /// **'Copy text'**
   String get copyText;
 
-  /// Action.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide from this device'**
-  String get hideFromDevice;
-
-  /// Action.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide'**
-  String get actionHide;
-
-  /// Action: hide several notifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide {count} notifications'**
-  String hideCount(int count);
-
   /// The person using the app, as a message sender.
   ///
   /// In en, this message translates to:
@@ -2551,12 +2515,6 @@ abstract class AppLocalizations {
   /// **'Notifications from your phone appear here the moment they arrive.'**
   String get inboxEmptyReceiver;
 
-  /// Empty inbox.
-  ///
-  /// In en, this message translates to:
-  /// **'Every notification is hidden. Restore them from Settings.'**
-  String get inboxAllHidden;
-
   /// Error title.
   ///
   /// In en, this message translates to:
@@ -2610,12 +2568,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New'**
   String get dividerNew;
-
-  /// Message after hiding.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Notification hidden} other{{count} notifications hidden}}'**
-  String notificationHidden(int count);
 
   /// Message.
   ///
@@ -3696,6 +3648,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'They are switched off in this device\'s notification settings. Tap Open alert settings and turn them on.'**
   String get expectOffHelp;
+
+  /// Settings → Appearance: the home screen icon choice.
+  ///
+  /// In en, this message translates to:
+  /// **'App icon'**
+  String get appIconTitle;
+
+  /// The light app icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get appIconLight;
+
+  /// The dark app icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get appIconDark;
+
+  /// Under the App icon sheet's title.
+  ///
+  /// In en, this message translates to:
+  /// **'The icon of AirReply on your home screen.'**
+  String get appIconHint;
+
+  /// Android: after choosing an icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon changed. Your home screen may take a moment to show it.'**
+  String get appIconChanged;
+
+  /// Swipe and menu action: delete a notification for good.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// Menu: delete several notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} notifications'**
+  String deleteCount(int count);
+
+  /// Menu: delete one notification from this device.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete from this device'**
+  String get deleteFromDevice;
+
+  /// Snackbar after deleting, with Undo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Notification deleted} other{{count} notifications deleted}}'**
+  String notificationDeleted(int count);
+
+  /// Notifications: delete every notification (tooltip).
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAllTitle;
+
+  /// Confirmation title for Clear all.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all notifications?'**
+  String get clearAllConfirmTitle;
+
+  /// Confirmation text for Clear all.
+  ///
+  /// In en, this message translates to:
+  /// **'Every notification on this device is deleted, with its replies, and AirReply\'s alerts leave the notification panel. This can\'t be undone. Your paired devices keep their own.'**
+  String get clearAllConfirmMessage;
+
+  /// After Clear all.
+  ///
+  /// In en, this message translates to:
+  /// **'All notifications deleted'**
+  String get clearAllDone;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

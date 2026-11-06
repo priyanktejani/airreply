@@ -228,6 +228,16 @@ class RecordingMirror implements MirrorRepository {
     required bool canReply,
   }) async => null;
 
+  /// What [deleteNotifications] was asked to delete.
+  final deleted = <String>[];
+  var deletedAll = false;
+
+  @override
+  Future<void> deleteNotifications(Iterable<String> ids) async => deleted.addAll(ids);
+
+  @override
+  Future<void> deleteAllNotifications() async => deletedAll = true;
+
   @override
   Future<void> send({required String notificationId, required String notificationKey, required String text}) async =>
       sent.add((notificationId: notificationId, notificationKey: notificationKey, text: text));

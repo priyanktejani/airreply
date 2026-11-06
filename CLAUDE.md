@@ -75,7 +75,7 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
   button (and system back, via `OnboardingBack`) that returns to that choice.
 - Unpairing (`Unpair`) ends the pair on the server (`PairingRepository.endPair`: empties its mailboxes, marks it ended,
   deletes it) and removes its doorbell; the server part is capped at 10 seconds so an offline unpair never hangs. The
-  other device sees the pair gone and does the same locally. Read/hidden marks of an ended pair are dropped by
+  other device sees the pair gone and does the same locally. Read marks of an ended pair are dropped by
   `InboxController`; the phone prunes its icon records when its sync engine starts.
 - History is kept when a device is removed, as in WhatsApp: a pair that left any history becomes an `ArchivedPair`
   (`SecureArchivedPairsStore`, in the keystore with the pair's key, since its payloads stay sealed with it); one with
@@ -99,6 +99,12 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
 - A notification's sealed payload must stay under firestore.rules' 16 KB: `PublishCapturedNotification.fit` keeps
   the clear JSON under `maxPayloadBytes`, by bytes (Hindi, Chinese, emoji take 3-4 bytes a character): the icon goes
   first, then text and title are shortened with an ellipsis. Without it such notifications were refused, unseen.
+- Deleting is for good, there is no hiding: `InboxController.delete` removes notifications (and their replies and
+  search entries) from the history (`MessageHistory.deleteNotifications`, through the feed's `deleteNotifications`);
+  the UI takes them out of every list at once (`deletedEntriesProvider`) and commits when its 5-second Undo goes
+  (`persist: false`: Flutter keeps a snackbar with an action until dismissed otherwise). Notifications → Clear all
+  (`deleteAll`, confirmed) deletes everything and every alert. What an earlier version hid is deleted on the next start
+  (`InboxState.legacyHidden`). The paired device keeps its own copy.
 - Every mailbox document has `expireAt` (30 days) for a Firestore TTL policy. Dismissals are their own documents,
   written only for notifications that were mirrored.
 - `firestore.rules` must be deployed before an app with this change runs, or publishing is refused.
@@ -136,11 +142,15 @@ Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configure
 - Icons: `AppIcons` (`lib/core/theme/app_icons.dart`), the Phosphor pack bundled as fonts in `assets/fonts` (regular,
   plus filled for a selected tab). Never `Icons.*`; add a missing icon to `AppIcons` by its Phosphor code point. Back
   and close buttons get theirs from the theme's `actionIconTheme`.
-- App icon: one glossy deep blue chat bubble with a white reply arrow on a flat charcoal ground (#1E1F21), in
-  the style of the system's own dark icons. `tool/make_app_icon.py` (Pillow only) draws the masters in `assets/icon/`,
-  the Windows `.ico`, Android's status-bar `ic_stat_air_reply.png` at each density and `assets/icon/app_logo.png`
-  (the in-app `AppLogo`: the bubble alone, on clear; only the app icon has the charcoal plate);
-  `dart run flutter_launcher_icons` then writes every platform's set.
+- App icon: one glossy deep blue chat bubble with a white reply arrow on white (iOS and Android need an opaque ground;
+  iOS dark, Windows and Linux take the bubble alone on clear), drawn to
+  each platform's guidelines by `tool/make_app_icon.py` (Pillow only; its header lists the rules), then
+  `dart run flutter_launcher_icons` (config in `flutter_launcher_icons.yaml`). Android: adaptive layers drawn on the
+  full 108dp canvas (`adaptive_icon_foreground_inset: 0`), glyph 43dp inside the 66dp safe zone, a monochrome themed
+  layer, and a vector notification icon (`drawable/ic_stat_air_reply.xml`, 24dp white on clear). iOS: opaque 1024
+  plus iOS 18 dark and tinted variants. macOS: Apple's 824-point template. Web: glyph inside the maskable 80%.
+  Windows/Linux: the bubble alone on clear (`app_icon_shaped.png`; the `.ico` carries 16-256). `play_store_512.png` is for the
+  Play listing. In the app, `AppLogo` shows `assets/icon/app_logo.png`: the bubble alone, on clear.
 - Glass (`BackdropFilter`) only on floating chrome: app bar, pinned search, nav bar, composer.
 - Scrolling pages use `GlassSliverAppBar` (through `GlassScrollPage`, and on Home): reading on slides the bar away and
   scrolling back brings it back; a strip of its glass stays under the status bar, and pinned search boxes stay just
@@ -235,7 +245,7 @@ The development profile is "Mac Team Provisioning Profile: com.airreply.airReply
   No overlays or full-screen intents (a permission of their own; Android 14 keeps FSI for calls and alarms).
 - A push the server sent more than `ArrivalAlerts.window` ago (`isLatePush`, by FCM's `sentTime`, so no clock skew
   between devices) lands without an alert: a device back online gets the backlog without one ring per message.
-- Read in AirReply means gone from the system's panel: `InboxController.markRead` / `hide` take the alerts down
+- Read in AirReply means gone from the system's panel: `InboxController.markRead` / `delete` take the alerts down
   (`MirroredAlerts.dismiss`, by `MirroredAlerts.alertId`, the same id in every isolate), "Mark all as read" takes down
   every mirrored alert (`dismissAll`; on Android only the `mirrored*` channels, never the sharing service's status),
   and a reply typed into an alert takes that alert down once it is queued.

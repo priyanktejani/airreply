@@ -9,6 +9,7 @@ import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/widgets/app_sheet.dart';
+import 'package:air_reply/core/widgets/feedback.dart';
 import 'package:air_reply/core/widgets/icon_tile.dart';
 import 'package:air_reply/core/widgets/notice.dart';
 import 'package:air_reply/core/widgets/status_badge.dart';
@@ -56,7 +57,7 @@ String alertDeliveryHelp(AppLocalizations l10n, AlertDelivery delivery) {
 /// the prompt, the Setup assistant and How alerts appear.
 Future<void> fixAlertDelivery(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.maybeOf(context);
-  final fixed = context.l10n.popUpsFixed;
+  final fixed = appSnackBar(context, context.l10n.popUpsFixed, icon: AppIcons.notificationsActive);
   final controller = ref.read(alertDeliveryProvider.notifier);
   // one at a time: a second tap before coming back replaces the first
   _pendingFix?.dispose();
@@ -67,7 +68,7 @@ Future<void> fixAlertDelivery(BuildContext context, WidgetRef ref) async {
       if (identical(_pendingFix, listener)) _pendingFix = null;
       unawaited(
         controller.refresh().then((delivery) {
-          if (delivery?.works ?? false) messenger?.showSnackBar(SnackBar(content: Text(fixed)));
+          if (delivery?.works ?? false) messenger?.showSnackBar(fixed);
         }, onError: (Object _) {}),
       );
     },

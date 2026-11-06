@@ -49,7 +49,7 @@ class _DeviceSheet extends ConsumerWidget {
     if (!confirmed || !context.mounted) return false;
     final messenger = ScaffoldMessenger.of(context);
     // read before the wait: the sheet may close while the device is removed
-    final removed = context.l10n.deviceRemoved(device.peerName);
+    final removed = appSnackBar(context, context.l10n.deviceRemoved(device.peerName), icon: AppIcons.linkOff);
     try {
       await ref.read(deviceSessionProvider.notifier).unpair(device.pairId);
     } on Object catch (e) {
@@ -57,7 +57,7 @@ class _DeviceSheet extends ConsumerWidget {
       return false;
     }
     ref.success();
-    messenger.showSnackBar(SnackBar(content: Text(removed)));
+    messenger.showSnackBar(removed);
     return true;
   }
 

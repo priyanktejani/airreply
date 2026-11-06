@@ -65,7 +65,7 @@ class ConversationAvatar extends StatelessWidget {
 
 /// One app's notifications on a [NotificationCard]: its icon, the app (and phone), the latest notification and how
 /// many there are. Tap to open the group; the chevron lists its conversations inside the card, each opening as a chat.
-/// Swipe the card to mark the whole group read or hide it; swipe a conversation to do the same for just that one.
+/// Swipe the card to mark the whole group read or delete it; swipe a conversation to do the same for just that one.
 class AppGroupTile extends ConsumerWidget {
   const AppGroupTile({
     required this.group,
@@ -127,7 +127,7 @@ class AppGroupTile extends ConsumerWidget {
         id: 'group/${group.id}',
         isRead: allRead,
         onToggleRead: () => ref.toggleReadAll(context, group.entries, allRead: allRead),
-        onHide: () => ref.hide(context, group.entries),
+        onDelete: () => ref.delete(context, group.entries),
       ),
       semanticLabel: _withUnread(
         context.l10n,
@@ -154,7 +154,7 @@ class AppGroupTile extends ConsumerWidget {
   }
 }
 
-/// The actions for a set of notifications on screen: mark them unread, hide them, or mute the app. Marking unread and
+/// The actions for a set of notifications on screen: mark them unread, delete them, or mute the app. Marking unread and
 /// hiding both leave the screen via [onLeave].
 class GroupActionsMenu extends ConsumerWidget {
   const GroupActionsMenu({
@@ -184,8 +184,8 @@ class GroupActionsMenu extends ConsumerWidget {
           case 'unread':
             unawaited(ref.toggleReadAll(context, entries, allRead: allRead));
             onLeave(); // back to the list, where the conversation now shows as unread
-          case 'hide':
-            unawaited(ref.hide(context, entries));
+          case 'delete':
+            unawaited(ref.delete(context, entries));
             onLeave();
           case 'mute':
             ref.tick();
@@ -195,8 +195,8 @@ class GroupActionsMenu extends ConsumerWidget {
       itemBuilder: (_) => [
         PopupMenuItem(value: 'unread', child: Text(context.l10n.markAsUnread)),
         PopupMenuItem(
-          value: 'hide',
-          child: Text(entries.length == 1 ? context.l10n.hideFromDevice : context.l10n.hideCount(entries.length)),
+          value: 'delete',
+          child: Text(entries.length == 1 ? context.l10n.deleteFromDevice : context.l10n.deleteCount(entries.length)),
         ),
         if (isReceiver)
           PopupMenuItem(
@@ -239,7 +239,7 @@ class ThreadTile extends ConsumerWidget {
       id: 'thread/${thread.source}/${thread.packageName}/${thread.key}',
       isRead: allRead,
       onToggleRead: () => ref.toggleReadAll(context, thread.entries, allRead: allRead),
-      onHide: () => ref.hide(context, thread.entries),
+      onDelete: () => ref.delete(context, thread.entries),
     );
     final label = _withUnread(context.l10n, '${thread.title}, $summary', unread);
     Widget avatar(double size) => ConversationAvatar(title: thread.title, kind: thread.kind, size: size);

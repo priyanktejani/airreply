@@ -48,6 +48,13 @@ abstract interface class NotificationFeed {
 
   /// Decrypts the copy of a notification that arrived inside a push, without a Firestore read.
   Future<MirroredNotification?> decodePushed({required String id, required String payload, required bool canReply});
+
+  /// Deletes these notifications from this device for good: the notification, its search entry and the replies sent
+  /// to it. The paired device keeps its own copy.
+  Future<void> deleteNotifications(Iterable<String> ids);
+
+  /// Deletes every notification of this pair from this device ("Clear all"), and their replies.
+  Future<void> deleteAllNotifications();
 }
 
 /// Receiver: queues a reply for the sender to execute.

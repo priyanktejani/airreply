@@ -496,12 +496,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get markedAllRead => 'Alle als gelesen markiert';
 
   @override
-  String get restoreHiddenTitle => 'Ausgeblendete Mitteilungen wiederherstellen';
-
-  @override
-  String get hiddenRestored => 'Ausgeblendete Mitteilungen wiederhergestellt';
-
-  @override
   String get removeAllTitle => 'Alle Geräte entfernen';
 
   @override
@@ -593,17 +587,6 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count ungelesen',
       zero: 'Nichts ungelesen',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String hiddenCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count auf diesem Gerät ausgeblendet',
-      zero: 'Nichts ausgeblendet',
     );
     return '$_temp0';
   }
@@ -1363,17 +1346,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get copyText => 'Text kopieren';
 
   @override
-  String get hideFromDevice => 'Auf diesem Gerät ausblenden';
-
-  @override
-  String get actionHide => 'Ausblenden';
-
-  @override
-  String hideCount(int count) {
-    return '$count Mitteilungen ausblenden';
-  }
-
-  @override
   String get you => 'Du';
 
   @override
@@ -1483,9 +1455,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get inboxEmptyReceiver => 'Mitteilungen von deinem Handy erscheinen hier, sobald sie eintreffen.';
 
   @override
-  String get inboxAllHidden => 'Alle Mitteilungen sind ausgeblendet. Stelle sie in den Einstellungen wieder her.';
-
-  @override
   String get notificationsLoadFailed => 'Mitteilungen konnten nicht geladen werden';
 
   @override
@@ -1516,17 +1485,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dividerNew => 'Neu';
-
-  @override
-  String notificationHidden(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Mitteilungen ausgeblendet',
-      one: 'Mitteilung ausgeblendet',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get copied => 'Kopiert';
@@ -2148,4 +2106,54 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get expectOffHelp =>
       'Sie sind in den Benachrichtigungseinstellungen dieses Geräts ausgeschaltet. Tippe auf Benachrichtigungseinstellungen öffnen und schalte sie ein.';
+
+  @override
+  String get appIconTitle => 'App-Symbol';
+
+  @override
+  String get appIconLight => 'Hell';
+
+  @override
+  String get appIconDark => 'Dunkel';
+
+  @override
+  String get appIconHint => 'Das Symbol von AirReply auf deinem Startbildschirm.';
+
+  @override
+  String get appIconChanged => 'Symbol geändert. Dein Startbildschirm zeigt es eventuell erst nach einem Moment.';
+
+  @override
+  String get actionDelete => 'Löschen';
+
+  @override
+  String deleteCount(int count) {
+    return '$count Benachrichtigungen löschen';
+  }
+
+  @override
+  String get deleteFromDevice => 'Von diesem Gerät löschen';
+
+  @override
+  String notificationDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Benachrichtigungen gelöscht',
+      one: 'Benachrichtigung gelöscht',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clearAllTitle => 'Alles löschen';
+
+  @override
+  String get clearAllConfirmTitle => 'Alle Benachrichtigungen löschen?';
+
+  @override
+  String get clearAllConfirmMessage =>
+      'Alle Benachrichtigungen auf diesem Gerät werden samt Antworten gelöscht, und die Hinweise von AirReply verschwinden aus der Benachrichtigungsleiste. Das lässt sich nicht rückgängig machen. Deine gekoppelten Geräte behalten ihre eigenen.';
+
+  @override
+  String get clearAllDone => 'Alle Benachrichtigungen gelöscht';
 }

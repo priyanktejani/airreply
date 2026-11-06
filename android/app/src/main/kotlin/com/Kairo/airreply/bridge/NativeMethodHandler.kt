@@ -90,6 +90,16 @@ class NativeMethodHandler(private val context: Context) : MethodChannel.MethodCa
                     result.success(null)
                 }
                 "isAppVisible" -> result.success(AppVisibility.visible)
+                // the app's own launcher icon, light or dark (Settings → Appearance → App icon)
+                "getLauncherIcon" -> result.success(AppIcons.current(context))
+                "setLauncherIcon" -> {
+                    val name = call.argument<String>("name")
+                    if (name == null) result.error("bad_args", "name is required", null)
+                    else {
+                        AppIcons.set(context, name)
+                        result.success(null)
+                    }
+                }
                 "getAlertChannel" -> {
                     val id = call.argument<String>("id")
                     if (id == null) result.error("bad_args", "id is required", null)

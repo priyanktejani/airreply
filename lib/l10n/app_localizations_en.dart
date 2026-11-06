@@ -487,12 +487,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get markedAllRead => 'All marked as read';
 
   @override
-  String get restoreHiddenTitle => 'Restore hidden notifications';
-
-  @override
-  String get hiddenRestored => 'Hidden notifications restored';
-
-  @override
   String get removeAllTitle => 'Remove all devices';
 
   @override
@@ -580,17 +574,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String unreadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count unread', zero: 'Nothing unread');
-    return '$_temp0';
-  }
-
-  @override
-  String hiddenCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count hidden on this device',
-      zero: 'Nothing hidden',
-    );
     return '$_temp0';
   }
 
@@ -1343,17 +1326,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copyText => 'Copy text';
 
   @override
-  String get hideFromDevice => 'Hide from this device';
-
-  @override
-  String get actionHide => 'Hide';
-
-  @override
-  String hideCount(int count) {
-    return 'Hide $count notifications';
-  }
-
-  @override
   String get you => 'You';
 
   @override
@@ -1463,9 +1435,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inboxEmptyReceiver => 'Notifications from your phone appear here the moment they arrive.';
 
   @override
-  String get inboxAllHidden => 'Every notification is hidden. Restore them from Settings.';
-
-  @override
   String get notificationsLoadFailed => 'Could not load notifications';
 
   @override
@@ -1496,17 +1465,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dividerNew => 'New';
-
-  @override
-  String notificationHidden(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count notifications hidden',
-      one: 'Notification hidden',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get copied => 'Copied';
@@ -2121,4 +2079,54 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get expectOffHelp =>
       'They are switched off in this device\'s notification settings. Tap Open alert settings and turn them on.';
+
+  @override
+  String get appIconTitle => 'App icon';
+
+  @override
+  String get appIconLight => 'Light';
+
+  @override
+  String get appIconDark => 'Dark';
+
+  @override
+  String get appIconHint => 'The icon of AirReply on your home screen.';
+
+  @override
+  String get appIconChanged => 'Icon changed. Your home screen may take a moment to show it.';
+
+  @override
+  String get actionDelete => 'Delete';
+
+  @override
+  String deleteCount(int count) {
+    return 'Delete $count notifications';
+  }
+
+  @override
+  String get deleteFromDevice => 'Delete from this device';
+
+  @override
+  String notificationDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notifications deleted',
+      one: 'Notification deleted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clearAllTitle => 'Clear all';
+
+  @override
+  String get clearAllConfirmTitle => 'Delete all notifications?';
+
+  @override
+  String get clearAllConfirmMessage =>
+      'Every notification on this device is deleted, with its replies, and AirReply\'s alerts leave the notification panel. This can\'t be undone. Your paired devices keep their own.';
+
+  @override
+  String get clearAllDone => 'All notifications deleted';
 }

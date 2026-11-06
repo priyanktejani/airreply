@@ -2,6 +2,7 @@ import 'package:air_reply/app/air_reply_app.dart';
 import 'package:air_reply/app/widgets/floating_nav_bar.dart';
 import 'package:air_reply/core/widgets/stat_tile.dart';
 import 'package:air_reply/demo/demo_mode.dart';
+import 'package:air_reply/features/mirror/mirror_providers.dart';
 import 'package:air_reply/features/notifications/presentation/conversation_screen.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/group_widgets.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_card.dart';
@@ -242,14 +243,14 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('swiping a group hides all of it, and Undo brings it back', (tester) async {
+  testWidgets('swiping a group deletes all of it: Undo brings it back, else it is gone for good', (tester) async {
     await launch(tester, role: 'receiver');
     await openTab(tester, 'Notifications');
 
     await tester.drag(find.text('WhatsApp · Pixel 9 Pro'), const Offset(-500, 0));
     await tester.pumpAndSettle();
     expect(find.text('WhatsApp · Pixel 9 Pro'), findsNothing);
-    expect(find.text('8 notifications hidden'), findsOneWidget);
+    expect(find.text('8 notifications deleted'), findsOneWidget);
 
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
@@ -259,6 +260,50 @@ void main() {
     await tester.drag(find.text('WhatsApp · Pixel 9 Pro'), const Offset(500, 0));
     await tester.pumpAndSettle();
     expect(find.byWidgetPredicate((w) => w is UnreadCount && w.count == 3), findsNothing);
+
+    // deleted again, and left: once the Undo is gone, so are they, from the history itself
+    await tester.drag(find.text('WhatsApp · Pixel 9 Pro'), const Offset(-500, 0));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+    expect(find.text('Undo'), findsNothing);
+    final feed = ProviderScope.containerOf(
+      tester.element(find.byType(Scaffold).first),
+    ).read(notificationFeedProvider('pixel'));
+    // the history itself, read outside the test's fake clock
+    final left = (await tester.runAsync(() => feed.watchNotifications().first))!;
+    expect(left.where((n) => n.content.packageName == 'com.whatsapp'), isEmpty);
+    expect(find.text('WhatsApp · Pixel 9 Pro'), findsNothing);
+    await close(tester);
+  });
+
+  testWidgets('Clear all asks first, then deletes every notification', (tester) async {
+    await launch(tester, role: 'receiver');
+    await openTab(tester, 'Notifications');
+
+    await tester.tap(find.byTooltip('Clear all'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete all notifications?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('WhatsApp · Pixel 9 Pro'), findsOneWidget, reason: 'cancelled: nothing deleted');
+
+    // searching: results from the whole history are on screen when everything is cleared
+    await tester.enterText(find.byType(TextField).first, 'Alex');
+    await tester.pumpAndSettle();
+    expect(find.byType(NotificationCard), findsWidgets);
+
+    await tester.tap(find.byTooltip('Clear all'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete all'));
+    await tester.pumpAndSettle();
+    expect(find.text('All notifications deleted'), findsOneWidget);
+    expect(find.byType(NotificationCard), findsNothing, reason: 'the search results went too');
+
+    await tester.enterText(find.byType(TextField).first, '');
+    await tester.pumpAndSettle();
+    expect(find.text('Nothing here yet'), findsOneWidget);
+    expect(find.byType(NotificationCard), findsNothing);
     await close(tester);
   });
 
@@ -281,11 +326,11 @@ void main() {
     await tester.pumpAndSettle();
     expectCardSwipes();
 
-    // swiping a conversation hides it, with Undo, as on the notifications screen
+    // swiping a conversation deletes it, with Undo, as on the notifications screen
     await tester.drag(find.text('Family'), const Offset(-500, 0));
     await tester.pumpAndSettle();
     expect(find.text('Family'), findsNothing);
-    expect(find.text('2 notifications hidden'), findsOneWidget);
+    expect(find.text('2 notifications deleted'), findsOneWidget);
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(find.text('Family'), findsOneWidget);
@@ -327,10 +372,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(Theme.of(tester.element(find.text('Dark'))).brightness, Brightness.dark);
 
-    // The demo starts with the last 20 minutes unread (six notifications) and nothing hidden.
-    await reveal(tester, find.text('Restore hidden notifications'), scrollable: scrollable);
+    // The demo starts with the last 20 minutes unread (six notifications); nothing to restore any more.
+    await reveal(tester, find.text('Mark all as read'), scrollable: scrollable);
     expect(find.text('6 unread'), findsOneWidget);
-    expect(find.text('Nothing hidden'), findsOneWidget);
+    expect(find.text('Restore hidden notifications'), findsNothing);
     await tester.tap(find.text('Mark all as read'));
     await tester.pumpAndSettle();
     expect(find.text('Nothing unread'), findsOneWidget);

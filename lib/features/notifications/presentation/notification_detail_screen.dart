@@ -121,12 +121,12 @@ class _NotificationDetailScreenState extends ConsumerState<NotificationDetailScr
             icon: const Icon(AppIcons.contentCopy),
           ),
           IconButton(
-            tooltip: context.l10n.hideFromDevice,
+            tooltip: context.l10n.deleteFromDevice,
             onPressed: () {
-              unawaited(ref.hide(context, [entry]));
+              unawaited(ref.delete(context, [entry]));
               _close();
             },
-            icon: const Icon(AppIcons.visibilityOff),
+            icon: const Icon(AppIcons.delete),
           ),
           const SizedBox(width: AppSpacing.sm),
         ],

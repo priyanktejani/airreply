@@ -400,6 +400,22 @@ final class MirrorSyncRepository implements MirrorRepository {
     });
   }
 
+  @override
+  Future<void> deleteNotifications(Iterable<String> ids) async {
+    final gone = ids.toSet();
+    if (gone.isEmpty) return;
+    await _save(() => _history.deleteNotifications(gone), (records) {
+      records.notifications.removeWhere((id, _) => gone.contains(id));
+      records.replies.removeWhere((_, r) => gone.contains(r.notificationId));
+    });
+  }
+
+  @override
+  Future<void> deleteAllNotifications() => _save(_history.deleteAllNotifications, (records) {
+    records.notifications.clear();
+    records.replies.clear();
+  });
+
   /// Writes to the device, then to the loaded copy (when something is watching it) and tells the watchers.
   Future<void> _save(Future<String> Function() write, void Function(HistoryRecords records) apply) async {
     final revision = await write();

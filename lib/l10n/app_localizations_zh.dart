@@ -471,12 +471,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get markedAllRead => '已全部标为已读';
 
   @override
-  String get restoreHiddenTitle => '恢复隐藏的通知';
-
-  @override
-  String get hiddenRestored => '已恢复隐藏的通知';
-
-  @override
   String get removeAllTitle => '移除所有设备';
 
   @override
@@ -554,12 +548,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String unreadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count 条未读', zero: '没有未读');
-    return '$_temp0';
-  }
-
-  @override
-  String hiddenCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '在这台设备上隐藏了 $count 条', zero: '没有隐藏的通知');
     return '$_temp0';
   }
 
@@ -1271,17 +1259,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get copyText => '复制文字';
 
   @override
-  String get hideFromDevice => '在这台设备上隐藏';
-
-  @override
-  String get actionHide => '隐藏';
-
-  @override
-  String hideCount(int count) {
-    return '隐藏 $count 条通知';
-  }
-
-  @override
   String get you => '你';
 
   @override
@@ -1390,9 +1367,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inboxEmptyReceiver => '来自手机的通知一到就会显示在这里。';
 
   @override
-  String get inboxAllHidden => '所有通知都已隐藏。可在“设置”中恢复。';
-
-  @override
   String get notificationsLoadFailed => '无法加载通知';
 
   @override
@@ -1422,12 +1396,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dividerNew => '新消息';
-
-  @override
-  String notificationHidden(int count) {
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '已隐藏 $count 条通知', one: '已隐藏通知');
-    return '$_temp0';
-  }
 
   @override
   String get copied => '已复制';
@@ -2017,4 +1985,48 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get expectOffHelp => '它们在此设备的通知设置中已关闭。点按“打开提醒设置”并将其开启。';
+
+  @override
+  String get appIconTitle => '应用图标';
+
+  @override
+  String get appIconLight => '浅色';
+
+  @override
+  String get appIconDark => '深色';
+
+  @override
+  String get appIconHint => 'AirReply 在主屏幕上的图标。';
+
+  @override
+  String get appIconChanged => '图标已更改。主屏幕可能需要片刻才会显示。';
+
+  @override
+  String get actionDelete => '删除';
+
+  @override
+  String deleteCount(int count) {
+    return '删除 $count 条通知';
+  }
+
+  @override
+  String get deleteFromDevice => '从此设备删除';
+
+  @override
+  String notificationDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '已删除 $count 条通知', one: '通知已删除');
+    return '$_temp0';
+  }
+
+  @override
+  String get clearAllTitle => '全部清除';
+
+  @override
+  String get clearAllConfirmTitle => '删除所有通知？';
+
+  @override
+  String get clearAllConfirmMessage => '此设备上的所有通知及其回复都会被删除，AirReply 的提醒也会从通知栏移除。此操作无法撤销。已配对的设备会保留各自的副本。';
+
+  @override
+  String get clearAllDone => '已删除所有通知';
 }

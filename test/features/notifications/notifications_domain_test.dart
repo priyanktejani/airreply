@@ -170,42 +170,49 @@ void main() {
       expect(start.markUnread([old.key]).isRead(old), isFalse);
     });
 
-    test('mark all as read moves the cut-off and clears exceptions, but keeps hidden', () {
-      final state = start.markUnread([old.key]).hide([fresh.key]).markAllRead(DateTime(2026, 10, 24, 11));
+    test('mark all as read moves the cut-off and clears exceptions', () {
+      final state = start.markUnread([old.key]).markAllRead(DateTime(2026, 10, 24, 11));
       expect(state.isRead(old), isTrue);
       expect(state.isRead(fresh), isTrue);
       expect(state.unread, isEmpty);
-      expect(state.isHidden(fresh), isTrue);
     });
 
-    test('hides, unhides and restores', () {
-      final hidden = start.hide([old.key, fresh.key]);
-      expect(hidden.isHidden(old) && hidden.isHidden(fresh), isTrue);
-      expect(hidden.unhide([old.key]).isHidden(old), isFalse);
-      expect(hidden.restoreHidden().hidden, isEmpty);
+    test('deleted notifications take their read marks with them', () {
+      final state = start.markRead([fresh.key]).markUnread([old.key]).forget([fresh.key, old.key]);
+      expect(state.read, isEmpty);
+      expect(state.unread, isEmpty);
+    });
+
+    test('what an earlier version hid is read once, to be deleted, and never saved again', () {
+      final earlier = InboxState.fromJson({
+        'read': ['a'],
+        'hidden': ['pixel/x', 'pixel/y'],
+      });
+      expect(earlier.legacyHidden, {'pixel/x', 'pixel/y'});
+      expect(earlier.toJson().containsKey('hidden'), isFalse);
+      expect(earlier.markRead(['b']).legacyHidden, isEmpty);
     });
 
     test('survives a JSON round trip and stays bounded', () {
-      final state = start.markRead(['a']).markUnread(['b']).hide(['c']);
+      final state = start.markRead(['a']).markUnread(['b']);
       final back = InboxState.fromJson(state.toJson());
       expect(back.readBefore, state.readBefore);
       expect(back.read, {'a'});
       expect(back.unread, {'b'});
-      expect(back.hidden, {'c'});
 
-      final many = start.hide([for (var i = 0; i < InboxState.maxKept + 50; i++) 'k$i']);
-      expect(many.hidden, hasLength(InboxState.maxKept));
-      expect(many.hidden, contains('k${InboxState.maxKept + 49}')); // the newest are kept
+      final many = start.markRead([for (var i = 0; i < InboxState.maxKept + 50; i++) 'k$i']);
+      expect(many.read, hasLength(InboxState.maxKept));
+      expect(many.read, contains('k${InboxState.maxKept + 49}')); // the newest are kept
     });
 
     test('is stored on the device', () async {
       SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
       final store = PreferencesInboxStateStore(SharedPreferencesAsync());
       expect(await store.load(), isNull);
-      await store.save(start.hide(['x']));
+      await store.save(start.markRead(['x']));
       final loaded = await store.load();
       expect(loaded?.readBefore, start.readBefore);
-      expect(loaded?.hidden, {'x'});
+      expect(loaded?.read, {'x'});
     });
   });
 
@@ -257,14 +264,10 @@ void main() {
     expect(ReplyStatus.parse('something else'), ReplyStatus.failed);
   });
 
-  test('a pair that ends takes its read, unread and hidden marks with it', () {
-    final state = const InboxState().markRead(['pixel/a', 'galaxy/b']).markUnread(['pixel/c']).hide([
-      'pixel/d',
-      'galaxy/e',
-    ]);
+  test('a pair that ends takes its read and unread marks with it', () {
+    final state = const InboxState().markRead(['pixel/a', 'galaxy/b']).markUnread(['pixel/c']);
     final forgotten = state.forgetPair('pixel');
     expect(forgotten.read, {'galaxy/b'});
     expect(forgotten.unread, isEmpty);
-    expect(forgotten.hidden, {'galaxy/e'});
   });
 }

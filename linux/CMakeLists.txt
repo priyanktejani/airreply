@@ -98,8 +98,9 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
   COMPONENT Runtime)
 
 # The window icon, loaded by my_application.cc.
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../assets/icon/app_icon.png" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
-  COMPONENT Runtime)
+# the shaped icon (clear corners, as Linux desktops show icons), installed under the name my_application.cc loads
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../assets/icon/app_icon_shaped.png" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
+  RENAME app_icon.png COMPONENT Runtime)
 
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)

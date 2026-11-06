@@ -61,7 +61,6 @@ class DiagnosticsScreen extends ConsumerWidget {
         ]),
       DiagnosticsSection('Inbox', [
         ('Unread', '${ref.watch(unreadCountProvider)}'),
-        ('Hidden', '${ref.watch(hiddenCountProvider)}'),
         ('App icons cached', '${ref.watch(appIconsProvider).length}'),
       ]),
     ];

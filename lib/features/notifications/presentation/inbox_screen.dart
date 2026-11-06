@@ -11,6 +11,7 @@ import 'package:air_reply/core/theme/app_palette.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/theme/app_typography.dart';
+import 'package:air_reply/core/utils/guarded.dart';
 import 'package:air_reply/core/widgets/empty_state.dart';
 import 'package:air_reply/core/widgets/eyebrow.dart';
 import 'package:air_reply/core/widgets/feedback.dart';
@@ -62,6 +63,21 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     context.showUndo(context.l10n.allMarkedRead, () => unawaited(inbox.restore(previous)));
   }
 
+  /// Deletes every notification on this device, and every alert from the system's panel, once confirmed.
+  Future<void> _clearAll() async {
+    final l10n = context.l10n;
+    final confirmed = await context.confirm(
+      title: l10n.clearAllConfirmTitle,
+      message: l10n.clearAllConfirmMessage,
+      confirmLabel: l10n.actionDeleteAll,
+      destructive: true,
+    );
+    if (!confirmed || !mounted) return;
+    ref.success();
+    await runGuarded(context, ref.read(inboxStateProvider.notifier).deleteAll);
+    if (mounted) context.showMessage(l10n.clearAllDone, icon: AppIcons.delete);
+  }
+
   @override
   Widget build(BuildContext context) {
     final devices = ref.watch(pairedDevicesProvider);
@@ -70,7 +86,11 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     final filter = ref.watch(inboxFilterProvider);
     final inboxLoaded = ref.watch(inboxStateProvider).hasValue;
     final groups = ref.watch(groupedInboxProvider);
-    final everything = ref.watch(liveFeedProvider).value ?? const [];
+    final deleted = ref.watch(deletedEntriesProvider);
+    final everything = [
+      for (final e in ref.watch(liveFeedProvider).value ?? const <FeedEntry>[])
+        if (!deleted.contains(e.key)) e,
+    ];
     final search = ref.watch(historyResultsProvider(inboxSearch));
     final matchedDevices = ref.watch(deviceMatchesProvider(filter.query)).isNotEmpty;
 
@@ -91,6 +111,11 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
             tooltip: context.l10n.markAllRead,
             onPressed: unread == 0 ? null : _markAllRead,
             icon: const Icon(AppIcons.doneAll),
+          ),
+          IconButton(
+            tooltip: context.l10n.clearAllTitle,
+            onPressed: everything.isEmpty ? null : _clearAll,
+            icon: const Icon(AppIcons.delete),
           ),
         ],
         // the search box stays pinned under the bar, as frosted glass, while the notifications scroll beneath it
@@ -157,11 +182,9 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                         ),
                       )
                     : EmptyState(
-                        icon: everything.isEmpty ? AppIcons.notificationsNone : AppIcons.inbox,
-                        title: everything.isEmpty ? context.l10n.emptyNothingYet : context.l10n.allCaughtUp,
-                        description: everything.isEmpty
-                            ? (isSender ? context.l10n.inboxEmptySender : context.l10n.inboxEmptyReceiver)
-                            : context.l10n.inboxAllHidden,
+                        icon: AppIcons.notificationsNone,
+                        title: context.l10n.emptyNothingYet,
+                        description: isSender ? context.l10n.inboxEmptySender : context.l10n.inboxEmptyReceiver,
                       ),
               ),
             ],

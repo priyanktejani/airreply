@@ -493,6 +493,21 @@ final class _DemoMirror implements MirrorRepository {
       _notifications.where((n) => n.id == id).firstOrNull;
 
   @override
+  Future<void> deleteNotifications(Iterable<String> ids) async {
+    final gone = ids.toSet();
+    _notifications.removeWhere((n) => gone.contains(n.id));
+    _replies.removeWhere((r) => gone.contains(r.notificationId));
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> deleteAllNotifications() async {
+    _notifications.clear();
+    _replies.clear();
+    _changes.add(null);
+  }
+
+  @override
   Future<MirroredNotification?> decodePushed({required String id, required String payload, required bool canReply}) =>
       fetchNotification(id);
 

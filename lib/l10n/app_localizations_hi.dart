@@ -488,12 +488,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get markedAllRead => 'सभी पढ़े हुए चिह्नित किए गए';
 
   @override
-  String get restoreHiddenTitle => 'छिपी सूचनाएँ वापस लाएँ';
-
-  @override
-  String get hiddenRestored => 'छिपी सूचनाएँ वापस आ गईं';
-
-  @override
   String get removeAllTitle => 'सभी डिवाइस हटाएँ';
 
   @override
@@ -581,17 +575,6 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String unreadCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$count अपठित', zero: 'कुछ भी अपठित नहीं');
-    return '$_temp0';
-  }
-
-  @override
-  String hiddenCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'इस डिवाइस पर $count छिपी हुई',
-      zero: 'कुछ भी छिपा नहीं',
-    );
     return '$_temp0';
   }
 
@@ -1324,17 +1307,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get copyText => 'टेक्स्ट कॉपी करें';
 
   @override
-  String get hideFromDevice => 'इस डिवाइस से छिपाएँ';
-
-  @override
-  String get actionHide => 'छिपाएँ';
-
-  @override
-  String hideCount(int count) {
-    return '$count सूचनाएँ छिपाएँ';
-  }
-
-  @override
   String get you => 'आप';
 
   @override
@@ -1444,9 +1416,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get inboxEmptyReceiver => 'आपके फ़ोन की सूचनाएँ आते ही यहाँ दिखती हैं।';
 
   @override
-  String get inboxAllHidden => 'हर सूचना छिपी हुई है। उन्हें सेटिंग से वापस लाएँ।';
-
-  @override
   String get notificationsLoadFailed => 'सूचनाएँ लोड नहीं हो सकीं';
 
   @override
@@ -1476,17 +1445,6 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get dividerNew => 'नई';
-
-  @override
-  String notificationHidden(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count सूचनाएँ छिपाई गईं',
-      one: 'सूचना छिपाई गई',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get copied => 'कॉपी हुआ';
@@ -2100,4 +2058,54 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get expectOffHelp =>
       'वे इस डिवाइस की सूचना सेटिंग में बंद हैं। अलर्ट सेटिंग खोलें पर टैप करके उन्हें चालू करें।';
+
+  @override
+  String get appIconTitle => 'ऐप आइकन';
+
+  @override
+  String get appIconLight => 'हल्का';
+
+  @override
+  String get appIconDark => 'गहरा';
+
+  @override
+  String get appIconHint => 'आपकी होम स्क्रीन पर AirReply का आइकन।';
+
+  @override
+  String get appIconChanged => 'आइकन बदल गया। होम स्क्रीन पर दिखने में थोड़ा समय लग सकता है।';
+
+  @override
+  String get actionDelete => 'हटाएँ';
+
+  @override
+  String deleteCount(int count) {
+    return '$count सूचनाएँ हटाएँ';
+  }
+
+  @override
+  String get deleteFromDevice => 'इस डिवाइस से हटाएँ';
+
+  @override
+  String notificationDeleted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count सूचनाएँ हटा दी गईं',
+      one: 'सूचना हटा दी गई',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clearAllTitle => 'सब साफ़ करें';
+
+  @override
+  String get clearAllConfirmTitle => 'सभी सूचनाएँ हटाएँ?';
+
+  @override
+  String get clearAllConfirmMessage =>
+      'इस डिवाइस की हर सूचना उसके जवाबों सहित हट जाएगी, और AirReply के अलर्ट सूचना पैनल से हट जाएँगे। इसे वापस नहीं लाया जा सकता। आपके जोड़े गए डिवाइस अपनी प्रति रखते हैं।';
+
+  @override
+  String get clearAllDone => 'सभी सूचनाएँ हटा दी गईं';
 }

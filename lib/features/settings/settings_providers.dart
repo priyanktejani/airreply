@@ -1,4 +1,5 @@
 import 'package:air_reply/core/core_providers.dart';
+import 'package:air_reply/core/platform/launcher_icon.dart';
 import 'package:air_reply/core/platform/notification_permission.dart';
 import 'package:air_reply/features/settings/domain/app_preferences.dart';
 import 'package:flutter/services.dart';
@@ -59,6 +60,24 @@ final class AlertPermissionController extends AsyncNotifier<bool> {
   Future<void> request() async {
     await _permission.request();
     await refresh();
+  }
+}
+
+final launcherIconsProvider = Provider((ref) => LauncherIcons());
+
+/// The app icon on the home screen (Settings → Appearance → App icon): null where the system has only one.
+final launcherIconProvider = AsyncNotifierProvider.autoDispose<LauncherIconController, LauncherIcon?>(
+  LauncherIconController.new,
+);
+
+class LauncherIconController extends AsyncNotifier<LauncherIcon?> {
+  @override
+  Future<LauncherIcon?> build() async => LauncherIcons.isSupported ? ref.watch(launcherIconsProvider).current() : null;
+
+  Future<void> choose(LauncherIcon icon) async {
+    if (state.value == icon) return;
+    await ref.read(launcherIconsProvider).set(icon);
+    state = AsyncData(icon);
   }
 }
 

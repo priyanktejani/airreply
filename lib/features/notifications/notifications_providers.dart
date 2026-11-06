@@ -208,8 +208,8 @@ final class InboxController extends AsyncNotifier<InboxState> {
     if (saved != null) {
       // an earlier version hid rather than deleted: what was hidden is deleted now, once
       if (saved.legacyHidden.isNotEmpty) {
-        ref.read(deletedEntriesProvider.notifier).add(saved.legacyHidden);
-        unawaited(Future(() => delete(saved.legacyHidden)));
+        final deletions = ref.read(deletedEntriesProvider.notifier)..stage(saved.legacyHidden);
+        unawaited(Future(() => deletions.commit(saved.legacyHidden)));
       }
       return saved;
     }
@@ -236,8 +236,7 @@ final class InboxController extends AsyncNotifier<InboxState> {
   Future<void> delete(Iterable<String> keys) async {
     final byPair = <String, List<String>>{};
     for (final key in keys) {
-      final slash = key.indexOf('/');
-      if (slash > 0) byPair.putIfAbsent(key.substring(0, slash), () => []).add(key.substring(slash + 1));
+      if (FeedEntry.parseKey(key) case (:final pairId, :final id)) byPair.putIfAbsent(pairId, () => []).add(id);
     }
     dismissAlerts(keys);
     for (final MapEntry(key: pairId, value: ids) in byPair.entries) {
@@ -248,8 +247,8 @@ final class InboxController extends AsyncNotifier<InboxState> {
         rethrow;
       }
     }
-    // read marks of what is gone, and what an earlier version hid, are forgotten
-    await _update((s) => InboxState(readBefore: s.readBefore, read: s.read, unread: s.unread).forget(keys));
+    // read marks of what is gone are forgotten (and with any change, what an earlier version hid)
+    await _update((s) => s.forget(keys));
   }
 
   /// "Clear all": every notification of every paired device, deleted from this device, and every alert taken down.
@@ -263,9 +262,12 @@ final class InboxController extends AsyncNotifier<InboxState> {
     await _update((_) => InboxState(readBefore: DateTime.now()));
   }
 
-  /// Entry keys are `pairId/notificationId`; alerts are named by the notification.
+  /// Takes the alerts of these entries off the system's panel (alerts are named by the notification).
   void dismissAlerts(Iterable<String> keys) {
-    final ids = [for (final key in keys) key.substring(key.indexOf('/') + 1)];
+    final ids = [
+      for (final key in keys)
+        if (FeedEntry.parseKey(key) case (pairId: _, :final id)) id,
+    ];
     if (ids.isNotEmpty) unawaited(_alerts((alerts) => alerts.dismiss(ids)));
   }
 
@@ -331,14 +333,41 @@ final class InboxFilterController extends Notifier<FeedFilter> {
 /// once (the database catches up when the Undo goes), and so do history pages loaded before.
 final deletedEntriesProvider = NotifierProvider<DeletedEntries, Set<String>>(DeletedEntries.new);
 
+/// Deleting, in two steps so it can be undone: [stage] takes the entries out of every list and their alerts off the
+/// panel at once; [commit] deletes them from the history for good, or [undo] puts them back. Whoever offers the Undo
+/// (a snackbar) decides when; the rules live here.
 class DeletedEntries extends Notifier<Set<String>> {
   @override
   Set<String> build() => const {};
 
-  void add(Iterable<String> keys) => state = {...state, ...keys};
+  void stage(Iterable<String> keys) {
+    state = {...state, ...keys};
+    ref.read(inboxStateProvider.notifier).dismissAlerts(keys);
+  }
 
-  /// Undo: back in the lists.
-  void remove(Iterable<String> keys) => state = state.difference(keys.toSet());
+  /// Back in the lists.
+  void undo(Iterable<String> keys) => state = state.difference(keys.toSet());
+
+  /// Final. Returns false (and puts them back) when the history could not be written, so nothing vanishes unsaved.
+  Future<bool> commit(Iterable<String> keys) async {
+    try {
+      await ref.read(inboxStateProvider.notifier).delete(keys);
+      return true;
+    } on Object catch (e) {
+      appLog('Delete not saved; the notifications are back: $e', name: 'air_reply.history');
+      undo(keys);
+      return false;
+    }
+  }
+}
+
+/// [entries] without what was deleted: the one place deleted notifications leave the lists.
+List<FeedEntry> _notDeleted(Ref ref, Iterable<FeedEntry> entries) {
+  final deleted = ref.watch(deletedEntriesProvider);
+  return [
+    for (final e in entries)
+      if (!deleted.contains(e.key)) e,
+  ];
 }
 
 /// The inbox as shown: deleted entries left out, filters applied. While searching, the search's results from the whole
@@ -349,7 +378,6 @@ final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((r
       ? AsyncData<List<FeedEntry>>(ref.watch(historyEntriesProvider(inboxSearch)))
       : ref.watch(liveFeedProvider);
   final inbox = ref.watch(inboxStateProvider).value;
-  final deleted = ref.watch(deletedEntriesProvider);
   final filter = ref.watch(inboxFilterProvider);
   final isRead = _isRead(inbox);
   // filtered again as the day turns, so "Today" and "Last 7 days" move on with the clock
@@ -357,48 +385,36 @@ final visibleFeedProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((r
   final now = DateTime.now();
   return feed.whenData(
     (entries) => [
-      for (final e in entries)
-        if (!deleted.contains(e.key) && filter.matches(e, isRead: isRead, now: now)) e,
+      for (final e in _notDeleted(ref, entries))
+        if (filter.matches(e, isRead: isRead, now: now)) e,
     ],
   );
 });
 
-/// Not deleted: what the inbox holds before search and filters. Counts and Home come from here.
-final _inboxEntriesProvider = Provider.autoDispose<List<FeedEntry>>((ref) {
-  final deleted = ref.watch(deletedEntriesProvider);
-  return [
-    for (final e in ref.watch(liveFeedProvider).value ?? const <FeedEntry>[])
-      if (!deleted.contains(e.key)) e,
-  ];
-});
+/// Not deleted: what the inbox holds before search and filters. Counts, Home and the inbox's empty state come from here.
+final inboxEntriesProvider = Provider.autoDispose<List<FeedEntry>>(
+  (ref) => _notDeleted(ref, ref.watch(liveFeedProvider).value ?? const []),
+);
 
 /// Not deleted, with the history on screen: what the group and chat screens find a notification in.
-final _openableEntriesProvider = Provider.autoDispose<List<FeedEntry>>((ref) {
-  final deleted = ref.watch(deletedEntriesProvider);
-  return [
-    for (final e in ref.watch(allFeedProvider).value ?? const <FeedEntry>[])
-      if (!deleted.contains(e.key)) e,
-  ];
-});
+final _openableEntriesProvider = Provider.autoDispose<List<FeedEntry>>(
+  (ref) => _notDeleted(ref, ref.watch(allFeedProvider).value ?? const []),
+);
 
 /// What [scope]'s results show: deleted notifications left out.
-final shownResultsProvider = Provider.autoDispose.family<List<FeedEntry>, HistoryScope>((ref, scope) {
-  final deleted = ref.watch(deletedEntriesProvider);
-  return [
-    for (final e in ref.watch(historyEntriesProvider(scope)))
-      if (!deleted.contains(e.key)) e,
-  ];
-});
+final shownResultsProvider = Provider.autoDispose.family<List<FeedEntry>, HistoryScope>(
+  (ref, scope) => _notDeleted(ref, ref.watch(historyEntriesProvider(scope))),
+);
 
 final unreadCountProvider = Provider.autoDispose<int>((ref) {
   final isRead = _isRead(ref.watch(inboxStateProvider).value);
-  return ref.watch(_inboxEntriesProvider).where((e) => !isRead(e)).length;
+  return ref.watch(inboxEntriesProvider).where((e) => !isRead(e)).length;
 });
 
 final todayCountProvider = Provider.autoDispose<int>((ref) {
   // rolls over at midnight while Home stays open
   final now = ref.watch(clockProvider).value ?? DateTime.now();
-  return ref.watch(_inboxEntriesProvider).where((e) => FeedPeriod.today.includes(e.postedAt, now)).length;
+  return ref.watch(inboxEntriesProvider).where((e) => FeedPeriod.today.includes(e.postedAt, now)).length;
 });
 
 // ------------------------------------------------------------------ smart grouping
@@ -437,7 +453,7 @@ final threadProvider = Provider.autoDispose
 
 /// The newest few notifications, for Home.
 final recentEntriesProvider = Provider.autoDispose<AsyncValue<List<FeedEntry>>>((ref) {
-  final recent = ref.watch(_inboxEntriesProvider).take(5).toList();
+  final recent = ref.watch(inboxEntriesProvider).take(5).toList();
   return ref.watch(liveFeedProvider).whenData((_) => recent);
 });
 

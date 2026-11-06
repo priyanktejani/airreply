@@ -232,8 +232,14 @@ class RecordingMirror implements MirrorRepository {
   final deleted = <String>[];
   var deletedAll = false;
 
+  /// Set to make deleting fail, as a full or locked database would.
+  Object? deleteFails;
+
   @override
-  Future<void> deleteNotifications(Iterable<String> ids) async => deleted.addAll(ids);
+  Future<void> deleteNotifications(Iterable<String> ids) async {
+    if (deleteFails case final error?) throw error;
+    deleted.addAll(ids);
+  }
 
   @override
   Future<void> deleteAllNotifications() async => deletedAll = true;

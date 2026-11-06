@@ -77,6 +77,31 @@ final class MirroredAlerts {
     );
   }
 
+  /// A test alert (Settings → Send a test alert): a message like a real one, alerting as one would, that cannot be
+  /// answered. Its words follow the language chosen in Settings.
+  Future<void> showTest({required bool showContent}) {
+    final l10n = appL10n();
+    final now = DateTime.now();
+    return show(
+      MirroredNotification(
+        id: 'test-${now.millisecondsSinceEpoch}',
+        content: NotificationContent(
+          key: 'airreply-test',
+          packageName: 'com.airreply.test',
+          appName: l10n.appTitle,
+          title: l10n.alertStyleTestTitle,
+          text: l10n.alertStyleTestText,
+          postedAt: now,
+          isMessage: true,
+        ),
+        canReply: false,
+        dismissedOnSender: false,
+      ),
+      pairId: 'test',
+      showContent: showContent,
+    );
+  }
+
   /// Raises the alert, as [style] says for its kind (a message or another notification): popping up, in the list,
   /// silently, or not at all. With [showContent] false (Settings → "Show message text in alerts"), the alert names only
   /// the app, so nothing private appears on a lock screen or a shared display. The user's own messages (a reply's
@@ -86,7 +111,7 @@ final class MirroredAlerts {
     required String pairId,
     String? deviceName,
     bool showContent = true,
-    AlertStyle style = const AlertStyle(),
+    AlertStyle style = AlertStyle.standard,
   }) {
     final content = notification.content;
     if (isTitledAsUser(content)) return Future.value();

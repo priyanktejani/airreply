@@ -69,7 +69,6 @@ class _AppShellState extends ConsumerState<AppShell> {
     final unread = ref.watch(unreadCountProvider);
 
     void select(int index) {
-      if (index != shell.currentIndex) ref.tick();
       shell.goBranch(index, initialLocation: index == shell.currentIndex);
     }
 

@@ -1,5 +1,6 @@
 import 'package:air_reply/core/animations/pressable_scale.dart';
 import 'package:air_reply/core/animations/smooth_size.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -124,7 +125,13 @@ class NotificationCard extends StatelessWidget {
             ),
       child: _Content(card: this),
     );
-    final target = InkWell(onTap: onTap, onLongPress: onLongPress, child: body);
+    // the long press's haptic follows Settings → Haptic feedback, so InkWell's own is off
+    final target = InkWell(
+      enableFeedback: false,
+      onTap: context.withTapSound(onTap),
+      onLongPress: context.withLongPressHaptic(onLongPress),
+      child: body,
+    );
 
     Widget result = _row
         ? target

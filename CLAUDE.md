@@ -99,9 +99,13 @@ Like WhatsApp: history lives on the devices, Firestore is only a mailbox.
 - A notification's sealed payload must stay under firestore.rules' 16 KB: `PublishCapturedNotification.fit` keeps
   the clear JSON under `maxPayloadBytes`, by bytes (Hindi, Chinese, emoji take 3-4 bytes a character): the icon goes
   first, then text and title are shortened with an ellipsis. Without it such notifications were refused, unseen.
+- An inbox entry's key is `pairId/notificationId`, written only by `FeedEntry.keyOf` and read only by
+  `FeedEntry.parseKey`; never build or split it by hand.
 - Deleting is for good, there is no hiding: `InboxController.delete` removes notifications (and their replies and
   search entries) from the history (`MessageHistory.deleteNotifications`, through the feed's `deleteNotifications`);
-  the UI takes them out of every list at once (`deletedEntriesProvider`) and commits when its 5-second Undo goes
+  `DeletedEntries` (`deletedEntriesProvider`) owns the steps: `stage` takes them out of every list (`_notDeleted`, the
+  one filter) and their alerts down, `undo` puts them back, `commit` deletes for good (and puts them back if saving
+  fails); the UI only offers the 5-second Undo and commits when it goes
   (`persist: false`: Flutter keeps a snackbar with an action until dismissed otherwise). Notifications → Clear all
   (`deleteAll`, confirmed) deletes everything and every alert. What an earlier version hid is deleted on the next start
   (`InboxState.legacyHidden`). The paired device keeps its own copy.
@@ -151,6 +155,11 @@ Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configure
   plus iOS 18 dark and tinted variants. macOS: Apple's 824-point template. Web: glyph inside the maskable 80%.
   Windows/Linux: the bubble alone on clear (`app_icon_shaped.png`; the `.ico` carries 16-256). `play_store_512.png` is for the
   Play listing. In the app, `AppLogo` shows `assets/icon/app_logo.png`: the bubble alone, on clear.
+- Messages: every bottom message is built by `appSnackBar` (`lib/core/widgets/feedback.dart`, through
+  `showMessage` / `showError` / `showUndo`): one look, the screen's width less margins on a phone and
+  `maxSnackBarWidth` centred on bigger screens; never a bare `SnackBar(...)`. A snackbar with an action needs
+  `persist: false` to time out. In-screen message boxes (`EmptyState`, `Notice`) take the full width they are
+  given (EmptyState capped at 440), whatever their text.
 - Glass (`BackdropFilter`) only on floating chrome: app bar, pinned search, nav bar, composer.
 - Scrolling pages use `GlassSliverAppBar` (through `GlassScrollPage`, and on Home): reading on slides the bar away and
   scrolling back brings it back; a strip of its glass stays under the status bar, and pinned search boxes stay just
@@ -191,6 +200,12 @@ Flutter's gen-l10n (https://docs.flutter.dev/ui/internationalization), configure
 - A `CardGroup`'s rows are `InfoRow` / `SwitchRow`, or laid out like them: `AppSpacing.card` from the card's edge, a
   `InfoRow.tile`-sized leading, an `AppSpacing.md` gap, so text and hairlines line up. Rows without a leading pass
   `inset: AppSpacing.card`. A tall row keeps its icon and control beside the title (`titleHeight` alignment).
+- Haptics, as in ColorOS 16's apps: none for getting around (tabs, opening and closing pages, menus); a tick for a
+  choice (`ref.tick()`) and as a gesture reaches the point where it acts (a swipe's threshold, a pull that refreshes:
+  `threshold`); a firmer press when a long press opens a menu (`withLongPressHaptic`, on an `InkWell` with
+  `enableFeedback: false`); light for done, firm for refused. All in `lib/core/haptics/haptics.dart`, all silent when
+  Settings → Haptic feedback is off (`hapticsEnabledProvider`, tied to the preference in the bootstrap); never call
+  `HapticFeedback` directly.
 - Floating chrome at the bottom (nav bar, message box, `StickyActionBar`) sits on `BottomFade`, so content scrolling
   under it fades out instead of showing between the panel and the screen's edge.
 - Tests use `FakeAccessibilityFeatures(disableAnimations: true)` through the helpers in `test/app/app_flow_test.dart`.
@@ -218,7 +233,7 @@ The development profile is "Mac Team Provisioning Profile: com.airreply.airReply
 
 - How alerts appear (pop-up, sound, vibration, lock screen) is the system's, as in other messaging apps: Android has
   two fixed channels, "Messages" (`mirrored_popUp_sound_vibrate`, high importance) and "Other notifications"
-  (`mirrored_normal_sound_vibrate`), from the fixed `AlertStyle()`; the bootstrap tidies away the per-choice channels
+  (`mirrored_normal_sound_vibrate`), from `AlertStyle.standard`; the bootstrap tidies away the per-choice channels
   of earlier versions. Settings → Alerts opens the system's page (`openSystemNotificationSettings`: Android, iOS, Mac,
   Windows) under `AlertExpectationBanner`, which says what messages and other notifications will do as the system
   has them now (`AlertExpectation`, read per channel by `alertDeliveryProvider`). AirReply itself only decides muted

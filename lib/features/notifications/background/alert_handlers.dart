@@ -44,18 +44,16 @@ Future<void> presentMirroredPush(ProviderContainer container, Map<String, dynami
   if (notification == null) return;
 
   final preferences = await container.read(appPreferencesProvider.future);
-  if (!preferences.alertsFor(notification.content.packageName)) return;
+  if (!ArrivalAlerts.alertable(notification, preferences)) return;
   // a push can start this isolate cold: the alert's buttons follow the language chosen in Settings
   chosenLocale ??= await AppLanguageStore(container.read(sharedPreferencesProvider)).read();
-  await container
-      .read(mirroredAlertsProvider)
-      .show(
-        notification,
-        pairId: pair.pairId,
-        deviceName: session.pairs.length > 1 ? pair.peerName : null,
-        showContent: preferences.alertShowsContent,
-        style: preferences.alertStyle,
-      );
+  // the same alert the open app and the background service raise
+  await ArrivalAlerts(container.read(mirroredAlertsProvider)).show(
+    notification,
+    pairId: pair.pairId,
+    preferences: preferences,
+    deviceName: session.pairs.length > 1 ? pair.peerName : null,
+  );
 }
 
 /// Sends the reply typed into a mirrored alert, to the pair the alert came from. It is saved here first and shows in

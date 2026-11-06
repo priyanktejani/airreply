@@ -24,7 +24,7 @@ class AlertDeliveryController extends AsyncNotifier<AlertDelivery?> {
   Future<AlertDelivery?> build() async {
     if (!AppPlatform.isAndroid || ref.watch(deviceRoleProvider) != DeviceRole.receiver) return null;
     // fixed: pop-up, sound and the rest are the system's settings of these channels
-    const style = AlertStyle();
+    const style = AlertStyle.standard;
     final uses = alertChannelsFor(style);
     if (uses.isEmpty) return null;
     final bridge = ref.watch(notificationBridgeProvider);

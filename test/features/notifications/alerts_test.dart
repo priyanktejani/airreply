@@ -239,6 +239,14 @@ void main() {
     });
   });
 
+  test('the test alert: a message like a real one, that cannot be answered', () async {
+    await MirroredAlerts(FlutterLocalNotificationsPlugin()).showTest(showContent: true);
+    final call = calls.singleWhere((c) => c.method == 'show').arguments as Map;
+    expect(call['title'], 'AirReply');
+    expect(call['body'], 'This is how a message will alert you.');
+    expect(shown()['actions'], anyOf(isNull, isEmpty), reason: 'no Reply on a test');
+  });
+
   group('read in AirReply: its alert leaves the notification panel', () {
     final alerts = MirroredAlerts(FlutterLocalNotificationsPlugin());
 

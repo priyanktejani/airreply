@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:air_reply/core/animations/motion.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
@@ -16,7 +17,6 @@ import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.
 import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/domain/send_reply.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
-import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

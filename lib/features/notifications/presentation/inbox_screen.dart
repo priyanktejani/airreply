@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/describe_error.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
@@ -28,7 +29,6 @@ import 'package:air_reply/features/notifications/presentation/widgets/group_widg
 import 'package:air_reply/features/notifications/presentation/widgets/history_widgets.dart';
 import 'package:air_reply/features/permissions/presentation/permission_notices.dart';
 import 'package:air_reply/features/session/session_providers.dart';
-import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -86,11 +86,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     final filter = ref.watch(inboxFilterProvider);
     final inboxLoaded = ref.watch(inboxStateProvider).hasValue;
     final groups = ref.watch(groupedInboxProvider);
-    final deleted = ref.watch(deletedEntriesProvider);
-    final everything = [
-      for (final e in ref.watch(liveFeedProvider).value ?? const <FeedEntry>[])
-        if (!deleted.contains(e.key)) e,
-    ];
+    final everything = ref.watch(inboxEntriesProvider);
     final search = ref.watch(historyResultsProvider(inboxSearch));
     final matchedDevices = ref.watch(deviceMatchesProvider(filter.query)).isNotEmpty;
 

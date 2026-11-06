@@ -4,6 +4,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/app_language.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
@@ -29,8 +30,6 @@ import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/features/devices/devices_providers.dart';
 import 'package:air_reply/features/devices/domain/device_status.dart';
 import 'package:air_reply/features/devices/presentation/device_status_text.dart';
-import 'package:air_reply/features/mirror/domain/entities/mirrored_notification.dart';
-import 'package:air_reply/features/mirror/domain/entities/notification_content.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/alert_delivery.dart';
 import 'package:air_reply/features/permissions/domain/setup_tasks.dart';
@@ -305,10 +304,7 @@ class _AlertSettings extends ConsumerWidget {
                     : (on) {
                         ref.tick();
                         unawaited(
-                          runGuarded(context, () async {
-                            await ref.read(appPreferencesProvider.notifier).setReceiveWhenClosed(on);
-                            await ref.read(syncStatusProvider.notifier).setEnabled(on);
-                          }),
+                          runGuarded(context, () => ref.read(syncStatusProvider.notifier).setReceiveWhenClosed(on)),
                         );
                       },
               ),
@@ -331,35 +327,16 @@ class _AlertSettings extends ConsumerWidget {
     );
   }
 
-  /// A message that looks like a real one, alerting as a real one would; it cannot be answered.
+  /// Asks for alerts if they are not allowed yet, then raises a test alert (MirroredAlerts.showTest).
   static Future<void> _sendTestAlert(BuildContext context, WidgetRef ref) async {
-    final l10n = context.l10n;
     final permission = ref.read(alertPermissionProvider.notifier);
     if (!(ref.read(alertPermissionProvider).value ?? false)) await permission.request();
     if (!(ref.read(alertPermissionProvider).value ?? false)) {
-      if (context.mounted) context.showMessage(l10n.noticeAlertsOffTitle, icon: AppIcons.notificationsOff);
+      if (context.mounted) context.showMessage(context.l10n.noticeAlertsOffTitle, icon: AppIcons.notificationsOff);
       return;
     }
-    await ref
-        .read(mirroredAlertsProvider)
-        .show(
-          MirroredNotification(
-            id: 'test-${DateTime.now().millisecondsSinceEpoch}',
-            content: NotificationContent(
-              key: 'airreply-test',
-              packageName: 'com.airreply.test',
-              appName: l10n.appTitle,
-              title: l10n.alertStyleTestTitle,
-              text: l10n.alertStyleTestText,
-              postedAt: DateTime.now(),
-              isMessage: true,
-            ),
-            canReply: false,
-            dismissedOnSender: false,
-          ),
-          pairId: 'test',
-          showContent: ref.read(appPreferencesProvider).value?.alertShowsContent ?? true,
-        );
+    final showContent = ref.read(appPreferencesProvider).value?.alertShowsContent ?? true;
+    await ref.read(mirroredAlertsProvider).showTest(showContent: showContent);
   }
 }
 
@@ -474,7 +451,7 @@ class _AppearanceSettings extends ConsumerWidget {
             value: haptics,
             onChanged: (on) {
               unawaited(ref.read(appPreferencesProvider.notifier).setHaptics(on));
-              if (on) ref.tick();
+              if (on) Haptics.selection();
             },
           ),
         InfoRow(icon: AppIcons.textFields, title: context.l10n.textSizeTitle, subtitle: context.l10n.textSizeSubtitle),

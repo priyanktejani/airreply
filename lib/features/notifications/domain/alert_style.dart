@@ -35,6 +35,11 @@ enum LockScreenAlerts {
 /// The person's choices for this device's alerts, for messages (chats that can be answered) and other notifications
 /// apart: a message from a friend can pop up while a delivery update arrives quietly.
 final class AlertStyle {
+  /// How alerts use the channels: messages pop up, other notifications go in the list, with sound and vibration. The
+  /// one style in use (the person changes pop-up, sound, vibration and lock screen per channel in the system's
+  /// settings, as in other messaging apps), so every alert, check and channel tidy reads it from here.
+  static const standard = AlertStyle();
+
   const AlertStyle({
     this.messages = AlertMode.popUp,
     this.others = AlertMode.normal,

@@ -1,5 +1,6 @@
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/animations/pressable_scale.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/theme/app_radius.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/widgets/glass_container.dart';
@@ -45,8 +46,10 @@ class AppCard extends StatelessWidget {
             child: !tappable
                 ? Padding(padding: padding, child: child)
                 : InkWell(
-                    onTap: onTap,
-                    onLongPress: onLongPress,
+                    // the long press's haptic follows Settings → Haptic feedback, so InkWell's own is off
+                    enableFeedback: false,
+                    onTap: context.withTapSound(onTap),
+                    onLongPress: context.withLongPressHaptic(onLongPress),
                     child: Padding(padding: padding, child: child),
                   ),
           );

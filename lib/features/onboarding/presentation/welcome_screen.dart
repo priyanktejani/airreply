@@ -19,7 +19,6 @@ import 'package:air_reply/core/widgets/icon_tile.dart';
 import 'package:air_reply/core/widgets/section_header.dart';
 import 'package:air_reply/core/widgets/underlined_headline.dart';
 import 'package:air_reply/features/session/session_providers.dart';
-import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -35,7 +34,6 @@ class WelcomeScreen extends ConsumerWidget {
     final canShare = AppPlatform.canShareNotifications;
 
     void choose(DeviceRole role) {
-      ref.tick();
       runGuarded(context, () => ref.read(deviceSessionProvider.notifier).chooseRole(role));
     }
 

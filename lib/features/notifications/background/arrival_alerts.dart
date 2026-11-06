@@ -38,11 +38,5 @@ final class ArrivalAlerts {
     required String pairId,
     required AppPreferences preferences,
     String? deviceName,
-  }) => _alerts.show(
-    notification,
-    pairId: pairId,
-    deviceName: deviceName,
-    showContent: preferences.alertShowsContent,
-    style: preferences.alertStyle,
-  );
+  }) => _alerts.show(notification, pairId: pairId, deviceName: deviceName, showContent: preferences.alertShowsContent);
 }

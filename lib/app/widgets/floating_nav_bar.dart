@@ -7,7 +7,6 @@ import 'package:air_reply/core/theme/app_typography.dart';
 import 'package:air_reply/core/widgets/bottom_fade.dart';
 import 'package:air_reply/core/widgets/glass_container.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 /// One tab of the [FloatingNavBar].
 class FloatingNavItem {
@@ -98,10 +97,8 @@ class FloatingNavBar extends StatelessWidget {
                                     item: items[i],
                                     selected: i == selectedIndex,
                                     duration: duration,
-                                    onTap: () {
-                                      HapticFeedback.selectionClick();
-                                      onSelected(i);
-                                    },
+                                    // getting around has no haptic (as in ColorOS): only choices and gestures do
+                                    onTap: () => onSelected(i),
                                   ),
                                 ),
                               ),

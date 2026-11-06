@@ -6,6 +6,7 @@ import 'package:air_reply/app/router/app_router.dart';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/background/push_entrypoints.dart';
 import 'package:air_reply/core/firebase/firebase_start.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/app_language.dart';
 import 'package:air_reply/core/logging/app_log.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
@@ -17,6 +18,7 @@ import 'package:air_reply/features/notifications/data/mirrored_alerts.dart';
 import 'package:air_reply/features/notifications/domain/alert_style.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/settings/erase_everything.dart';
+import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:air_reply/firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -47,6 +49,8 @@ Future<void> bootstrap() async {
   final locale = await language;
   final container = ProviderContainer(
     overrides: [
+      // Settings → Haptic feedback, read by every haptic through this one provider
+      hapticsEnabledProvider.overrideWith((ref) => ref.watch(appPreferencesProvider).value?.haptics ?? true),
       initialThemeModeProvider.overrideWithValue(themeMode),
       initialAppLocaleProvider.overrideWithValue(locale),
       if (AppPlatform.isDemo) ...demoOverrides(AppPlatform.demo),
@@ -83,7 +87,7 @@ Future<void> bootstrap() async {
     // Android: only the two channels alerts use now ("Messages", "Other notifications") stay in the system's
     // settings; the per-choice ones of earlier versions go (each person's settings on these two are kept).
     if (AppPlatform.isAndroid) {
-      unawaited(container.read(mirroredAlertsProvider).tidyChannels(const AlertStyle()).catchError((Object _) {}));
+      unawaited(container.read(mirroredAlertsProvider).tidyChannels(AlertStyle.standard).catchError((Object _) {}));
     }
     // a reply typed into an alert that started the app: sent now, not lost as a plain tap
     if (await container.read(mirroredAlertsProvider).launchReply() case final reply?) {

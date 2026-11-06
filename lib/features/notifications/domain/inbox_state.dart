@@ -40,7 +40,7 @@ final class InboxState {
 
   /// Without the marks of [pairId]'s notifications: that pair has ended.
   InboxState forgetPair(String pairId) {
-    bool other(String key) => !key.startsWith('$pairId/');
+    bool other(String key) => FeedEntry.parseKey(key)?.pairId != pairId;
     return _copy(read: read.where(other).toSet(), unread: unread.where(other).toSet());
   }
 

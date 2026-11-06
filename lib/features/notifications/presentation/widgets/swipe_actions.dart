@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
@@ -80,10 +81,14 @@ class _SwipeActionsState extends State<SwipeActions> {
             ),
           Dismissible(
             key: ValueKey('swipe/${widget.id}'),
-            onUpdate: (details) => setState(() {
-              _direction = details.direction;
-              _progress = details.progress;
-            }),
+            onUpdate: (details) {
+              // one tick as the swipe reaches the point where it acts (and again if it comes back past it)
+              if (details.reached != details.previousReached) context.hapticThreshold();
+              setState(() {
+                _direction = details.direction;
+                _progress = details.progress;
+              });
+            },
             confirmDismiss: (direction) async {
               if (direction == DismissDirection.startToEnd) {
                 await widget.onToggleRead();

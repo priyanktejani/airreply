@@ -2,7 +2,6 @@ import 'package:air_reply/core/core_providers.dart';
 import 'package:air_reply/core/platform/launcher_icon.dart';
 import 'package:air_reply/core/platform/notification_permission.dart';
 import 'package:air_reply/features/settings/domain/app_preferences.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final appPreferencesStoreProvider = Provider<AppPreferencesStore>(
@@ -78,25 +77,5 @@ class LauncherIconController extends AsyncNotifier<LauncherIcon?> {
     if (state.value == icon) return;
     await ref.read(launcherIconsProvider).set(icon);
     state = AsyncData(icon);
-  }
-}
-
-/// Light, purposeful vibration for confirmed actions; silent when the person turned haptics off.
-extension HapticsRef on WidgetRef {
-  bool get _hapticsOn => read(appPreferencesProvider).value?.haptics ?? true;
-
-  /// A toggle flipped, a filter applied.
-  void tick() {
-    if (_hapticsOn) HapticFeedback.selectionClick();
-  }
-
-  /// Something was sent or completed.
-  void success() {
-    if (_hapticsOn) HapticFeedback.lightImpact();
-  }
-
-  /// Something failed or was rejected.
-  void failure() {
-    if (_hapticsOn) HapticFeedback.heavyImpact();
   }
 }

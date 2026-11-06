@@ -17,7 +17,19 @@ final class FeedEntry {
   final List<ReplyCommand> replies;
 
   /// Unique across paired phones.
-  String get key => '$pairId/${notification.id}';
+  /// Where this notification is kept: its pair and its id, as [keyOf] writes them.
+  String get key => keyOf(pairId, notification.id);
+
+  /// An entry's key: `pairId/notificationId`, the form read marks and deletions are kept in. The only place it is
+  /// written; [parseKey] the only place it is read.
+  static String keyOf(String pairId, String notificationId) => '$pairId/$notificationId';
+
+  /// The pair and notification of [key]; null for anything not written by [keyOf].
+  static ({String pairId, String id})? parseKey(String key) {
+    final slash = key.indexOf('/');
+    if (slash <= 0 || slash == key.length - 1) return null;
+    return (pairId: key.substring(0, slash), id: key.substring(slash + 1));
+  }
 
   DateTime get postedAt => notification.postedAt;
 

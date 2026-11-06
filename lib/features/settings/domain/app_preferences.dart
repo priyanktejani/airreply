@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:air_reply/features/notifications/domain/alert_style.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Choices that change how this device behaves. Stored on the device only.
@@ -10,7 +8,6 @@ final class AppPreferences {
     this.alertShowsContent = true,
     this.haptics = true,
     this.mutedApps = const {},
-    this.alertStyle = const AlertStyle(),
     this.autostartConfirmed = false,
     this.setupCardHidden = false,
     this.alertPromptShown = false,
@@ -37,12 +34,6 @@ final class AppPreferences {
   /// Receivers: apps whose notifications still arrive in the inbox but never raise an alert on this device.
   final Set<String> mutedApps;
 
-  /// Receivers: how alerts present themselves, for messages and for other notifications.
-  /// How alerts use the Android channels (messages pop up, others in the list). Fixed: the person chooses pop-up,
-  /// sound, vibration and lock screen in the system's settings for each channel, as in other messaging apps. Choices
-  /// an earlier version stored are left behind.
-  final AlertStyle alertStyle;
-
   /// Phones with a maker's autostart switch: the person said it is on (no app can read it).
   final bool autostartConfirmed;
 
@@ -63,7 +54,6 @@ final class AppPreferences {
     bool? alertShowsContent,
     bool? haptics,
     Set<String>? mutedApps,
-    AlertStyle? alertStyle,
     bool? autostartConfirmed,
     bool? setupCardHidden,
     bool? alertPromptShown,
@@ -72,7 +62,6 @@ final class AppPreferences {
     alertShowsContent: alertShowsContent ?? this.alertShowsContent,
     haptics: haptics ?? this.haptics,
     mutedApps: mutedApps ?? this.mutedApps,
-    alertStyle: alertStyle ?? this.alertStyle,
     autostartConfirmed: autostartConfirmed ?? this.autostartConfirmed,
     setupCardHidden: setupCardHidden ?? this.setupCardHidden,
     alertPromptShown: alertPromptShown ?? this.alertPromptShown,

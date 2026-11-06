@@ -4,6 +4,7 @@ import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -504,7 +505,8 @@ class _MessageBubble extends ConsumerWidget {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
-                  onLongPress: () => ref.showEntryActions(context, entry),
+                  enableFeedback: false,
+                  onLongPress: context.withLongPressHaptic(() => ref.showEntryActions(context, entry)),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base, vertical: AppSpacing.md),
                     child: Column(

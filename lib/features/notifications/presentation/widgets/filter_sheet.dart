@@ -1,4 +1,5 @@
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_palette.dart';
@@ -11,7 +12,6 @@ import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/feed_period_label.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_widgets.dart';
 import 'package:air_reply/features/session/session_providers.dart';
-import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

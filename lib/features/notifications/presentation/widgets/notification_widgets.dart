@@ -21,7 +21,6 @@ import 'package:air_reply/features/notifications/domain/feed.dart';
 import 'package:air_reply/features/notifications/domain/grouping.dart';
 import 'package:air_reply/features/notifications/notifications_providers.dart';
 import 'package:air_reply/features/notifications/presentation/widgets/notification_card.dart';
-import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +67,6 @@ extension EntryActions on WidgetRef {
   }
 
   Future<void> toggleRead(BuildContext context, FeedEntry entry, {required bool isRead}) async {
-    tick();
     final inbox = read(inboxStateProvider.notifier);
     await (isRead ? inbox.markUnread([entry.key]) : inbox.markRead([entry.key]));
   }
@@ -77,10 +75,8 @@ extension EntryActions on WidgetRef {
   /// history when the Undo goes (another action, or its time running out). Everything is taken from [context] first:
   /// a swiped row is gone, and its context unmounted, as soon as the lists update.
   Future<void> delete(BuildContext context, List<FeedEntry> entries) async {
-    tick();
     final keys = [for (final e in entries) e.key];
-    final deleted = read(deletedEntriesProvider.notifier);
-    final inbox = read(inboxStateProvider.notifier);
+    final deletions = read(deletedEntriesProvider.notifier);
     final messenger = ScaffoldMessenger.of(context);
     final snack = appSnackBar(
       context,
@@ -89,25 +85,17 @@ extension EntryActions on WidgetRef {
       duration: const Duration(seconds: 5),
       // goes by itself (one with an action would otherwise stay until dismissed): then the delete is final
       persist: false,
-      action: SnackBarAction(label: context.l10n.actionUndo, onPressed: () => deleted.remove(keys)),
+      action: SnackBarAction(label: context.l10n.actionUndo, onPressed: () => deletions.undo(keys)),
     );
-    deleted.add(keys);
-    inbox.dismissAlerts(keys);
+    deletions.stage(keys);
     messenger.hideCurrentSnackBar();
     final closed = await messenger.showSnackBar(snack).closed;
-    if (closed == SnackBarClosedReason.action) return;
-    try {
-      await inbox.delete(keys);
-    } on Object {
-      // not deleted after all (the database could not be written): back in the lists
-      deleted.remove(keys);
-    }
+    if (closed != SnackBarClosedReason.action) await deletions.commit(keys);
   }
 
   /// Marks every notification of a group read, or (when all are read) its newest one from someone else unread again:
   /// your own last message is not what makes a conversation worth coming back to.
   Future<void> toggleReadAll(BuildContext context, List<FeedEntry> entries, {required bool allRead}) async {
-    tick();
     final inbox = read(inboxStateProvider.notifier);
     if (!allRead) return inbox.markRead([for (final e in entries) e.key]);
     final theirs = entries.where((e) => !isMarkedAsUser(e.notification.content)).firstOrNull ?? entries.first;

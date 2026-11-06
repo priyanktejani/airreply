@@ -103,10 +103,7 @@ class AppGroupTile extends ConsumerWidget {
       action: group.hasThreads
           ? IconButton(
               tooltip: expanded ? context.l10n.hideConversations : context.l10n.showConversations,
-              onPressed: () {
-                ref.tick();
-                onToggleExpanded();
-              },
+              onPressed: onToggleExpanded,
               style: IconButton.styleFrom(
                 backgroundColor: expanded ? c.accentSoft : c.soft,
                 foregroundColor: expanded ? c.accent : c.muted,
@@ -188,7 +185,6 @@ class GroupActionsMenu extends ConsumerWidget {
             unawaited(ref.delete(context, entries));
             onLeave();
           case 'mute':
-            ref.tick();
             unawaited(ref.read(appPreferencesProvider.notifier).setMuted(packageName, muted: !muted));
         }
       },

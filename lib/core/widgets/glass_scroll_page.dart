@@ -1,3 +1,4 @@
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_spacing.dart';
 import 'package:air_reply/core/utils/app_insets.dart';
@@ -59,7 +60,10 @@ class GlassScrollPage extends StatelessWidget {
     );
     if (onRefresh != null) {
       scroll = RefreshIndicator(
-        onRefresh: onRefresh!,
+        onRefresh: () {
+          context.hapticThreshold();
+          return onRefresh!();
+        },
         edgeOffset: MediaQuery.paddingOf(context).top + toolbarHeight,
         child: scroll,
       );

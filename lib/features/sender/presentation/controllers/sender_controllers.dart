@@ -5,6 +5,7 @@ import 'package:air_reply/core/domain/device_role.dart';
 import 'package:air_reply/core/platform/native_models.dart';
 import 'package:air_reply/core/platform/native_notification_bridge.dart';
 import 'package:air_reply/features/session/session_providers.dart';
+import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ------------------------------------------------------------------ sync on / off
@@ -32,6 +33,13 @@ final class SyncStatusController extends AsyncNotifier<SyncStatus> {
         ? await _bridge.startSync(receiving: ref.read(deviceRoleProvider) == DeviceRole.receiver)
         : await _bridge.stopSync();
     state = AsyncData(await _bridge.syncStatus());
+  }
+
+  /// A device that shows notifications: "Receive when AirReply is closed". The choice is remembered (so the app
+  /// brings the service back as it starts) and the service follows it now.
+  Future<void> setReceiveWhenClosed(bool on) async {
+    await ref.read(appPreferencesProvider.notifier).setReceiveWhenClosed(on);
+    await setEnabled(on);
   }
 
   Future<void> refresh() async => state = await AsyncValue.guard(_bridge.syncStatus);

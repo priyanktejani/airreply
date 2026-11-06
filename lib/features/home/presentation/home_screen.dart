@@ -5,6 +5,7 @@ import 'package:air_reply/core/animations/fade_slide_in.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/animations/skeleton.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/theme/app_dimensions.dart';
 import 'package:air_reply/core/theme/app_icons.dart';
@@ -127,7 +128,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final searching = query.trim().isNotEmpty;
     const margin = EdgeInsets.symmetric(horizontal: AppSpacing.page);
     return RefreshIndicator(
-      onRefresh: _refresh,
+      onRefresh: () {
+        context.hapticThreshold();
+        return _refresh();
+      },
       edgeOffset: MediaQuery.paddingOf(context).top + GlassScrollPage.toolbarHeight,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),

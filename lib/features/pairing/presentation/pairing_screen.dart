@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:air_reply/app/router/route_guard.dart';
 import 'package:air_reply/core/animations/motion.dart';
 import 'package:air_reply/core/domain/device_role.dart';
+import 'package:air_reply/core/haptics/haptics.dart';
 import 'package:air_reply/core/l10n/describe_error.dart';
 import 'package:air_reply/core/l10n/l10n.dart';
 import 'package:air_reply/core/platform/app_platform.dart';
@@ -24,7 +25,6 @@ import 'package:air_reply/features/pairing/presentation/controllers/receiver_pai
 import 'package:air_reply/features/pairing/presentation/controllers/sender_pairing_controller.dart';
 import 'package:air_reply/features/pairing/presentation/widgets/pairing_widgets.dart';
 import 'package:air_reply/features/session/session_providers.dart';
-import 'package:air_reply/features/settings/settings_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
